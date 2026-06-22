@@ -73,7 +73,6 @@
     width: 100%;
   }
 
-  /* ── Team card ── */
   .team-card {
     background: var(--surface);
     border: 0.5px solid var(--border);
@@ -95,7 +94,6 @@
   .team-card.second { border-color: rgba(192,192,192,0.35); }
   .team-card.third  { border-color: rgba(205,127,50,0.35); }
 
-  /* Team header row */
   .team-header {
     display: flex;
     align-items: center;
@@ -114,7 +112,7 @@
     text-align: right;
   }
 
-  /* Exercises */
+  /* exercises section — only shown when at least one is active */
   .exercises {
     border-top: 0.5px solid var(--border);
     padding: 0.75rem 1.25rem 1rem;
@@ -122,6 +120,7 @@
     grid-template-columns: 1fr 1fr;
     gap: 8px;
   }
+  .exercises.hidden { display: none; }
 
   .exercise-row {
     background: var(--surface2);
@@ -133,46 +132,44 @@
     justify-content: space-between;
     gap: 8px;
   }
-  .exercise-label {
-    font-size: 12px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .exercise-score-area {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .exercise-score {
-    font-size: 18px;
-    font-weight: 600;
-    min-width: 28px;
-    text-align: center;
-    color: var(--text);
-  }
-  .ex-btns {
-    display: none;
-    gap: 3px;
-  }
+  .exercise-label { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .exercise-score-area { display: flex; align-items: center; gap: 6px; }
+  .exercise-score { font-size: 18px; font-weight: 600; min-width: 28px; text-align: center; }
+
+  .ex-btns { display: none; gap: 3px; }
   .ex-btn {
     background: rgba(255,255,255,0.06);
     border: 0.5px solid var(--border);
     border-radius: 5px;
     color: var(--text);
     font-size: 14px;
-    width: 26px;
-    height: 26px;
+    width: 26px; height: 26px;
     cursor: pointer;
     font-family: inherit;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     transition: background 0.15s, transform 0.1s;
     flex-shrink: 0;
   }
   .ex-btn:hover { background: rgba(255,255,255,0.12); }
   .ex-btn:active { transform: scale(0.9); }
   .ex-btn.minus { color: var(--muted); }
+
+  /* admin-only: "add exercise" buttons shown before exercise is activated */
+  .add-exercise-btn {
+    background: rgba(255,255,255,0.03);
+    border: 0.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.75rem;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .add-exercise-btn:hover { background: rgba(255,255,255,0.06); }
+  .add-exercise-label { font-size: 12px; color: var(--muted); }
+  .add-exercise-icon { font-size: 16px; color: var(--muted); }
 
   .status {
     text-align: center;
@@ -181,7 +178,6 @@
     margin: 1rem 0;
     min-height: 18px;
   }
-
   .reset-bar { text-align: center; margin-top: 0.5rem; display: none; }
   .reset-btn {
     background: transparent;
@@ -218,7 +214,7 @@
 <script>
 const SUPABASE_URL      = 'https://zbjngimdvoazcshkvbgv.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
-const TABLE_NAME        = 'scores'
+const TABLE_NAME = 'scores'
 
 const TEAMS = [
   { id: 'norge',     name: 'Norge',     flag: '🇳🇴' },
@@ -226,27 +222,22 @@ const TEAMS = [
   { id: 'senegal',   name: 'Senegal',   flag: '🇸🇳' },
   { id: 'irak',      name: 'Irak',      flag: '🇮🇶' },
 ]
-
 const EXERCISES = ['Øvelse 1', 'Øvelse 2', 'Øvelse 3', 'Øvelse 4']
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// scores[teamId][exerciseIndex] = points
+// scores[teamId] = [null, null, null, null]  — null = not yet activated
 let scores = {}
 let isAdmin = false
 
-TEAMS.forEach(t => { scores[t.id] = [0, 0, 0, 0] })
+TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
 
 function total(teamId) {
-  return (scores[teamId] || [0,0,0,0]).reduce((a, b) => a + b, 0)
+  return (scores[teamId] || []).reduce((a, b) => a + (b ?? 0), 0)
 }
 
-function rankEmoji(rank) {
-  return ['🥇','🥈','🥉','4'][rank - 1] ?? rank
-}
-function rankClass(rank) {
-  return ['first','second','third',''][rank - 1] ?? ''
-}
+function rankEmoji(r) { return ['🥇','🥈','🥉','4'][r-1] ?? r }
+function rankClass(r) { return ['first','second','third',''][r-1] ?? '' }
 
 function getSortedTeams() {
   return [...TEAMS].sort((a, b) => total(b.id) - total(a.id))
@@ -256,19 +247,36 @@ function render() {
   const sorted = getSortedTeams()
   document.getElementById('scoreboard').innerHTML = sorted.map((team, i) => {
     const rank = i + 1
-    const pts = scores[team.id] || [0,0,0,0]
-    const exRows = EXERCISES.map((label, ei) => `
-      <div class="exercise-row">
-        <span class="exercise-label">${label}</span>
-        <div class="exercise-score-area">
-          <div class="exercise-score" id="ex-${team.id}-${ei}">${pts[ei]}</div>
-          <div class="ex-btns" id="exbtns-${team.id}-${ei}">
-            <button class="ex-btn plus" onclick="changeScore('${team.id}', ${ei}, 1)">+</button>
-            <button class="ex-btn minus" onclick="changeScore('${team.id}', ${ei}, -1)">−</button>
-          </div>
-        </div>
-      </div>
-    `).join('')
+    const pts = scores[team.id] || [null, null, null, null]
+
+    const anyActive = pts.some(p => p !== null)
+
+    const exItems = EXERCISES.map((label, ei) => {
+      const val = pts[ei]
+      const isActive = val !== null
+
+      if (isActive) {
+        // Show the exercise row with score and (admin) +/- buttons
+        return `
+          <div class="exercise-row">
+            <span class="exercise-label">${label}</span>
+            <div class="exercise-score-area">
+              <div class="exercise-score">${val}</div>
+              <div class="ex-btns" id="exbtns-${team.id}-${ei}">
+                <button class="ex-btn plus"  onclick="changeScore('${team.id}', ${ei}, 1)">+</button>
+                <button class="ex-btn minus" onclick="changeScore('${team.id}', ${ei}, -1)">−</button>
+              </div>
+            </div>
+          </div>`
+      } else {
+        // Admin only: dashed "add" button to activate this exercise
+        return `
+          <div class="add-exercise-btn" id="addbtn-${team.id}-${ei}" onclick="activateExercise('${team.id}', ${ei})">
+            <span class="add-exercise-label">${label}</span>
+            <span class="add-exercise-icon">+</span>
+          </div>`
+      }
+    }).join('')
 
     return `
       <div class="team-card ${rankClass(rank)}">
@@ -276,20 +284,30 @@ function render() {
           <div class="rank">${rankEmoji(rank)}</div>
           <div class="flag">${team.flag}</div>
           <div class="team-name">${team.name}</div>
-          <div class="total-score" id="total-${team.id}">${total(team.id)}</div>
+          <div class="total-score">${total(team.id)}</div>
         </div>
-        <div class="exercises">${exRows}</div>
-      </div>
-    `
+        <div class="exercises ${anyActive || isAdmin ? '' : 'hidden'}" id="exercises-${team.id}">
+          ${exItems}
+        </div>
+      </div>`
   }).join('')
 
   applyAdminUI()
 }
 
 function applyAdminUI() {
+  // Show +/- buttons on active exercises
   document.querySelectorAll('[id^="exbtns-"]').forEach(el => {
     el.style.display = isAdmin ? 'flex' : 'none'
   })
+  // Show dashed "add" buttons for inactive exercises (admin only)
+  document.querySelectorAll('[id^="addbtn-"]').forEach(el => {
+    el.style.display = isAdmin ? 'flex' : 'none'
+  })
+  // Show exercises section even if nothing active yet (so admin sees add buttons)
+  if (isAdmin) {
+    document.querySelectorAll('.exercises').forEach(el => el.classList.remove('hidden'))
+  }
   document.getElementById('reset-bar').style.display = isAdmin ? 'block' : 'none'
   document.getElementById('admin-badge').style.display = isAdmin ? 'inline-block' : 'none'
 }
@@ -297,23 +315,29 @@ function applyAdminUI() {
 function checkAdmin() {
   if (isAdmin) return true
   const pw = prompt('Admin-passord:')
-  if (pw === '9900') {
-    isAdmin = true
-    applyAdminUI()
-    return true
-  }
+  if (pw === '9900') { isAdmin = true; applyAdminUI(); return true }
   return false
 }
 
-async function changeScore(teamId, exerciseIndex, delta) {
+async function activateExercise(teamId, ei) {
   if (!checkAdmin()) return
-  const pts = scores[teamId] || [0,0,0,0]
-  pts[exerciseIndex] = Math.max(0, pts[exerciseIndex] + delta)
-  scores[teamId] = pts
+  scores[teamId][ei] = 0
   render()
+  await save(teamId)
+}
+
+async function changeScore(teamId, ei, delta) {
+  if (!checkAdmin()) return
+  const pts = scores[teamId]
+  pts[ei] = Math.max(0, (pts[ei] ?? 0) + delta)
+  render()
+  await save(teamId)
+}
+
+async function save(teamId) {
   setStatus('Saving...')
   const { error } = await sb.from(TABLE_NAME).upsert(
-    { team_id: teamId, scores: pts },
+    { team_id: teamId, scores: scores[teamId] },
     { onConflict: 'team_id' }
   )
   setStatus(error ? '⚠️ Could not save' : 'Saved ✓')
@@ -323,25 +347,21 @@ async function changeScore(teamId, exerciseIndex, delta) {
 async function resetAll() {
   if (!checkAdmin()) return
   if (!confirm('Reset all scores to 0?')) return
-  TEAMS.forEach(t => { scores[t.id] = [0,0,0,0] })
+  TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
   render()
   setStatus('Resetting...')
-  const updates = TEAMS.map(t => ({ team_id: t.id, scores: [0,0,0,0] }))
+  const updates = TEAMS.map(t => ({ team_id: t.id, scores: [null, null, null, null] }))
   const { error } = await sb.from(TABLE_NAME).upsert(updates, { onConflict: 'team_id' })
   setStatus(error ? '⚠️ Could not save' : 'Reset done ✓')
   setTimeout(() => setStatus(''), 1500)
 }
 
-function setStatus(msg) {
-  document.getElementById('status').textContent = msg
-}
+function setStatus(msg) { document.getElementById('status').textContent = msg }
 
 async function loadScores() {
   const { data, error } = await sb.from(TABLE_NAME).select('team_id, scores')
   if (error) { setStatus('⚠️ Could not load scores'); return }
-  data.forEach(row => {
-    if (row.scores) scores[row.team_id] = row.scores
-  })
+  data.forEach(row => { if (row.scores) scores[row.team_id] = row.scores })
   render()
   setStatus('')
 }
@@ -350,8 +370,8 @@ function subscribeRealtime() {
   sb.channel('scores')
     .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, payload => {
       const row = payload.new
-      if (row?.team_id && row?.scores) {
-        scores[row.team_id] = row.scores
+      if (row?.team_id) {
+        scores[row.team_id] = row.scores || [null, null, null, null]
         render()
       }
     })
