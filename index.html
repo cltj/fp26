@@ -52,12 +52,12 @@
   .character-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    max-width: 500px;
+    gap: 12px;
+    max-width: 600px;
     width: 100%;
   }
 
-  @media (max-width: 400px) {
+  @media (max-width: 500px) {
     .character-grid {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -67,48 +67,51 @@
     background: var(--surface);
     border: 2px solid var(--border);
     border-radius: var(--radius);
-    padding: 12px;
-    text-align: center;
+    overflow: hidden;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 10px;
   }
   .character-card:hover {
     border-color: var(--border-hover);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(200,244,90,0.15);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(200,244,90,0.2);
   }
   .character-card:active {
     transform: translateY(-2px) scale(0.98);
   }
 
   .character-photo {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+    width: 100%;
+    aspect-ratio: 1;
     object-fit: cover;
-    border: 3px solid var(--border);
+    border: none;
+    border-bottom: 2px solid var(--border);
     transition: border-color 0.2s;
   }
   .character-card:hover .character-photo {
-    border-color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .character-info {
+    padding: 10px 12px;
+    text-align: center;
   }
 
   .character-name {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text);
   }
 
   /* Admin indicator */
-  .character-card.admin .character-photo {
-    border-color: rgba(255,215,0,0.5);
+  .character-card.admin {
+    border-color: rgba(255,215,0,0.3);
   }
-  .character-card.admin:hover .character-photo {
+  .character-card.admin:hover {
     border-color: gold;
+    box-shadow: 0 12px 32px rgba(255,215,0,0.2);
   }
   .admin-badge {
     font-size: 10px;
@@ -116,7 +119,8 @@
     color: gold;
     padding: 2px 8px;
     border-radius: 99px;
-    margin-top: -4px;
+    margin-top: 4px;
+    display: inline-block;
   }
 
   .footer {
@@ -221,8 +225,10 @@ function renderCharacters() {
   grid.innerHTML = participants.map(p => `
     <div class="character-card ${p.isAdmin ? 'admin' : ''}" onclick="selectCharacter(${p.id})">
       <img src="${p.photo_url || 'placeholder.png'}" alt="${p.participant}" class="character-photo" onerror="this.src='placeholder.png'">
-      <div class="character-name">${p.participant}</div>
-      ${p.isAdmin ? '<div class="admin-badge">👑 Admin</div>' : ''}
+      <div class="character-info">
+        <div class="character-name">${p.participant}</div>
+        ${p.isAdmin ? '<div class="admin-badge">👑 Admin</div>' : ''}
+      </div>
     </div>
   `).join('')
 }
