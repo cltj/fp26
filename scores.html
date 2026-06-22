@@ -213,6 +213,21 @@ const TEAMS = [
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 let scores = {}
+let isAdmin = false
+
+function checkAdmin() {
+  if (isAdmin) return true
+  const pw = prompt('Admin-passord:')
+  if (pw === '9900') { isAdmin = true; renderAdminState(); return true }
+  return false
+}
+
+function renderAdminState() {
+  document.querySelectorAll('.score-btns').forEach(el => {
+    el.style.display = isAdmin ? 'flex' : 'none'
+  })
+  document.querySelector('.reset-bar').style.display = isAdmin ? 'block' : 'none'
+}
 
 function rankEmoji(rank) {
   if (rank === 1) return '🥇'
@@ -248,7 +263,7 @@ function render() {
         </div>
         <div class="score-area">
           <div class="score" id="score-${team.id}">${pts}</div>
-          <div class="score-btns">
+          <div class="score-btns" style="display:none">
             <button class="score-btn plus" onclick="changeScore('${team.id}', 1)">+</button>
             <button class="score-btn minus" onclick="changeScore('${team.id}', -1)">−</button>
           </div>
@@ -256,9 +271,11 @@ function render() {
       </div>
     `
   }).join('')
+  renderAdminState()
 }
 
 async function changeScore(teamId, delta) {
+  if (!checkAdmin()) return
   const newScore = Math.max(0, (scores[teamId] ?? 0) + delta)
   scores[teamId] = newScore
   render()
@@ -269,6 +286,7 @@ async function changeScore(teamId, delta) {
 }
 
 async function resetAll() {
+  if (!checkAdmin()) return
   if (!confirm('Reset all scores to 0?')) return
   TEAMS.forEach(t => scores[t.id] = 0)
   render()
@@ -305,6 +323,8 @@ function subscribeRealtime() {
 
 loadScores()
 subscribeRealtime()
+// hide admin controls until authenticated
+document.querySelector('.reset-bar').style.display = 'none'
 </script>
 </body>
 </html>
