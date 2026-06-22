@@ -331,6 +331,23 @@
   }
   .admin-info ul { margin-top: 0.5rem; padding-left: 1.25rem; }
   .admin-info li { margin: 0.25rem 0; }
+  .admin-scoreboard-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 10px 20px;
+    background: rgba(200,244,90,0.15);
+    border: 0.5px solid rgba(200,244,90,0.4);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .admin-scoreboard-btn:hover {
+    background: rgba(200,244,90,0.25);
+    transform: translateY(-1px);
+  }
 </style>
 </head>
 <body>
@@ -365,7 +382,7 @@
       <div class="action-card music">
         <img src="fp26music.png" alt="Musikk QR" class="action-qr">
         <div class="action-content">
-          <div class="action-title">🎵 Legg til musikk</div>
+          <div class="action-title">🎵 Legg til musikk i spillelista</div>
           <div class="action-desc">Scan QR eller trykk for å legge til sanger</div>
           <a href="https://music.apple.com/no/playlist/pl.u-AkAm8ENsx3y8dzL?a=join&it=Y2Be7k4fWZPv7JBhqp8GG&l=nb" target="_blank" class="action-btn">Åpne spilleliste →</a>
         </div>
@@ -374,8 +391,8 @@
       <div class="action-card submit">
         <img src="fp26submit.png" alt="Submit QR" class="action-qr">
         <div class="action-content">
-          <div class="action-title">📝 Post til veggen</div>
-          <div class="action-desc">Del bilder, meldinger eller kaos</div>
+          <div class="action-title">📝 Haru no å melle!!</div>
+          <div class="action-desc">- Så meld i vei da vel</div>
           <a href="submit.html" class="action-btn">Skriv innlegg →</a>
         </div>
       </div>
@@ -384,7 +401,7 @@
     <a href="scores.html" class="scoreboard-btn disabled" id="scoreboard-btn">
       <span class="icon">🏆</span>
       <span>Scoreboard</span>
-      <span style="font-size: 12px; color: var(--muted); font-weight: 400;">(Åpner når lagene er klare)</span>
+      <span style="font-size: 12px; color: var(--muted); font-weight: 400;">(Åpner snart)</span>
     </a>
   </section>
 
@@ -407,6 +424,7 @@
         <li>Gå til <a href="scores.html" style="color: var(--accent);">Scoreboard</a> for å legge til poeng</li>
         <li>Gå til <a href="wall.html" style="color: var(--accent);">The Wall</a> for å moderere innlegg</li>
       </ul>
+      <a href="scores.html" class="admin-scoreboard-btn">🏆 Åpne Scoreboard</a>
     </div>
   </section>
 </main>
