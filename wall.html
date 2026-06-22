@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Wall</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e11;
+    --surface: #18181c;
+    --border: rgba(255,255,255,0.10);
+    --text: #f0eff4;
+    --muted: rgba(240,239,244,0.45);
+    --accent: #c8f45a;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  /* ── Header ── */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    background: rgba(14,14,17,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .event-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+  .live-pill {
+    display: flex; align-items: center; gap: 5px;
+    background: rgba(200,244,90,0.12);
+    border: 0.5px solid rgba(200,244,90,0.3);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .live-dot {
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .post-count {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .admin-btn {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 12px;
+    font-family: inherit;
+    padding: 5px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .admin-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+
+  /* ── Feed ── */
+  main {
+    padding: 5.5rem 1rem 2rem;
+    max-width: 680px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Masonry-style 2-col on wide screens */
+  @media (min-width: 600px) {
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+      max-width: 900px;
+      padding-top: 5.5rem;
+      gap: 12px;
+    }
+    .wall-header-card { grid-column: span 2; }
+  }
+
+  .post {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    animation: slideIn 0.35s ease both;
+    break-inside: avoid;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .post-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+    color: #0e0e11;
+  }
+  .post-name { font-size: 14px; font-weight: 600; }
+  .post-time { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+  .type-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .tag-complaint { background: rgba(255,107,107,0.15); color: #ff9f9f; }
+  .tag-cheer     { background: rgba(200,244,90,0.12); color: var(--accent); }
+  .tag-chaos     { background: rgba(255,165,0,0.12); color: #ffb347; }
+
+  .post-body {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--text);
+    word-break: break-word;
+  }
+
+  .post-media {
+    margin-top: 10px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: rgba(255,255,255,0.04);
+  }
+  .post-media img, .post-media video {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .reactions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .reaction-btn {
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 11px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+    font-family: inherit;
+    transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .reaction-btn:hover { background: rgba(255,255,255,0.10); }
+  .reaction-btn:active { transform: scale(0.95); }
+  .reaction-btn.reacted { background: rgba(200,244,90,0.12); border-color: rgba(200,244,90,0.3); }
+
+  /* ── Empty / loading state ── */
+  .empty {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--muted);
+    font-size: 15px;
+    grid-column: span 2;
+  }
+  .empty .big { font-size: 48px; margin-bottom: 1rem; }
+
+  /* ── Admin panel ── */
+  .admin-panel {
+    display: none;
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(380px, 100vw);
+    background: #111115;
+    border-left: 0.5px solid var(--border);
+    z-index: 200;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .admin-panel.open { display: flex; }
+  .admin-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 0.5px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .admin-header h2 { font-size: 15px; font-weight: 600; }
+  .close-btn { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+  .admin-list { overflow-y: auto; flex: 1; }
+  .admin-item {
+    padding: 12px 1.25rem;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .admin-item-content { flex: 1; min-width: 0; }
+  .admin-item-name { font-size: 13px; font-weight: 600; }
+  .admin-item-msg { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .approve-btn {
+    background: rgba(200,244,90,0.12);
+    border: 0.5px solid rgba(200,244,90,0.3);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .delete-btn {
+    background: rgba(255,107,107,0.10);
+    border: 0.5px solid rgba(255,107,107,0.25);
+    color: #ff9f9f;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .admin-actions { display: flex; gap: 6px; flex-direction: column; }
+
+  /* ── QR overlay ── */
+  .qr-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 300;
+    align-items: center;
+    justify-content: center;
+  }
+  .qr-overlay.open { display: flex; }
+  .qr-box {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+    max-width: 320px;
+  }
+  .qr-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .qr-box p { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; }
+  .qr-placeholder {
+    width: 200px; height: 200px;
+    background: #fff;
+    border-radius: 8px;
+    margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    color: #333;
+    text-align: center;
+    padding: 12px;
+  }
+  .close-overlay-btn {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 8px 24px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="event-title">🎉 The Wall</div>
+    <div class="live-pill"><span class="live-dot"></span> Live</div>
+  </div>
+  <div class="header-right">
+    <span class="post-count" id="post-count">0 posts</span>
+    <button class="admin-btn" onclick="toggleQR()">Show QR</button>
+    <button class="admin-btn" onclick="toggleAdmin()">Moderate</button>
+  </div>
+</header>
+
+<main id="feed">
+  <div class="empty" id="empty-state">
+    <div class="big">👀</div>
+    <p>Nothing yet — scan the QR code to be first!</p>
+  </div>
+</main>
+
+<!-- Admin panel -->
+<div class="admin-panel" id="admin-panel">
+  <div class="admin-header">
+    <h2>Moderation queue</h2>
+    <button class="close-btn" onclick="toggleAdmin()">✕</button>
+  </div>
+  <div class="admin-list" id="admin-list">
+    <div style="padding:2rem;text-align:center;color:var(--muted);font-size:13px">Nothing pending</div>
+  </div>
+</div>
+
+<!-- QR overlay -->
+<div class="qr-overlay" id="qr-overlay" onclick="toggleQR()">
+  <div class="qr-box" onclick="event.stopPropagation()">
+    <h3>Scan to post</h3>
+    <p>Opens the submission page on your phone</p>
+    <div class="qr-placeholder" id="qr-img">
+      Generate a QR code pointing to your<br><strong>submit.html</strong> URL and paste it here,<br>or update QR_TARGET_URL in the script.
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:0.75rem" id="qr-url-label"></div>
+    <button class="close-overlay-btn" onclick="toggleQR()">Close</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// 🔧 CONFIGURE THESE
+const SUPABASE_URL     = 'https://YOUR_PROJECT.supabase.co'
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'
+const TABLE_NAME       = 'posts'
+const STORAGE_BUCKET   = 'party-media'
+const MODERATION       = false   // set true to use approve/reject flow
+// The URL guests scan to reach submit.html (update after deploying to GitHub Pages)
+const SUBMIT_URL       = 'https://YOUR_USERNAME.github.io/YOUR_REPO/submit.html'
+// ─────────────────────────────────────────────
+
+document.getElementById('qr-url-label').textContent = SUBMIT_URL
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// Colour palette for avatars
+const AVATAR_COLORS = ['#c8f45a','#60c8ff','#ff6b9d','#ffb347','#a78bfa','#34d399','#f472b6','#38bdf8']
+const colorCache = {}
+function avatarColor(name) {
+  if (!colorCache[name]) {
+    let h = 0
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff
+    colorCache[name] = AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
+  }
+  return colorCache[name]
+}
+function initials(name) {
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0].toUpperCase()).join('')
+}
+
+// Reaction state
+const myReactions = {}
+
+function fmtTime(ts) {
+  const d = new Date(ts)
+  return d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })
+}
+
+const typeConfig = {
+  complaint: { label: '😤 Complaint', cls: 'tag-complaint' },
+  cheer:     { label: '🙌 Cheer',     cls: 'tag-cheer' },
+  chaos:     { label: '🔥 Chaos',     cls: 'tag-chaos' },
+}
+
+const REACTIONS = ['😂','❤️','💀','🙌','🔥']
+
+function buildPost(post) {
+  const tc = typeConfig[post.type] || typeConfig.complaint
+  const col = avatarColor(post.name)
+  const reactions = post.reactions || {}
+
+  const reactionHTML = REACTIONS.map(emoji => {
+    const count = reactions[emoji] || 0
+    const reacted = myReactions[post.id]?.[emoji]
+    return `<button class="reaction-btn ${reacted ? 'reacted' : ''}" onclick="react('${post.id}','${emoji}',this)" aria-label="React with ${emoji}">
+      ${emoji}${count > 0 ? `<span>${count}</span>` : ''}
+    </button>`
+  }).join('')
+
+  const mediaHTML = post.media_url
+    ? `<div class="post-media">${
+        post.media_type === 'video'
+          ? `<video src="${post.media_url}" controls playsinline muted></video>`
+          : `<img src="${post.media_url}" alt="Photo by ${post.name}" loading="lazy">`
+      }</div>`
+    : ''
+
+  const el = document.createElement('div')
+  el.className = 'post'
+  el.id = `post-${post.id}`
+  el.innerHTML = `
+    <div class="post-header">
+      <div class="avatar" style="background:${col};color:#0e0e11">${initials(post.name)}</div>
+      <div>
+        <div class="post-name">${escHtml(post.name)}</div>
+        <div class="post-time">${fmtTime(post.created_at)}</div>
+      </div>
+      <span class="type-tag ${tc.cls}">${tc.label}</span>
+    </div>
+    ${post.message ? `<div class="post-body">${escHtml(post.message)}</div>` : ''}
+    ${mediaHTML}
+    <div class="reactions" id="reactions-${post.id}">${reactionHTML}</div>
+  `
+  return el
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+async function react(postId, emoji, btn) {
+  if (!myReactions[postId]) myReactions[postId] = {}
+  const alreadyReacted = myReactions[postId][emoji]
+  myReactions[postId][emoji] = !alreadyReacted
+
+  // Fetch current reactions
+  const { data } = await sb.from(TABLE_NAME).select('reactions').eq('id', postId).single()
+  const reactions = data?.reactions || {}
+  if (alreadyReacted) {
+    reactions[emoji] = Math.max(0, (reactions[emoji] || 1) - 1)
+  } else {
+    reactions[emoji] = (reactions[emoji] || 0) + 1
+  }
+  await sb.from(TABLE_NAME).update({ reactions }).eq('id', postId)
+}
+
+let posts = []
+
+function updateCount() {
+  const n = posts.length
+  document.getElementById('post-count').textContent = `${n} post${n === 1 ? '' : 's'}`
+}
+
+function renderFeed() {
+  const feed = document.getElementById('feed')
+  const empty = document.getElementById('empty-state')
+  if (posts.length === 0) {
+    empty.style.display = 'block'
+    return
+  }
+  empty.style.display = 'none'
+}
+
+async function loadPosts() {
+  const { data, error } = await sb
+    .from(TABLE_NAME)
+    .select('*')
+    .eq('approved', true)
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  if (error) { console.error(error); return }
+
+  const feed = document.getElementById('feed')
+  document.getElementById('empty-state').style.display = data.length ? 'none' : 'block'
+
+  data.forEach(post => {
+    if (!document.getElementById(`post-${post.id}`)) {
+      posts.unshift(post)
+      const el = buildPost(post)
+      feed.insertBefore(el, feed.children[0])
+    }
+  })
+  updateCount()
+}
+
+function subscribeRealtime() {
+  sb.channel('wall')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: TABLE_NAME,
+      filter: 'approved=eq.true'
+    }, payload => {
+      const post = payload.new
+      if (document.getElementById(`post-${post.id}`)) return
+      posts.unshift(post)
+      const feed = document.getElementById('feed')
+      document.getElementById('empty-state').style.display = 'none'
+      const el = buildPost(post)
+      el.style.gridColumn = 'span 1'
+      feed.insertBefore(el, feed.children[0])
+      updateCount()
+    })
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: TABLE_NAME
+    }, payload => {
+      const post = payload.new
+      // Re-render reactions
+      const reactContainer = document.getElementById(`reactions-${post.id}`)
+      if (reactContainer) {
+        const reactions = post.reactions || {}
+        reactContainer.innerHTML = REACTIONS.map(emoji => {
+          const count = reactions[emoji] || 0
+          const reacted = myReactions[post.id]?.[emoji]
+          return `<button class="reaction-btn ${reacted ? 'reacted' : ''}" onclick="react('${post.id}','${emoji}',this)" aria-label="React with ${emoji}">
+            ${emoji}${count > 0 ? `<span>${count}</span>` : ''}
+          </button>`
+        }).join('')
+      }
+      // If newly approved
+      if (post.approved && !document.getElementById(`post-${post.id}`)) {
+        const feed = document.getElementById('feed')
+        document.getElementById('empty-state').style.display = 'none'
+        posts.unshift(post)
+        feed.insertBefore(buildPost(post), feed.children[0])
+        updateCount()
+      }
+    })
+    .on('postgres_changes', {
+      event: 'DELETE',
+      schema: 'public',
+      table: TABLE_NAME
+    }, payload => {
+      const el = document.getElementById(`post-${payload.old.id}`)
+      if (el) el.remove()
+      posts = posts.filter(p => p.id !== payload.old.id)
+      updateCount()
+    })
+    .subscribe()
+}
+
+// Admin queue for moderation
+async function loadAdminQueue() {
+  const { data } = await sb.from(TABLE_NAME).select('*').eq('approved', false).order('created_at', { ascending: true })
+  const list = document.getElementById('admin-list')
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted);font-size:13px">Queue is empty</div>'
+    return
+  }
+  list.innerHTML = data.map(p => `
+    <div class="admin-item" id="admin-${p.id}">
+      <div class="admin-item-content">
+        <div class="admin-item-name">${escHtml(p.name)} <span style="font-weight:400;color:var(--muted)">&middot; ${typeConfig[p.type]?.label || p.type}</span></div>
+        <div class="admin-item-msg">${escHtml(p.message || '(media only)')}</div>
+      </div>
+      <div class="admin-actions">
+        <button class="approve-btn" onclick="approvePost('${p.id}')">Approve</button>
+        <button class="delete-btn" onclick="deletePost('${p.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('')
+}
+
+async function approvePost(id) {
+  await sb.from(TABLE_NAME).update({ approved: true }).eq('id', id)
+  document.getElementById(`admin-${id}`)?.remove()
+  if (!document.getElementById('admin-list').children.length) {
+    document.getElementById('admin-list').innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted);font-size:13px">Queue is empty</div>'
+  }
+}
+
+async function deletePost(id) {
+  await sb.from(TABLE_NAME).delete().eq('id', id)
+  document.getElementById(`admin-${id}`)?.remove()
+  document.getElementById(`post-${id}`)?.remove()
+  posts = posts.filter(p => p.id !== id)
+  updateCount()
+}
+
+function toggleAdmin() {
+  const panel = document.getElementById('admin-panel')
+  const isOpen = panel.classList.toggle('open')
+  if (isOpen) loadAdminQueue()
+}
+
+function toggleQR() {
+  document.getElementById('qr-overlay').classList.toggle('open')
+}
+
+// Boot
+loadPosts()
+subscribeRealtime()
+</script>
+</body>
+</html>

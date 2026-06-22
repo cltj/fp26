@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Party Wall – Post something</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  /* ── CONFIG: paste your Supabase URL + anon key in the <script> at the bottom ── */
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e11;
+    --surface: #18181c;
+    --border: rgba(255,255,255,0.10);
+    --border-focus: rgba(255,255,255,0.30);
+    --text: #f0eff4;
+    --muted: rgba(240,239,244,0.45);
+    --accent: #c8f45a;
+    --accent-dark: #a8d038;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --type-tag: #f5c842;
+    --danger: #ff6b6b;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 3rem;
+  }
+
+  .top-bar {
+    width: 100%;
+    padding: 1.25rem 1.5rem 1rem;
+    text-align: center;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1.75rem;
+  }
+  .event-label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .event-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .event-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .form-wrap {
+    width: 100%;
+    max-width: 440px;
+    padding: 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  input[type="text"]:focus, textarea:focus {
+    border-color: var(--border-focus);
+  }
+  textarea {
+    min-height: 110px;
+    resize: vertical;
+    line-height: 1.55;
+  }
+  ::placeholder { color: var(--muted); }
+
+  .type-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .type-btn {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 13px;
+    font-family: inherit;
+    padding: 10px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .type-btn .icon { font-size: 20px; line-height: 1; }
+  .type-btn.selected {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(200,244,90,0.07);
+  }
+
+  .media-zone {
+    background: var(--surface);
+    border: 0.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    position: relative;
+  }
+  .media-zone:hover { border-color: var(--border-focus); }
+  .media-zone p { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .media-zone .icon { font-size: 26px; }
+  #file-input { display: none; }
+
+  .preview-wrap {
+    position: relative;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .preview-wrap img, .preview-wrap video {
+    width: 100%;
+    max-height: 240px;
+    object-fit: cover;
+    display: block;
+  }
+  .remove-media {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(0,0,0,0.65);
+    border: none;
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    font-size: 16px;
+    color: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+
+  .char-count {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 3px;
+  }
+  .char-count.warn { color: var(--danger); }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #0e0e11;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 14px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: -0.01em;
+  }
+  .submit-btn:hover { background: var(--accent-dark); }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--surface);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-top: -0.5rem;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: var(--text);
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--accent); color: var(--accent); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    gap: 1rem;
+    min-height: 50vh;
+  }
+  .success-screen.show { display: flex; }
+  .form-wrap.hidden { display: none; }
+  .big-emoji { font-size: 56px; }
+  .success-screen h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .success-screen p { font-size: 15px; color: var(--muted); }
+  .post-another {
+    margin-top: 0.5rem;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 10px 24px;
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .post-another:hover { border-color: var(--border-focus); }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="event-label">tonight's party</div>
+  <div class="event-name">🎉 The Wall</div>
+  <div class="event-sub">Post something — it shows up on the big screen</div>
+</div>
+
+<div class="form-wrap" id="form-wrap">
+
+  <div>
+    <label for="name-input">Your name</label>
+    <input type="text" id="name-input" placeholder="Ola Nordmann" maxlength="40" autocomplete="off" />
+  </div>
+
+  <div>
+    <label>What kind of post?</label>
+    <div class="type-grid">
+      <button class="type-btn selected" data-type="complaint" onclick="selectType(this)">
+        <span class="icon">😤</span>
+        <span>Complaint</span>
+      </button>
+      <button class="type-btn" data-type="cheer" onclick="selectType(this)">
+        <span class="icon">🙌</span>
+        <span>Cheer</span>
+      </button>
+      <button class="type-btn" data-type="chaos" onclick="selectType(this)">
+        <span class="icon">🔥</span>
+        <span>Chaos</span>
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <label for="msg-input">Your message</label>
+    <textarea id="msg-input" placeholder="The guacamole ran out too early and I'm not okay with this." maxlength="400"></textarea>
+    <div class="char-count" id="char-count">0 / 400</div>
+  </div>
+
+  <div>
+    <label>Photo or video (optional)</label>
+    <div class="media-zone" id="media-zone" onclick="document.getElementById('file-input').click()">
+      <div class="icon">📎</div>
+      <p>Tap to add a photo or video</p>
+      <input type="file" id="file-input" accept="image/*,video/*" capture="environment" />
+    </div>
+    <div class="preview-wrap" id="preview-wrap" style="display:none;">
+      <button class="remove-media" onclick="removeMedia()" aria-label="Remove media">✕</button>
+    </div>
+  </div>
+
+  <div class="progress-bar" id="progress-bar" style="display:none;">
+    <div class="progress-fill" id="progress-fill"></div>
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="submitPost()">Post to the wall</button>
+
+</div>
+
+<div class="success-screen" id="success-screen">
+  <div class="big-emoji" id="success-emoji">🎉</div>
+  <h2>On the wall!</h2>
+  <p>Your post will appear on the big screen shortly.</p>
+  <button class="post-another" onclick="resetForm()">Post another</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// 🔧 CONFIGURE THESE TWO VALUES
+const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co'
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'
+const STORAGE_BUCKET = 'party-media'   // create this bucket in Supabase storage
+const TABLE_NAME = 'posts'             // create this table (see README)
+const MODERATION = false               // set true to hold posts until approved
+// ─────────────────────────────────────────────
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+let selectedType = 'complaint'
+let selectedFile = null
+
+function selectType(btn) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'))
+  btn.classList.add('selected')
+  selectedType = btn.dataset.type
+}
+
+const msgInput = document.getElementById('msg-input')
+const charCount = document.getElementById('char-count')
+msgInput.addEventListener('input', () => {
+  const n = msgInput.value.length
+  charCount.textContent = `${n} / 400`
+  charCount.classList.toggle('warn', n > 360)
+})
+
+const fileInput = document.getElementById('file-input')
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0]
+  if (!file) return
+  if (file.size > 50 * 1024 * 1024) {
+    showToast('File too large (max 50 MB)', 'error')
+    return
+  }
+  selectedFile = file
+  document.getElementById('media-zone').style.display = 'none'
+  const previewWrap = document.getElementById('preview-wrap')
+  previewWrap.style.display = 'block'
+  previewWrap.innerHTML = '<button class="remove-media" onclick="removeMedia()" aria-label="Remove media">✕</button>'
+  const url = URL.createObjectURL(file)
+  const el = file.type.startsWith('video') ? document.createElement('video') : document.createElement('img')
+  el.src = url
+  if (el.tagName === 'VIDEO') { el.controls = true; el.muted = true }
+  previewWrap.appendChild(el)
+})
+
+function removeMedia() {
+  selectedFile = null
+  fileInput.value = ''
+  document.getElementById('media-zone').style.display = 'block'
+  const pw = document.getElementById('preview-wrap')
+  pw.style.display = 'none'
+  pw.innerHTML = '<button class="remove-media" onclick="removeMedia()" aria-label="Remove media">✕</button>'
+}
+
+async function submitPost() {
+  const name = document.getElementById('name-input').value.trim()
+  const message = msgInput.value.trim()
+  if (!name) { showToast('Add your name first', 'error'); return }
+  if (!message && !selectedFile) { showToast('Write something or add a photo', 'error'); return }
+
+  const btn = document.getElementById('submit-btn')
+  btn.disabled = true
+  btn.textContent = 'Posting…'
+
+  try {
+    let media_url = null
+    let media_type = null
+
+    if (selectedFile) {
+      document.getElementById('progress-bar').style.display = 'block'
+      const ext = selectedFile.name.split('.').pop()
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { data: upData, error: upErr } = await sb.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, selectedFile, { upsert: false })
+      if (upErr) throw upErr
+      document.getElementById('progress-fill').style.width = '100%'
+      const { data: urlData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path)
+      media_url = urlData.publicUrl
+      media_type = selectedFile.type.startsWith('video') ? 'video' : 'image'
+    }
+
+    const { error: insErr } = await sb.from(TABLE_NAME).insert({
+      name,
+      message,
+      type: selectedType,
+      media_url,
+      media_type,
+      approved: !MODERATION
+    })
+    if (insErr) throw insErr
+
+    const emojis = { complaint: '😤', cheer: '🙌', chaos: '🔥' }
+    document.getElementById('success-emoji').textContent = emojis[selectedType] || '🎉'
+    document.getElementById('form-wrap').classList.add('hidden')
+    document.getElementById('success-screen').classList.add('show')
+  } catch (err) {
+    console.error(err)
+    showToast('Something went wrong — try again', 'error')
+    btn.disabled = false
+    btn.textContent = 'Post to the wall'
+    document.getElementById('progress-bar').style.display = 'none'
+    document.getElementById('progress-fill').style.width = '0%'
+  }
+}
+
+function resetForm() {
+  document.getElementById('name-input').value = ''
+  msgInput.value = ''
+  charCount.textContent = '0 / 400'
+  removeMedia()
+  selectedType = 'complaint'
+  document.querySelectorAll('.type-btn').forEach((b,i) => b.classList.toggle('selected', i===0))
+  document.getElementById('progress-bar').style.display = 'none'
+  document.getElementById('progress-fill').style.width = '0%'
+  const btn = document.getElementById('submit-btn')
+  btn.disabled = false
+  btn.textContent = 'Post to the wall'
+  document.getElementById('success-screen').classList.remove('show')
+  document.getElementById('form-wrap').classList.remove('hidden')
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className = `toast ${type} show`
+  setTimeout(() => t.classList.remove('show'), 3000)
+}
+</script>
+</body>
+</html>
