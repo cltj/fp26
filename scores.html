@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scores</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e11;
+    --surface: #18181c;
+    --border: rgba(255,255,255,0.10);
+    --text: #f0eff4;
+    --muted: rgba(240,239,244,0.45);
+    --accent: #c8f45a;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    background: rgba(14,14,17,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .event-title { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+  .back-btn {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 12px;
+    font-family: inherit;
+    padding: 5px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .back-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+
+  main {
+    padding: 6rem 1rem 2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    flex: 1;
+  }
+
+  .scoreboard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .team-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: border-color 0.2s;
+    animation: slideIn 0.35s ease both;
+  }
+  .team-card:nth-child(1) { animation-delay: 0.05s; }
+  .team-card:nth-child(2) { animation-delay: 0.10s; }
+  .team-card:nth-child(3) { animation-delay: 0.15s; }
+  .team-card:nth-child(4) { animation-delay: 0.20s; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .team-card.first  { border-color: rgba(255,215,0,0.4); }
+  .team-card.second { border-color: rgba(192,192,192,0.35); }
+  .team-card.third  { border-color: rgba(205,127,50,0.35); }
+
+  .rank {
+    font-size: 22px;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .flag {
+    font-size: 36px;
+    flex-shrink: 0;
+  }
+
+  .team-info { flex: 1; }
+  .team-name { font-size: 20px; font-weight: 600; }
+  .team-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .score-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .score {
+    font-size: 36px;
+    font-weight: 700;
+    min-width: 48px;
+    text-align: center;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+  }
+
+  .score-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .score-btn {
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .score-btn:hover { background: rgba(255,255,255,0.12); }
+  .score-btn:active { transform: scale(0.92); }
+  .score-btn.minus { color: var(--muted); }
+
+  .reset-bar {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .reset-btn {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 12px;
+    font-family: inherit;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .reset-btn:hover { color: #ff9f9f; border-color: rgba(255,107,107,0.4); }
+
+  .status {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1.5rem;
+    min-height: 18px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="event-title">🏆 Scores</div>
+  <a href="wall.html" class="back-btn">← The Wall</a>
+</header>
+
+<main>
+  <div class="scoreboard" id="scoreboard">
+    <!-- filled by JS -->
+  </div>
+  <div class="status" id="status">Loading...</div>
+  <div class="reset-bar">
+    <button class="reset-btn" onclick="resetAll()">Reset all scores</button>
+  </div>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+// 🔧 CONFIGURE THESE (same as wall.html)
+const SUPABASE_URL      = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const TABLE_NAME        = 'scores'
+// ─────────────────────────────────────────────
+
+const TEAMS = [
+  { id: 'norge',    name: 'Norge',    flag: '🇳🇴' },
+  { id: 'frankrike',name: 'Frankrike',flag: '🇫🇷' },
+  { id: 'senegal',  name: 'Senegal',  flag: '🇸🇳' },
+  { id: 'irak',     name: 'Irak',     flag: '🇮🇶' },
+]
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+let scores = {}
+
+function rankEmoji(rank) {
+  if (rank === 1) return '🥇'
+  if (rank === 2) return '🥈'
+  if (rank === 3) return '🥉'
+  return '4'
+}
+function rankClass(rank) {
+  if (rank === 1) return 'first'
+  if (rank === 2) return 'second'
+  if (rank === 3) return 'third'
+  return ''
+}
+
+function getRankedTeams() {
+  return [...TEAMS]
+    .sort((a, b) => (scores[b.id] ?? 0) - (scores[a.id] ?? 0))
+}
+
+function render() {
+  const ranked = getRankedTeams()
+  const board = document.getElementById('scoreboard')
+  board.innerHTML = ranked.map((team, i) => {
+    const rank = i + 1
+    const pts = scores[team.id] ?? 0
+    return `
+      <div class="team-card ${rankClass(rank)}" id="card-${team.id}">
+        <div class="rank">${rankEmoji(rank)}</div>
+        <div class="flag">${team.flag}</div>
+        <div class="team-info">
+          <div class="team-name">${team.name}</div>
+          <div class="team-label">poeng</div>
+        </div>
+        <div class="score-area">
+          <div class="score" id="score-${team.id}">${pts}</div>
+          <div class="score-btns">
+            <button class="score-btn plus" onclick="changeScore('${team.id}', 1)">+</button>
+            <button class="score-btn minus" onclick="changeScore('${team.id}', -1)">−</button>
+          </div>
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+async function changeScore(teamId, delta) {
+  const newScore = Math.max(0, (scores[teamId] ?? 0) + delta)
+  scores[teamId] = newScore
+  render()
+  setStatus('Saving...')
+  const { error } = await sb.from(TABLE_NAME).upsert({ team_id: teamId, points: newScore }, { onConflict: 'team_id' })
+  setStatus(error ? '⚠️ Could not save' : 'Saved ✓')
+  setTimeout(() => setStatus(''), 1500)
+}
+
+async function resetAll() {
+  if (!confirm('Reset all scores to 0?')) return
+  TEAMS.forEach(t => scores[t.id] = 0)
+  render()
+  setStatus('Resetting...')
+  const updates = TEAMS.map(t => ({ team_id: t.id, points: 0 }))
+  const { error } = await sb.from(TABLE_NAME).upsert(updates, { onConflict: 'team_id' })
+  setStatus(error ? '⚠️ Could not save' : 'Reset done ✓')
+  setTimeout(() => setStatus(''), 1500)
+}
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg
+}
+
+async function loadScores() {
+  const { data, error } = await sb.from(TABLE_NAME).select('team_id, points')
+  if (error) { setStatus('⚠️ Could not load scores'); return }
+  data.forEach(row => { scores[row.team_id] = row.points })
+  render()
+  setStatus('')
+}
+
+function subscribeRealtime() {
+  sb.channel('scores')
+    .on('postgres_changes', { event: '*', schema: 'public', table: TABLE_NAME }, payload => {
+      const row = payload.new
+      if (row?.team_id) {
+        scores[row.team_id] = row.points
+        render()
+      }
+    })
+    .subscribe()
+}
+
+loadScores()
+subscribeRealtime()
+</script>
+</body>
+</html>
