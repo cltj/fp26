@@ -103,13 +103,6 @@
     color: var(--text);
   }
 
-  .character-team {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
   /* Admin indicator */
   .character-card.admin .character-photo {
     border-color: rgba(255,215,0,0.5);
@@ -132,6 +125,14 @@
     color: var(--muted);
     font-size: 13px;
   }
+
+  .loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -143,7 +144,7 @@
 </div>
 
 <div class="character-grid" id="character-grid">
-  <!-- Characters will be inserted here -->
+  <div class="loading">Laster deltakere...</div>
 </div>
 
 <div class="footer">
@@ -156,15 +157,7 @@ const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// Define all participants
-const PARTICIPANTS = [
-  { id: 'tj',       name: 'TJ',       photo: 'tj.jpg',        team: 'Norge',     isAdmin: true },
-  { id: 'eivind',   name: 'Eivind',   photo: 'eivind.jpeg',   team: 'Norge',     isAdmin: false },
-  { id: 'helle',    name: 'Helle',    photo: 'helle.jpeg',    team: 'Frankrike', isAdmin: false },
-  { id: 'kornelis', name: 'Kornelis', photo: 'kornelis.png',  team: 'Senegal',   isAdmin: false },
-  { id: 'oyvind',   name: 'Øyvind',   photo: 'oyvind.png',    team: 'Irak',      isAdmin: false },
-  { id: 'terje',    name: 'Terje',    photo: 'terje.png',     team: 'Norge',     isAdmin: false },
-]
+let participants = []
 
 // Check if already logged in
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
@@ -172,40 +165,41 @@ if (session && session.name) {
   window.location.href = 'home.html'
 }
 
-async function verifyAdminPin(pin) {
+async function loadParticipants() {
   try {
     const { data, error } = await sb
-      .from('config')
-      .select('value')
-      .eq('key', 'admin_pin')
-      .single()
+      .from('participants')
+      .select('id, name, photo, pin, isAdmin')
+      .order('name')
     
     if (error) throw error
-    return data.value === pin
+    participants = data
+    renderCharacters()
   } catch (err) {
-    console.error('Could not verify PIN:', err)
-    return false
+    console.error('Could not load participants:', err)
+    document.getElementById('character-grid').innerHTML = 
+      '<div class="loading" style="color: #ff6b6b;">Kunne ikke laste deltakere</div>'
   }
 }
 
-async function selectCharacter(participant) {
-  // If admin, verify PIN first
-  if (participant.isAdmin) {
-    const pin = prompt('Admin PIN:')
-    if (!pin) return
-    
-    const isValid = await verifyAdminPin(pin)
-    if (!isValid) {
-      alert('Feil PIN')
-      return
-    }
+async function selectCharacter(participantId) {
+  const participant = participants.find(p => p.id === participantId)
+  if (!participant) return
+  
+  // All participants must enter PIN
+  const pin = prompt('PIN-kode:')
+  if (!pin) return
+  
+  if (pin !== participant.pin) {
+    alert('Feil PIN')
+    return
   }
   
   // Store session
   const sessionData = {
+    id: participant.id,
     name: participant.name,
-    team: participant.team,
-    isAdmin: participant.isAdmin,
+    isAdmin: participant.isAdmin || false,
     photo: participant.photo,
     loginTime: Date.now()
   }
@@ -219,17 +213,22 @@ async function selectCharacter(participant) {
 function renderCharacters() {
   const grid = document.getElementById('character-grid')
   
-  grid.innerHTML = PARTICIPANTS.map(p => `
-    <div class="character-card ${p.isAdmin ? 'admin' : ''}" onclick="selectCharacter(PARTICIPANTS.find(x => x.id === '${p.id}'))">
-      <img src="${p.photo}" alt="${p.name}" class="character-photo" onerror="this.src='placeholder.png'">
+  if (participants.length === 0) {
+    grid.innerHTML = '<div class="loading">Ingen deltakere funnet</div>'
+    return
+  }
+  
+  grid.innerHTML = participants.map(p => `
+    <div class="character-card ${p.isAdmin ? 'admin' : ''}" onclick="selectCharacter('${p.id}')">
+      <img src="${p.photo || 'placeholder.png'}" alt="${p.name}" class="character-photo" onerror="this.src='placeholder.png'">
       <div class="character-name">${p.name}</div>
-      <div class="character-team">${p.team}</div>
       ${p.isAdmin ? '<div class="admin-badge">👑 Admin</div>' : ''}
     </div>
   `).join('')
 }
 
-renderCharacters()
+// Load participants on page load
+loadParticipants()
 </script>
 
 </body>

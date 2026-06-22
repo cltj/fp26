@@ -323,37 +323,10 @@ function applyAdminUI() {
   document.getElementById('login-btn').style.display = isAdmin ? 'none' : 'inline-block'
 }
 
-async function verifyAdminPin(pin) {
-  try {
-    const { data, error } = await sb
-      .from('config')
-      .select('value')
-      .eq('key', 'admin_pin')
-      .single()
-    
-    if (error) throw error
-    return data.value === pin
-  } catch (err) {
-    console.error('Could not verify PIN:', err)
-    return false
-  }
-}
-
-async function doLogin() {
-  const pin = prompt('Admin PIN:')
-  if (!pin) return
-  
-  const isValid = await verifyAdminPin(pin)
-  if (isValid) {
-    isAdmin = true
-    applyAdminUI()
-    // Also update session
-    const session = JSON.parse(localStorage.getItem('fp26_session') || '{}')
-    session.isAdmin = true
-    localStorage.setItem('fp26_session', JSON.stringify(session))
-  } else {
-    alert('Feil PIN')
-  }
+function doLogin() {
+  // Redirect to login page to log in as admin
+  localStorage.removeItem('fp26_session')
+  window.location.href = 'index.html'
 }
 
 function checkAdmin() {

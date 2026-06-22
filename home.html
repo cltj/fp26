@@ -223,7 +223,6 @@
   <section class="welcome-section">
     <img src="" alt="" class="welcome-photo" id="welcome-photo" onerror="this.style.display='none'">
     <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
-    <div class="team-text">Team: <span id="welcome-team"></span></div>
   </section>
 
   <section>
@@ -287,7 +286,6 @@ if (!session || !session.name) {
 // Populate user info
 document.getElementById('user-name').textContent = session.name
 document.getElementById('welcome-name').textContent = session.name
-document.getElementById('welcome-team').textContent = session.team
 
 // Show user photo if available
 if (session.photo) {
@@ -300,7 +298,6 @@ if (session.isAdmin) {
   document.getElementById('user-badge').classList.add('admin-badge')
   document.getElementById('user-badge').innerHTML = '🔒 Admin'
   document.getElementById('admin-section').style.display = 'block'
-  document.querySelector('.welcome-section').querySelector('.team-text').style.display = 'none'
 }
 
 // Generate QR codes

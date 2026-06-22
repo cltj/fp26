@@ -6,7 +6,7 @@ A complete party experience with login, QR-based interactions, live wall, music 
 
 | Page | Purpose |
 |------|---------|
-| `index.html` | **Character Select** - Participants tap their photo to log in. QR codes point here. |
+| `index.html` | **Character Select** - Participants tap their photo and enter their PIN. QR codes point here. |
 | `home.html` | **Dashboard** - After login, shows QR codes for music/submit, plus links to Wall & Scoreboard |
 | `submit.html` | **Post to Wall** - Submit messages, photos, or videos |
 | `music.html` | **Add Music** - Request songs for the playlist |
@@ -80,20 +80,27 @@ create policy "Anyone can read music" on music_requests for select using (true);
 alter table music_requests enable row level security;
 ```
 
-### Create the `config` table (for admin PIN)
+### Create the `participants` table
 
 ```sql
-create table config (
-  key         text primary key,
-  value       text not null
+create table participants (
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null,
+  photo       text,
+  pin         text not null,
+  isAdmin     boolean default false
 );
 
--- Insert your admin PIN (change '9900' to your desired PIN)
-insert into config (key, value) values ('admin_pin', '9900');
+-- Insert your participants
+insert into participants (name, photo, pin, isAdmin) values 
+  ('TJ', 'tj.jpg', '1234', true),
+  ('Eivind', 'eivind.jpeg', '5678', false),
+  ('Helle', 'helle.jpeg', '9012', false);
+-- Add more participants as needed
 
-create policy "Anyone can read config" on config for select using (true);
+create policy "Anyone can read participants" on participants for select using (true);
 
-alter table config enable row level security;
+alter table participants enable row level security;
 ```
 
 ### Create the storage bucket
@@ -144,11 +151,11 @@ Use https://qr.io or similar. Print and display at the party entrance.
 
 ### For participants:
 1. Scan QR code → lands on character select (`index.html`)
-2. Tap their photo → redirected to dashboard (`home.html`)
+2. Tap their photo → enter their PIN → redirected to dashboard (`home.html`)
 3. From dashboard: post messages, add music, view wall or scoreboard
 
 ### For admins:
-1. **TJ taps his photo** → prompted for PIN → gets admin access
+1. **Admin taps their photo** → enters PIN → gets admin access (extra options visible)
 2. Admin can:
    - Add/modify scores on the Scoreboard
    - Moderate posts on The Wall (approve/delete)
@@ -159,34 +166,17 @@ Use https://qr.io or similar. Print and display at the party entrance.
 
 ---
 
-## Admin PIN
+## Participants & PINs
 
-The admin PIN is stored in Supabase in the `config` table. To change it:
-
-1. Go to Supabase → Table Editor → `config`
-2. Edit the row where `key` = `admin_pin`
-3. Change the `value` to your new PIN
-
----
-
-## Modify Participants
-
-The participant list is defined in `index.html`. Find the `PARTICIPANTS` array:
-
-```js
-const PARTICIPANTS = [
-  { id: 'tj',       name: 'TJ',       photo: 'tj.jpg',        team: 'Norge',     isAdmin: true },
-  { id: 'eivind',   name: 'Eivind',   photo: 'eivind.jpeg',   team: 'Norge',     isAdmin: false },
-  // ... add more here
-]
-```
-
-Each participant needs:
-- `id`: Unique identifier (lowercase)
+Participants are stored in Supabase in the `participants` table. Each participant has:
 - `name`: Display name
-- `photo`: Filename of their photo (in the same folder)
-- `team`: Their team name
-- `isAdmin`: Set `true` for admin users (will prompt for PIN)
+- `photo`: Filename of their photo (e.g., `tj.jpg`)
+- `pin`: Their personal PIN code to log in
+- `isAdmin`: If `true`, they see admin options (scoring, moderation)
+
+To add/edit participants:
+1. Go to Supabase → Table Editor → `participants`
+2. Add rows with name, photo filename, pin, and isAdmin flag
 
 ---
 
