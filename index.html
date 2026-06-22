@@ -72,8 +72,9 @@
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
-    padding: 10px;
-    gap: 8px;
+    padding: 16px 16px 12px;
+    gap: 10px;
+    align-items: center;
   }
   .character-card:hover {
     border-color: var(--border-hover);
@@ -85,15 +86,15 @@
   }
 
   .character-photo {
-    width: 100%;
-    aspect-ratio: 1;
+    width: 70%;
+    aspect-ratio: 3/4;
     object-fit: cover;
     border-radius: var(--radius-sm);
-    border: none;
-    transition: opacity 0.2s;
+    border: 2px solid var(--border);
+    transition: border-color 0.2s;
   }
   .character-card:hover .character-photo {
-    opacity: 0.9;
+    border-color: var(--accent);
   }
 
   .character-info {
