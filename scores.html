@@ -199,6 +199,7 @@
   <div class="event-title">🏆 Scores</div>
   <div class="header-right">
     <span class="admin-badge" id="admin-badge">Admin</span>
+    <button class="back-btn" id="login-btn" onclick="doLogin()">🔒 Admin</button>
     <a href="wall.html" class="back-btn">← The Wall</a>
   </div>
 </header>
@@ -310,12 +311,16 @@ function applyAdminUI() {
   }
   document.getElementById('reset-bar').style.display = isAdmin ? 'block' : 'none'
   document.getElementById('admin-badge').style.display = isAdmin ? 'inline-block' : 'none'
+  document.getElementById('login-btn').style.display = isAdmin ? 'none' : 'inline-block'
+}
+
+function doLogin() {
+  const pw = prompt('Admin-passord:')
+  if (pw === '9900') { isAdmin = true; applyAdminUI() }
 }
 
 function checkAdmin() {
   if (isAdmin) return true
-  const pw = prompt('Admin-passord:')
-  if (pw === '9900') { isAdmin = true; applyAdminUI(); return true }
   return false
 }
 
