@@ -1,10 +1,21 @@
-# Party Wall — Setup Guide
+# FP26 Party App — Setup Guide
 
-Two files: `submit.html` (guests scan QR → this page) and `wall.html` (you project this on a TV).
+A complete party experience with login, QR-based interactions, live wall, music queue, and team scoreboard.
+
+## Pages Overview
+
+| Page | Purpose |
+|------|---------|
+| `index.html` | **Landing/Login** - Participants enter name & team. QR codes should point here. |
+| `home.html` | **Dashboard** - After login, shows QR codes for music/submit, plus links to Wall & Scoreboard |
+| `submit.html` | **Post to Wall** - Submit messages, photos, or videos |
+| `music.html` | **Add Music** - Request songs for the playlist |
+| `wall.html` | **The Wall** - Live feed of posts (project on big screen) |
+| `scores.html` | **Scoreboard** - Team scores. Admin-only editing. |
 
 ---
 
-## 1. Supabase setup (5 minutes)
+## 1. Supabase Setup (10 minutes)
 
 ### Create the `posts` table
 
@@ -23,15 +34,50 @@ create table posts (
   reactions   jsonb default '{}'::jsonb
 );
 
--- Enable realtime
 alter publication supabase_realtime add table posts;
 
--- Allow anyone to insert and read approved posts (public event)
 create policy "Anyone can post"   on posts for insert with check (true);
 create policy "Anyone can read"   on posts for select using (approved = true);
 create policy "Anyone can update reactions" on posts for update using (true) with check (true);
 
 alter table posts enable row level security;
+```
+
+### Create the `scores` table
+
+```sql
+create table scores (
+  team_id     text primary key,
+  scores      jsonb default '[null, null, null, null]'::jsonb,
+  updated_at  timestamptz default now()
+);
+
+alter publication supabase_realtime add table scores;
+
+create policy "Anyone can read scores" on scores for select using (true);
+create policy "Anyone can update scores" on scores for update using (true);
+create policy "Anyone can insert scores" on scores for insert with check (true);
+
+alter table scores enable row level security;
+```
+
+### Create the `music_requests` table
+
+```sql
+create table music_requests (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz default now(),
+  name        text not null,
+  song        text not null,
+  link        text
+);
+
+alter publication supabase_realtime add table music_requests;
+
+create policy "Anyone can add music" on music_requests for insert with check (true);
+create policy "Anyone can read music" on music_requests for select using (true);
+
+alter table music_requests enable row level security;
 ```
 
 ### Create the storage bucket
@@ -44,9 +90,9 @@ Then add a policy on the bucket to allow uploads:
 
 ---
 
-## 2. Configure both HTML files
+## 2. Configure all HTML files
 
-In both `submit.html` and `wall.html`, find this block near the bottom and fill in your values:
+In `submit.html`, `music.html`, `wall.html`, and `scores.html`, find this block and fill in your values:
 
 ```js
 const SUPABASE_URL      = 'https://YOUR_PROJECT.supabase.co'
@@ -55,48 +101,60 @@ const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY'
 
 Your URL and anon key are in Supabase → Project Settings → API.
 
-In `wall.html` also update:
-```js
-const SUBMIT_URL = 'https://YOUR_USERNAME.github.io/YOUR_REPO/submit.html'
-```
-
 ---
 
 ## 3. Deploy to GitHub Pages
 
-1. Create a new GitHub repo (can be private or public)
-2. Upload both HTML files to the repo root
+1. Create a new GitHub repo
+2. Upload all HTML files to the repo root
 3. Go to Settings → Pages → Source: Deploy from branch → main → / (root)
 4. After a minute your site is live at `https://YOUR_USERNAME.github.io/YOUR_REPO/`
 
 ---
 
-## 4. Generate the QR code
+## 4. Generate the QR Code
 
-Go to https://www.qr-code-generator.com or https://qr.io and paste:
+Create a QR code pointing to your **index.html** (the login page):
 
 ```
-https://YOUR_USERNAME.github.io/YOUR_REPO/submit.html
+https://YOUR_USERNAME.github.io/YOUR_REPO/index.html
 ```
 
-Download the QR code image. At the party you can:
-- Show it on screen via the "Show QR" button in the wall header
-- Print it and put it on tables
+Use https://qr.io or similar. Print and display at the party entrance.
 
 ---
 
-## 5. On the night
+## 5. On the Night
 
-- Open `wall.html` on a laptop connected to the TV
-- Guests scan the QR → open `submit.html` on their phones
-- Posts appear on the wall in real-time
-- Click **Moderate** to approve/delete posts before they appear (set `MODERATION = true` in both files first)
+### For participants:
+1. Scan QR code → lands on login page (`index.html`)
+2. Enter name and team → redirected to dashboard (`home.html`)
+3. From dashboard: post messages, add music, view wall or scoreboard
+
+### For admins:
+1. Go to login page, click "Admin-innlogging" at the bottom
+2. Enter password: `9900`
+3. Admin can:
+   - Add/modify scores on the Scoreboard
+   - Moderate posts on The Wall (approve/delete)
+
+### Display setup:
+- Open `wall.html` on a laptop connected to TV/projector
+- Posts appear in real-time as participants submit
 
 ---
 
-## Optional: enable moderation
+## Admin Password
 
-In both files change:
+Default admin password is `9900`. To change it, search for `9900` in:
+- `index.html` (admin login)
+- `scores.html` (legacy admin login button)
+
+---
+
+## Optional: Enable Moderation
+
+In both `submit.html` and `wall.html` change:
 ```js
 const MODERATION = false  →  const MODERATION = true
 ```

@@ -264,9 +264,10 @@
 <body>
 
 <div class="top-bar">
-  <div class="event-label">tonight's party</div>
-  <div class="event-name">🎉 The Wall</div>
-  <div class="event-sub">Post something — it shows up on the big screen</div>
+  <a href="home.html" class="back-link" style="position:absolute;left:1rem;top:1.25rem;color:var(--muted);text-decoration:none;font-size:14px;">← Hjem</a>
+  <div class="event-label">FP26</div>
+  <div class="event-name">📝 Post noe</div>
+  <div class="event-sub">Vises på storskjermen</div>
 </div>
 
 <div class="form-wrap" id="form-wrap">
@@ -340,6 +341,12 @@ const MODERATION = false               // set true to hold posts until approved
 // ─────────────────────────────────────────────
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// Pre-fill name from session if available
+const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
+if (session && session.name && session.name !== 'Admin') {
+  document.getElementById('name-input').value = session.name
+}
 
 let selectedType = 'complaint'
 let selectedFile = null

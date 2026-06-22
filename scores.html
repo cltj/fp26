@@ -196,11 +196,14 @@
 <body>
 
 <header>
-  <div class="event-title">🏆 Scores</div>
+  <div class="header-left" style="display:flex;align-items:center;gap:12px;">
+    <a href="home.html" class="back-btn" style="text-decoration:none;">← Hjem</a>
+    <div class="event-title">🏆 Scores</div>
+  </div>
   <div class="header-right">
     <span class="admin-badge" id="admin-badge">Admin</span>
     <button class="back-btn" id="login-btn" onclick="doLogin()">🔒 Admin</button>
-    <a href="wall.html" class="back-btn">← The Wall</a>
+    <a href="wall.html" class="back-btn">🎤 The Wall</a>
   </div>
 </header>
 
@@ -232,6 +235,12 @@ let scores = {}
 let isAdmin = false
 
 TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
+
+// Check if admin from session
+const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
+if (session && session.isAdmin) {
+  isAdmin = true
+}
 
 function total(teamId) {
   return (scores[teamId] || []).reduce((a, b) => a + (b ?? 0), 0)

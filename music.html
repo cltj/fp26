@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FP26 – Legg til musikk</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e11;
+    --surface: #18181c;
+    --border: rgba(255,255,255,0.10);
+    --border-focus: rgba(255,255,255,0.30);
+    --text: #f0eff4;
+    --muted: rgba(240,239,244,0.45);
+    --accent: #fa57c1;
+    --accent-dark: #e04aa8;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --danger: #ff6b6b;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 0 3rem;
+  }
+
+  .top-bar {
+    width: 100%;
+    padding: 1.25rem 1.5rem 1rem;
+    text-align: center;
+    border-bottom: 0.5px solid var(--border);
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+  }
+  .back-link {
+    position: absolute;
+    left: 1rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.15s;
+  }
+  .back-link:hover { color: var(--text); }
+  .event-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+
+  .form-wrap {
+    width: 100%;
+    max-width: 440px;
+    padding: 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  .music-icon { font-size: 56px; text-align: center; margin-bottom: 0.5rem; }
+  .intro-text {
+    text-align: center;
+    font-size: 15px;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  input[type="text"], input[type="url"] {
+    width: 100%;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 16px;
+    font-family: inherit;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+  input:focus { border-color: var(--border-focus); }
+  ::placeholder { color: var(--muted); }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    padding: 14px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: -0.01em;
+    margin-top: 0.5rem;
+  }
+  .submit-btn:hover { background: var(--accent-dark); }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 20px;
+    font-size: 14px;
+    color: var(--text);
+    transition: transform 0.3s ease;
+    white-space: nowrap;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--accent); color: var(--accent); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    gap: 1rem;
+    min-height: 50vh;
+  }
+  .success-screen.show { display: flex; }
+  .form-wrap.hidden { display: none; }
+  .big-emoji { font-size: 56px; }
+  .success-screen h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .success-screen p { font-size: 15px; color: var(--muted); }
+  .add-another {
+    margin-top: 0.5rem;
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    padding: 10px 24px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .add-another:hover { border-color: var(--accent); background: rgba(250,87,193,0.1); }
+
+  .recent-songs {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .recent-title {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  .song-item {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .song-icon { font-size: 20px; }
+  .song-info { flex: 1; min-width: 0; }
+  .song-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song-artist { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song-requester { font-size: 11px; color: var(--muted); opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <a href="home.html" class="back-link">← Tilbake</a>
+  <div class="event-name">🎵 Musikk</div>
+</div>
+
+<div class="form-wrap" id="form-wrap">
+  <div class="music-icon">🎶</div>
+  <p class="intro-text">
+    Legg til en sang i spillelisten!<br>
+    Del en Spotify- eller YouTube-lenke, eller bare skriv sangtittel.
+  </p>
+
+  <div>
+    <label>Ditt navn</label>
+    <input type="text" id="name-input" placeholder="Hvem er du?" required>
+  </div>
+
+  <div>
+    <label>Sang / Artist</label>
+    <input type="text" id="song-input" placeholder="f.eks. Africa - Toto" required>
+  </div>
+
+  <div>
+    <label>Lenke (valgfritt)</label>
+    <input type="url" id="link-input" placeholder="Spotify, YouTube, etc.">
+  </div>
+
+  <button class="submit-btn" id="submit-btn" onclick="submitSong()">Legg til sang 🎵</button>
+  <p class="hint">Fungerer uten streaming-abonnement</p>
+
+  <div class="recent-songs" id="recent-songs"></div>
+</div>
+
+<div class="success-screen" id="success-screen">
+  <div class="big-emoji">🎉</div>
+  <h2>Sang lagt til!</h2>
+  <p>Takk for bidraget til spillelisten</p>
+  <button class="add-another" onclick="resetForm()">Legg til en til</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// 🔧 CONFIGURE THESE
+const SUPABASE_URL      = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const TABLE_NAME        = 'music_requests'
+// ─────────────────────────────────────────────
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// Pre-fill name from session if available
+const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
+if (session && session.name && session.name !== 'Admin') {
+  document.getElementById('name-input').value = session.name
+}
+
+async function submitSong() {
+  const name = document.getElementById('name-input').value.trim()
+  const song = document.getElementById('song-input').value.trim()
+  const link = document.getElementById('link-input').value.trim()
+
+  if (!name || !song) {
+    showToast('Fyll ut navn og sang', 'error')
+    return
+  }
+
+  const btn = document.getElementById('submit-btn')
+  btn.disabled = true
+  btn.textContent = 'Sender...'
+
+  try {
+    const { error } = await sb.from(TABLE_NAME).insert({
+      name: name,
+      song: song,
+      link: link || null,
+      created_at: new Date().toISOString()
+    })
+
+    if (error) throw error
+
+    document.getElementById('form-wrap').classList.add('hidden')
+    document.getElementById('success-screen').classList.add('show')
+  } catch (err) {
+    console.error(err)
+    showToast('Kunne ikke legge til sang', 'error')
+    btn.disabled = false
+    btn.textContent = 'Legg til sang 🎵'
+  }
+}
+
+function resetForm() {
+  document.getElementById('song-input').value = ''
+  document.getElementById('link-input').value = ''
+  document.getElementById('submit-btn').disabled = false
+  document.getElementById('submit-btn').textContent = 'Legg til sang 🎵'
+  document.getElementById('form-wrap').classList.remove('hidden')
+  document.getElementById('success-screen').classList.remove('show')
+  loadRecentSongs()
+}
+
+function showToast(msg, type = '') {
+  const toast = document.getElementById('toast')
+  toast.textContent = msg
+  toast.className = 'toast show ' + type
+  setTimeout(() => toast.classList.remove('show'), 3000)
+}
+
+async function loadRecentSongs() {
+  try {
+    const { data, error } = await sb
+      .from(TABLE_NAME)
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5)
+
+    if (error) throw error
+
+    const container = document.getElementById('recent-songs')
+    if (data && data.length > 0) {
+      container.innerHTML = `
+        <div class="recent-title">Nylig lagt til</div>
+        ${data.map(s => `
+          <div class="song-item">
+            <span class="song-icon">🎵</span>
+            <div class="song-info">
+              <div class="song-title">${escapeHtml(s.song)}</div>
+              <div class="song-requester">av ${escapeHtml(s.name)}</div>
+            </div>
+          </div>
+        `).join('')}
+      `
+    } else {
+      container.innerHTML = ''
+    }
+  } catch (err) {
+    console.error('Failed to load recent songs:', err)
+  }
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}
+
+// Load recent songs on page load
+loadRecentSongs()
+
+// Subscribe to real-time updates
+sb.channel('music-realtime')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: TABLE_NAME }, () => {
+    loadRecentSongs()
+  })
+  .subscribe()
+</script>
+
+</body>
+</html>
