@@ -169,8 +169,8 @@ async function loadParticipants() {
   try {
     const { data, error } = await sb
       .from('participants')
-      .select('id, name, photo, pin, isAdmin')
-      .order('name')
+      .select('id, participant, photo_url, pin, isAdmin')
+      .order('participant')
     
     if (error) throw error
     participants = data
@@ -190,7 +190,7 @@ async function selectCharacter(participantId) {
   const pin = prompt('PIN-kode:')
   if (!pin) return
   
-  if (pin !== participant.pin) {
+  if (pin !== participant.pin.trim()) {
     alert('Feil PIN')
     return
   }
@@ -198,9 +198,9 @@ async function selectCharacter(participantId) {
   // Store session
   const sessionData = {
     id: participant.id,
-    name: participant.name,
+    name: participant.participant,
     isAdmin: participant.isAdmin || false,
-    photo: participant.photo,
+    photo: participant.photo_url,
     loginTime: Date.now()
   }
   localStorage.setItem('fp26_session', JSON.stringify(sessionData))
@@ -219,9 +219,9 @@ function renderCharacters() {
   }
   
   grid.innerHTML = participants.map(p => `
-    <div class="character-card ${p.isAdmin ? 'admin' : ''}" onclick="selectCharacter('${p.id}')">
-      <img src="${p.photo || 'placeholder.png'}" alt="${p.name}" class="character-photo" onerror="this.src='placeholder.png'">
-      <div class="character-name">${p.name}</div>
+    <div class="character-card ${p.isAdmin ? 'admin' : ''}" onclick="selectCharacter(${p.id})">
+      <img src="${p.photo_url || 'placeholder.png'}" alt="${p.participant}" class="character-photo" onerror="this.src='placeholder.png'">
+      <div class="character-name">${p.participant}</div>
       ${p.isAdmin ? '<div class="admin-badge">👑 Admin</div>' : ''}
     </div>
   `).join('')
