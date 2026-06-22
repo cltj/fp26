@@ -92,6 +92,37 @@
     border: 3px solid var(--accent);
     margin-bottom: 0.75rem;
   }
+  .welcome-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .tv2-promo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .tv2-qr {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+  }
+  .tv2-link {
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 0.5px solid rgba(200,244,90,0.3);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tv2-link:hover {
+    background: rgba(200,244,90,0.1);
+  }
   .welcome-text { font-size: 22px; font-weight: 700; margin-bottom: 0.25rem; }
 
   .section-title {
@@ -316,7 +347,14 @@
 
 <main>
   <section class="welcome-section">
-    <img src="" alt="" class="welcome-photo" id="welcome-photo" onerror="this.style.display='none'">
+    <img src="" alt="" class="welcome-photo" id="welcome-photo" style="display:none;">
+    <div class="welcome-row" id="placeholder-row" style="display:none;">
+      <img src="" alt="" class="welcome-photo" id="placeholder-photo">
+      <div class="tv2-promo">
+        <img src="tv2.png" alt="TV2 Fotballkort" class="tv2-qr">
+        <a href="https://www.tv2.no/fotballkort" target="_blank" class="tv2-link">Lag ditt bilde her →</a>
+      </div>
+    </div>
     <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
   </section>
 
@@ -389,10 +427,23 @@ if (!session || !session.name) {
 document.getElementById('user-name').textContent = session.name
 document.getElementById('welcome-name').textContent = session.name
 
-// Show user photo if available
-if (session.photo) {
-  document.getElementById('welcome-photo').src = session.photo
-  document.getElementById('welcome-photo').alt = session.name
+// Show user photo if available and not a placeholder
+const photoEl = document.getElementById('welcome-photo')
+const placeholderRow = document.getElementById('placeholder-row')
+const placeholderPhoto = document.getElementById('placeholder-photo')
+
+if (session.photo && !session.photo.toLowerCase().includes('placeholder')) {
+  photoEl.src = session.photo
+  photoEl.alt = session.name
+  photoEl.style.display = 'block'
+  placeholderRow.style.display = 'none'
+} else {
+  photoEl.style.display = 'none'
+  placeholderRow.style.display = 'flex'
+  if (session.photo) {
+    placeholderPhoto.src = session.photo
+    placeholderPhoto.alt = session.name
+  }
 }
 
 // Show admin badge and section if admin
