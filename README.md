@@ -80,6 +80,22 @@ create policy "Anyone can read music" on music_requests for select using (true);
 alter table music_requests enable row level security;
 ```
 
+### Create the `config` table (for admin PIN)
+
+```sql
+create table config (
+  key         text primary key,
+  value       text not null
+);
+
+-- Insert your admin PIN (change '9900' to your desired PIN)
+insert into config (key, value) values ('admin_pin', '9900');
+
+create policy "Anyone can read config" on config for select using (true);
+
+alter table config enable row level security;
+```
+
 ### Create the storage bucket
 
 Go to Storage → New bucket → name it `party-media` → set to **Public**.
@@ -132,8 +148,8 @@ Use https://qr.io or similar. Print and display at the party entrance.
 3. From dashboard: post messages, add music, view wall or scoreboard
 
 ### For admins:
-1. Go to login page, click "Admin-innlogging" at the bottom
-2. Enter password: `9900`
+1. **Option A:** Log in with name "tj" → prompted for PIN
+2. **Option B:** Click "Admin-innlogging" at the bottom → enter PIN
 3. Admin can:
    - Add/modify scores on the Scoreboard
    - Moderate posts on The Wall (approve/delete)
@@ -144,11 +160,13 @@ Use https://qr.io or similar. Print and display at the party entrance.
 
 ---
 
-## Admin Password
+## Admin PIN
 
-Default admin password is `9900`. To change it, search for `9900` in:
-- `index.html` (admin login)
-- `scores.html` (legacy admin login button)
+The admin PIN is stored in Supabase in the `config` table. To change it:
+
+1. Go to Supabase → Table Editor → `config`
+2. Edit the row where `key` = `admin_pin`
+3. Change the `value` to your new PIN
 
 ---
 

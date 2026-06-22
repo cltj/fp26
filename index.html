@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FP26 – Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -157,7 +158,28 @@ if (session && session.name) {
   window.location.href = 'home.html'
 }
 
-document.getElementById('login-form').addEventListener('submit', function(e) {
+// Supabase config
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+async function verifyAdminPin(pin) {
+  try {
+    const { data, error } = await sb
+      .from('config')
+      .select('value')
+      .eq('key', 'admin_pin')
+      .single()
+    
+    if (error) throw error
+    return data.value === pin
+  } catch (err) {
+    console.error('Could not verify PIN:', err)
+    return false
+  }
+}
+
+document.getElementById('login-form').addEventListener('submit', async function(e) {
   e.preventDefault()
   
   const name = document.getElementById('name-input').value.trim()
@@ -168,7 +190,29 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
     return
   }
   
-  // Store session
+  // Check if this is tj (admin)
+  if (name.toLowerCase() === 'tj') {
+    const pin = prompt('Admin PIN:')
+    if (!pin) return
+    
+    const isValid = await verifyAdminPin(pin)
+    if (!isValid) {
+      alert('Feil PIN')
+      return
+    }
+    
+    const sessionData = {
+      name: 'TJ',
+      team: team,
+      isAdmin: true,
+      loginTime: Date.now()
+    }
+    localStorage.setItem('fp26_session', JSON.stringify(sessionData))
+    window.location.href = 'home.html'
+    return
+  }
+  
+  // Regular user
   const sessionData = {
     name: name,
     team: team,
@@ -176,14 +220,15 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
     loginTime: Date.now()
   }
   localStorage.setItem('fp26_session', JSON.stringify(sessionData))
-  
-  // Redirect to home
   window.location.href = 'home.html'
 })
 
-function adminLogin() {
-  const pw = prompt('Admin-passord:')
-  if (pw === '9900') {
+async function adminLogin() {
+  const pin = prompt('Admin PIN:')
+  if (!pin) return
+  
+  const isValid = await verifyAdminPin(pin)
+  if (isValid) {
     const sessionData = {
       name: 'Admin',
       team: 'Admin',
@@ -192,8 +237,8 @@ function adminLogin() {
     }
     localStorage.setItem('fp26_session', JSON.stringify(sessionData))
     window.location.href = 'home.html'
-  } else if (pw !== null) {
-    alert('Feil passord')
+  } else {
+    alert('Feil PIN')
   }
 }
 
