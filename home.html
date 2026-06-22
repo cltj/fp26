@@ -86,8 +86,8 @@
   }
   .welcome-photo {
     width: 80px;
-    height: 80px;
-    border-radius: 50%;
+    height: 107px;
+    border-radius: 10px;
     object-fit: cover;
     border: 3px solid var(--accent);
     margin-bottom: 0.75rem;
@@ -233,12 +233,18 @@
 
   .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
   .avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
+    width: 36px; height: 48px;
+    border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700;
+    font-size: 12px; font-weight: 700;
     flex-shrink: 0;
     color: #0e0e11;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+  }
+  .avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
   }
   .post-name { font-size: 14px; font-weight: 600; }
   .post-time { font-size: 12px; color: var(--muted); margin-top: 1px; }
@@ -410,6 +416,20 @@ function initials(name) {
   return name.trim().split(/\s+/).slice(0,2).map(w => w[0].toUpperCase()).join('')
 }
 
+// Participant photo cache
+let participantPhotos = {}
+async function loadParticipantPhotos() {
+  const { data } = await sb.from('participants').select('participant, photo_url')
+  if (data) {
+    data.forEach(p => {
+      participantPhotos[p.participant.toLowerCase()] = p.photo_url
+    })
+  }
+}
+function getParticipantPhoto(name) {
+  return participantPhotos[name.toLowerCase()] || null
+}
+
 const typeConfig = {
   complaint: { label: '😤 Complaint', cls: 'tag-complaint' },
   cheer:     { label: '🙌 Cheer',     cls: 'tag-cheer' },
@@ -428,6 +448,11 @@ function escHtml(str) {
 function buildPost(post) {
   const tc = typeConfig[post.type] || typeConfig.complaint
   const col = avatarColor(post.name)
+  const photo = getParticipantPhoto(post.name)
+
+  const avatarHTML = photo
+    ? `<div class="avatar"><img src="${photo}" alt="${escHtml(post.name)}"></div>`
+    : `<div class="avatar" style="background:${col}">${initials(post.name)}</div>`
 
   const mediaHTML = post.media_url
     ? `<div class="post-media">${
@@ -440,7 +465,7 @@ function buildPost(post) {
   return `
     <div class="post">
       <div class="post-header">
-        <div class="avatar" style="background:${col}">${initials(post.name)}</div>
+        ${avatarHTML}
         <div>
           <div class="post-name">${escHtml(post.name)}</div>
           <div class="post-time">${fmtTime(post.created_at)}</div>
@@ -497,8 +522,11 @@ function subscribeToWall() {
     .subscribe()
 }
 
-loadWallFeed()
-subscribeToWall()
+// Load participants first, then wall feed
+loadParticipantPhotos().then(() => {
+  loadWallFeed()
+  subscribeToWall()
+})
 
 function logout() {
   localStorage.removeItem('fp26_session')
