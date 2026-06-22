@@ -6,7 +6,7 @@ A complete party experience with login, QR-based interactions, live wall, music 
 
 | Page | Purpose |
 |------|---------|
-| `index.html` | **Landing/Login** - Participants enter name & team. QR codes should point here. |
+| `index.html` | **Character Select** - Participants tap their photo to log in. QR codes point here. |
 | `home.html` | **Dashboard** - After login, shows QR codes for music/submit, plus links to Wall & Scoreboard |
 | `submit.html` | **Post to Wall** - Submit messages, photos, or videos |
 | `music.html` | **Add Music** - Request songs for the playlist |
@@ -143,14 +143,13 @@ Use https://qr.io or similar. Print and display at the party entrance.
 ## 5. On the Night
 
 ### For participants:
-1. Scan QR code → lands on login page (`index.html`)
-2. Enter name and team → redirected to dashboard (`home.html`)
+1. Scan QR code → lands on character select (`index.html`)
+2. Tap their photo → redirected to dashboard (`home.html`)
 3. From dashboard: post messages, add music, view wall or scoreboard
 
 ### For admins:
-1. **Option A:** Log in with name "tj" → prompted for PIN
-2. **Option B:** Click "Admin-innlogging" at the bottom → enter PIN
-3. Admin can:
+1. **TJ taps his photo** → prompted for PIN → gets admin access
+2. Admin can:
    - Add/modify scores on the Scoreboard
    - Moderate posts on The Wall (approve/delete)
 
@@ -167,6 +166,27 @@ The admin PIN is stored in Supabase in the `config` table. To change it:
 1. Go to Supabase → Table Editor → `config`
 2. Edit the row where `key` = `admin_pin`
 3. Change the `value` to your new PIN
+
+---
+
+## Modify Participants
+
+The participant list is defined in `index.html`. Find the `PARTICIPANTS` array:
+
+```js
+const PARTICIPANTS = [
+  { id: 'tj',       name: 'TJ',       photo: 'tj.jpg',        team: 'Norge',     isAdmin: true },
+  { id: 'eivind',   name: 'Eivind',   photo: 'eivind.jpeg',   team: 'Norge',     isAdmin: false },
+  // ... add more here
+]
+```
+
+Each participant needs:
+- `id`: Unique identifier (lowercase)
+- `name`: Display name
+- `photo`: Filename of their photo (in the same folder)
+- `team`: Their team name
+- `isAdmin`: Set `true` for admin users (will prompt for PIN)
 
 ---
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FP26 – Login</title>
+<title>FP26 – Velg din karakter</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -12,14 +12,13 @@
     --bg: #0e0e11;
     --surface: #18181c;
     --border: rgba(255,255,255,0.10);
-    --border-focus: rgba(255,255,255,0.30);
+    --border-hover: rgba(200,244,90,0.5);
     --text: #f0eff4;
     --muted: rgba(240,239,244,0.45);
     --accent: #c8f45a;
     --accent-dark: #a8d038;
-    --radius: 14px;
-    --radius-sm: 8px;
-    --danger: #ff6b6b;
+    --radius: 16px;
+    --radius-sm: 10px;
   }
 
   body {
@@ -30,138 +29,148 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 2rem;
+    padding: 2rem 1rem;
   }
 
-  .login-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 2.5rem 2rem;
-    width: 100%;
-    max-width: 380px;
+  .header {
     text-align: center;
+    margin-bottom: 2rem;
   }
-
-  .event-emoji { font-size: 56px; margin-bottom: 1rem; }
+  .event-emoji { font-size: 48px; margin-bottom: 0.75rem; }
   .event-name {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
     letter-spacing: -0.02em;
     margin-bottom: 0.5rem;
   }
   .event-sub {
-    font-size: 14px;
-    color: var(--muted);
-    margin-bottom: 2rem;
+    font-size: 18px;
+    color: var(--accent);
+    font-weight: 500;
   }
 
-  .form-group {
-    margin-bottom: 1rem;
-    text-align: left;
-  }
-
-  label {
-    display: block;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 6px;
-  }
-
-  input[type="text"], input[type="password"] {
+  .character-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 500px;
     width: 100%;
-    background: var(--bg);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-size: 16px;
-    font-family: inherit;
-    padding: 12px 14px;
-    outline: none;
-    transition: border-color 0.15s;
-    -webkit-appearance: none;
   }
-  input:focus { border-color: var(--border-focus); }
-  ::placeholder { color: var(--muted); }
 
-  .login-btn {
-    width: 100%;
-    background: var(--accent);
-    color: #0e0e11;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 16px;
-    font-weight: 700;
-    font-family: inherit;
-    padding: 14px;
+  @media (max-width: 400px) {
+    .character-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .character-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
     cursor: pointer;
-    transition: background 0.15s, transform 0.1s;
-    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
   }
-  .login-btn:hover { background: var(--accent-dark); }
-  .login-btn:active { transform: scale(0.98); }
+  .character-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(200,244,90,0.15);
+  }
+  .character-card:active {
+    transform: translateY(-2px) scale(0.98);
+  }
 
-  .error-msg {
-    color: var(--danger);
-    font-size: 13px;
-    margin-top: 1rem;
-    display: none;
+  .character-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border);
+    transition: border-color 0.2s;
   }
-  .error-msg.show { display: block; }
+  .character-card:hover .character-photo {
+    border-color: var(--accent);
+  }
 
-  .admin-link {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 0.5px solid var(--border);
+  .character-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
   }
-  .admin-link a {
+
+  .character-team {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Admin indicator */
+  .character-card.admin .character-photo {
+    border-color: rgba(255,215,0,0.5);
+  }
+  .character-card.admin:hover .character-photo {
+    border-color: gold;
+  }
+  .admin-badge {
+    font-size: 10px;
+    background: rgba(255,215,0,0.15);
+    color: gold;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin-top: -4px;
+  }
+
+  .footer {
+    margin-top: 2rem;
+    text-align: center;
     color: var(--muted);
     font-size: 13px;
-    text-decoration: none;
-    transition: color 0.15s;
   }
-  .admin-link a:hover { color: var(--text); }
 </style>
 </head>
 <body>
 
-<div class="login-card">
+<div class="header">
   <div class="event-emoji">🎉</div>
   <div class="event-name">FP26</div>
-  <div class="event-sub">Velkommen! Logg inn for å delta</div>
+  <div class="event-sub">Velg din karakter</div>
+</div>
 
-  <form id="login-form">
-    <div class="form-group">
-      <label>Navn</label>
-      <input type="text" id="name-input" placeholder="Ditt navn" required autocomplete="off">
-    </div>
-    <div class="form-group">
-      <label>Team</label>
-      <input type="text" id="team-input" placeholder="Ditt lag" required autocomplete="off">
-    </div>
-    <button type="submit" class="login-btn">Logg inn</button>
-    <div class="error-msg" id="error-msg">Vennligst fyll ut alle feltene</div>
-  </form>
+<div class="character-grid" id="character-grid">
+  <!-- Characters will be inserted here -->
+</div>
 
-  <div class="admin-link">
-    <a href="#" onclick="adminLogin(); return false;">🔒 Admin-innlogging</a>
-  </div>
+<div class="footer">
+  Trykk på deg selv for å logge inn
 </div>
 
 <script>
+// Supabase config
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// Define all participants
+const PARTICIPANTS = [
+  { id: 'tj',       name: 'TJ',       photo: 'tj.jpg',        team: 'Norge',     isAdmin: true },
+  { id: 'eivind',   name: 'Eivind',   photo: 'eivind.jpeg',   team: 'Norge',     isAdmin: false },
+  { id: 'helle',    name: 'Helle',    photo: 'helle.jpeg',    team: 'Frankrike', isAdmin: false },
+  { id: 'kornelis', name: 'Kornelis', photo: 'kornelis.png',  team: 'Senegal',   isAdmin: false },
+  { id: 'oyvind',   name: 'Øyvind',   photo: 'oyvind.png',    team: 'Irak',      isAdmin: false },
+  { id: 'terje',    name: 'Terje',    photo: 'terje.png',     team: 'Norge',     isAdmin: false },
+]
+
 // Check if already logged in
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
 if (session && session.name) {
   window.location.href = 'home.html'
 }
-
-// Supabase config
-const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 async function verifyAdminPin(pin) {
   try {
@@ -179,19 +188,9 @@ async function verifyAdminPin(pin) {
   }
 }
 
-document.getElementById('login-form').addEventListener('submit', async function(e) {
-  e.preventDefault()
-  
-  const name = document.getElementById('name-input').value.trim()
-  const team = document.getElementById('team-input').value.trim()
-  
-  if (!name || !team) {
-    document.getElementById('error-msg').classList.add('show')
-    return
-  }
-  
-  // Check if this is tj (admin)
-  if (name.toLowerCase() === 'tj') {
+async function selectCharacter(participant) {
+  // If admin, verify PIN first
+  if (participant.isAdmin) {
     const pin = prompt('Admin PIN:')
     if (!pin) return
     
@@ -200,54 +199,37 @@ document.getElementById('login-form').addEventListener('submit', async function(
       alert('Feil PIN')
       return
     }
-    
-    const sessionData = {
-      name: 'TJ',
-      team: team,
-      isAdmin: true,
-      loginTime: Date.now()
-    }
-    localStorage.setItem('fp26_session', JSON.stringify(sessionData))
-    window.location.href = 'home.html'
-    return
   }
   
-  // Regular user
+  // Store session
   const sessionData = {
-    name: name,
-    team: team,
-    isAdmin: false,
+    name: participant.name,
+    team: participant.team,
+    isAdmin: participant.isAdmin,
+    photo: participant.photo,
     loginTime: Date.now()
   }
   localStorage.setItem('fp26_session', JSON.stringify(sessionData))
-  window.location.href = 'home.html'
-})
-
-async function adminLogin() {
-  const pin = prompt('Admin PIN:')
-  if (!pin) return
   
-  const isValid = await verifyAdminPin(pin)
-  if (isValid) {
-    const sessionData = {
-      name: 'Admin',
-      team: 'Admin',
-      isAdmin: true,
-      loginTime: Date.now()
-    }
-    localStorage.setItem('fp26_session', JSON.stringify(sessionData))
-    window.location.href = 'home.html'
-  } else {
-    alert('Feil PIN')
-  }
+  // Redirect to home
+  window.location.href = 'home.html'
 }
 
-// Hide error on input
-document.querySelectorAll('input').forEach(input => {
-  input.addEventListener('input', () => {
-    document.getElementById('error-msg').classList.remove('show')
-  })
-})
+// Render character grid
+function renderCharacters() {
+  const grid = document.getElementById('character-grid')
+  
+  grid.innerHTML = PARTICIPANTS.map(p => `
+    <div class="character-card ${p.isAdmin ? 'admin' : ''}" onclick="selectCharacter(PARTICIPANTS.find(x => x.id === '${p.id}'))">
+      <img src="${p.photo}" alt="${p.name}" class="character-photo" onerror="this.src='placeholder.png'">
+      <div class="character-name">${p.name}</div>
+      <div class="character-team">${p.team}</div>
+      ${p.isAdmin ? '<div class="admin-badge">👑 Admin</div>' : ''}
+    </div>
+  `).join('')
+}
+
+renderCharacters()
 </script>
 
 </body>

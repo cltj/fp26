@@ -84,7 +84,14 @@
     text-align: center;
     margin-bottom: 2rem;
   }
-  .welcome-emoji { font-size: 48px; margin-bottom: 0.75rem; }
+  .welcome-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent);
+    margin-bottom: 0.75rem;
+  }
   .welcome-text { font-size: 22px; font-weight: 700; margin-bottom: 0.25rem; }
   .team-text { font-size: 14px; color: var(--muted); }
 
@@ -214,7 +221,7 @@
 
 <main>
   <section class="welcome-section">
-    <div class="welcome-emoji">👋</div>
+    <img src="" alt="" class="welcome-photo" id="welcome-photo" onerror="this.style.display='none'">
     <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
     <div class="team-text">Team: <span id="welcome-team"></span></div>
   </section>
@@ -281,6 +288,12 @@ if (!session || !session.name) {
 document.getElementById('user-name').textContent = session.name
 document.getElementById('welcome-name').textContent = session.name
 document.getElementById('welcome-team').textContent = session.team
+
+// Show user photo if available
+if (session.photo) {
+  document.getElementById('welcome-photo').src = session.photo
+  document.getElementById('welcome-photo').alt = session.name
+}
 
 // Show admin badge and section if admin
 if (session.isAdmin) {
