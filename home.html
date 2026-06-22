@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FP26 – Hjem</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -93,7 +93,6 @@
     margin-bottom: 0.75rem;
   }
   .welcome-text { font-size: 22px; font-weight: 700; margin-bottom: 0.25rem; }
-  .team-text { font-size: 14px; color: var(--muted); }
 
   .section-title {
     font-size: 13px;
@@ -104,84 +103,179 @@
     padding-left: 4px;
   }
 
-  /* QR Cards */
-  .qr-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  /* Action Cards */
+  .action-grid {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
     margin-bottom: 1.5rem;
   }
 
-  .qr-card {
+  .action-card {
     background: var(--surface);
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.25rem;
-    text-align: center;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     transition: border-color 0.2s, transform 0.15s;
   }
-  .qr-card:hover { transform: translateY(-2px); }
-  .qr-card.music { border-color: rgba(250,87,193,0.3); }
-  .qr-card.submit { border-color: rgba(96,200,255,0.3); }
+  .action-card:hover { transform: translateY(-2px); }
+  .action-card.music { border-color: rgba(250,87,193,0.3); }
+  .action-card.submit { border-color: rgba(96,200,255,0.3); }
 
-  .qr-icon { font-size: 28px; margin-bottom: 0.5rem; }
-  .qr-title { font-size: 15px; font-weight: 600; margin-bottom: 0.75rem; }
-  .qr-card.music .qr-title { color: var(--accent-music); }
-  .qr-card.submit .qr-title { color: var(--accent-submit); }
-
-  .qr-canvas {
-    background: #fff;
-    border-radius: 8px;
-    padding: 8px;
-    margin-bottom: 0.75rem;
-    display: inline-block;
+  .action-qr {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    flex-shrink: 0;
   }
-  .qr-canvas canvas { display: block; }
 
-  .qr-link {
-    display: inline-block;
+  .action-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .action-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .action-card.music .action-title { color: var(--accent-music); }
+  .action-card.submit .action-title { color: var(--accent-submit); }
+
+  .action-desc {
     font-size: 12px;
     color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .action-btn {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
     text-decoration: none;
-    padding: 6px 12px;
-    border: 0.5px solid var(--border);
+    padding: 8px 16px;
     border-radius: var(--radius-sm);
     transition: all 0.15s;
   }
-  .qr-link:hover { 
-    color: var(--text); 
-    border-color: rgba(255,255,255,0.3);
+  .action-card.music .action-btn {
+    background: rgba(250,87,193,0.15);
+    border: 0.5px solid rgba(250,87,193,0.3);
+  }
+  .action-card.music .action-btn:hover {
+    background: rgba(250,87,193,0.25);
+  }
+  .action-card.submit .action-btn {
+    background: rgba(96,200,255,0.15);
+    border: 0.5px solid rgba(96,200,255,0.3);
+  }
+  .action-card.submit .action-btn:hover {
+    background: rgba(96,200,255,0.25);
   }
 
-  /* Navigation Buttons */
-  .nav-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .nav-btn {
+  /* Scoreboard Button */
+  .scoreboard-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     background: var(--surface);
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.5rem 1rem;
-    text-align: center;
+    padding: 1rem;
     text-decoration: none;
     color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
     transition: all 0.2s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+    margin-bottom: 2rem;
   }
-  .nav-btn:hover {
+  .scoreboard-btn:hover {
     border-color: var(--accent);
     background: rgba(200,244,90,0.05);
     transform: translateY(-2px);
   }
-  .nav-btn .icon { font-size: 32px; }
-  .nav-btn .label { font-size: 15px; font-weight: 600; }
-  .nav-btn .desc { font-size: 12px; color: var(--muted); }
+  .scoreboard-btn.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+  .scoreboard-btn .icon { font-size: 24px; }
+
+  /* Wall Feed */
+  .wall-section {
+    margin-top: 1rem;
+  }
+
+  .wall-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .post {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    animation: slideIn 0.35s ease both;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+    color: #0e0e11;
+  }
+  .post-name { font-size: 14px; font-weight: 600; }
+  .post-time { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+  .type-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  .tag-complaint { background: rgba(255,107,107,0.15); color: #ff9f9f; }
+  .tag-cheer     { background: rgba(200,244,90,0.12); color: var(--accent); }
+  .tag-chaos     { background: rgba(255,165,0,0.12); color: #ffb347; }
+
+  .post-body { font-size: 15px; line-height: 1.55; color: var(--text); word-break: break-word; }
+
+  .post-media { margin-top: 10px; border-radius: var(--radius-sm); overflow: hidden; background: rgba(255,255,255,0.04); }
+  .post-media img, .post-media video { width: 100%; max-height: 280px; object-fit: cover; display: block; }
+
+  .empty-feed {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+  }
+  .empty-feed .big { font-size: 40px; margin-bottom: 0.5rem; }
+
+  .view-all-link {
+    display: block;
+    text-align: center;
+    margin-top: 1rem;
+    color: var(--accent);
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .view-all-link:hover { text-decoration: underline; }
 
   /* Admin Section */
   .admin-section {
@@ -200,11 +294,6 @@
   }
   .admin-info ul { margin-top: 0.5rem; padding-left: 1.25rem; }
   .admin-info li { margin: 0.25rem 0; }
-
-  @media (max-width: 400px) {
-    .qr-grid { grid-template-columns: 1fr; }
-    .nav-buttons { grid-template-columns: 1fr; }
-  }
 </style>
 </head>
 <body>
@@ -226,37 +315,44 @@
   </section>
 
   <section>
-    <div class="section-title">Del med festen</div>
-    <div class="qr-grid">
-      <div class="qr-card music">
-        <div class="qr-icon">🎵</div>
-        <div class="qr-title">Legg til musikk</div>
-        <div class="qr-canvas" id="music-qr"></div>
-        <a href="music.html" class="qr-link">Åpne lenke →</a>
+    <div class="section-title">🎊 Bidra med feststemning</div>
+    
+    <div class="action-grid">
+      <div class="action-card music">
+        <img src="fp26music.png" alt="Musikk QR" class="action-qr">
+        <div class="action-content">
+          <div class="action-title">🎵 Legg til musikk</div>
+          <div class="action-desc">Scan QR eller trykk for å legge til sanger</div>
+          <a href="https://music.apple.com/no/playlist/pl.u-AkAm8ENsx3y8dzL?a=join&it=Y2Be7k4fWZPv7JBhqp8GG&l=nb" target="_blank" class="action-btn">Åpne spilleliste →</a>
+        </div>
       </div>
-      <div class="qr-card submit">
-        <div class="qr-icon">📝</div>
-        <div class="qr-title">Post noe</div>
-        <div class="qr-canvas" id="submit-qr"></div>
-        <a href="submit.html" class="qr-link">Åpne lenke →</a>
+
+      <div class="action-card submit">
+        <img src="fp26submit.png" alt="Submit QR" class="action-qr">
+        <div class="action-content">
+          <div class="action-title">📝 Post til veggen</div>
+          <div class="action-desc">Del bilder, meldinger eller kaos</div>
+          <a href="submit.html" class="action-btn">Skriv innlegg →</a>
+        </div>
       </div>
     </div>
+
+    <a href="scores.html" class="scoreboard-btn disabled" id="scoreboard-btn">
+      <span class="icon">🏆</span>
+      <span>Scoreboard</span>
+      <span style="font-size: 12px; color: var(--muted); font-weight: 400;">(Åpner når lagene er klare)</span>
+    </a>
   </section>
 
-  <section>
-    <div class="section-title">Utforsk</div>
-    <div class="nav-buttons">
-      <a href="wall.html" class="nav-btn">
-        <span class="icon">🎤</span>
-        <span class="label">The Wall</span>
-        <span class="desc">Se alle innlegg</span>
-      </a>
-      <a href="scores.html" class="nav-btn">
-        <span class="icon">🏆</span>
-        <span class="label">Scoreboard</span>
-        <span class="desc">Følg lagene</span>
-      </a>
+  <section class="wall-section">
+    <div class="section-title">📣 The Wall</div>
+    <div class="wall-feed" id="wall-feed">
+      <div class="empty-feed">
+        <div class="big">👀</div>
+        <p>Laster innlegg...</p>
+      </div>
     </div>
+    <a href="wall.html" class="view-all-link">Se alle innlegg på storskjerm →</a>
   </section>
 
   <section class="admin-section" id="admin-section" style="display: none;">
@@ -272,10 +368,10 @@
 </main>
 
 <script>
-// Configuration
-const BASE_URL = window.location.origin + window.location.pathname.replace('home.html', '')
-const MUSIC_URL = BASE_URL + 'music.html'
-const SUBMIT_URL = BASE_URL + 'submit.html'
+// Supabase config
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // Check session
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
@@ -298,26 +394,111 @@ if (session.isAdmin) {
   document.getElementById('user-badge').classList.add('admin-badge')
   document.getElementById('user-badge').innerHTML = '🔒 Admin'
   document.getElementById('admin-section').style.display = 'block'
+  // Enable scoreboard for admin
+  document.getElementById('scoreboard-btn').classList.remove('disabled')
+  document.getElementById('scoreboard-btn').innerHTML = '<span class="icon">🏆</span><span>Scoreboard</span>'
 }
 
-// Generate QR codes
-function generateQR(elementId, url) {
-  const container = document.getElementById(elementId)
-  const canvas = document.createElement('canvas')
-  container.appendChild(canvas)
-  
-  QRCode.toCanvas(canvas, url, {
-    width: 120,
-    margin: 0,
-    color: {
-      dark: '#0e0e11',
-      light: '#ffffff'
+// Avatar colors
+const AVATAR_COLORS = ['#c8f45a','#60c8ff','#ff6b9d','#ffb347','#a78bfa','#34d399','#f472b6','#38bdf8']
+function avatarColor(name) {
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
+}
+function initials(name) {
+  return name.trim().split(/\s+/).slice(0,2).map(w => w[0].toUpperCase()).join('')
+}
+
+const typeConfig = {
+  complaint: { label: '😤 Complaint', cls: 'tag-complaint' },
+  cheer:     { label: '🙌 Cheer',     cls: 'tag-cheer' },
+  chaos:     { label: '🔥 Chaos',     cls: 'tag-chaos' },
+}
+
+function fmtTime(ts) {
+  const d = new Date(ts)
+  return d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+function buildPost(post) {
+  const tc = typeConfig[post.type] || typeConfig.complaint
+  const col = avatarColor(post.name)
+
+  const mediaHTML = post.media_url
+    ? `<div class="post-media">${
+        post.media_type === 'video'
+          ? `<video src="${post.media_url}" controls playsinline muted></video>`
+          : `<img src="${post.media_url}" alt="Photo by ${post.name}" loading="lazy">`
+      }</div>`
+    : ''
+
+  return `
+    <div class="post">
+      <div class="post-header">
+        <div class="avatar" style="background:${col}">${initials(post.name)}</div>
+        <div>
+          <div class="post-name">${escHtml(post.name)}</div>
+          <div class="post-time">${fmtTime(post.created_at)}</div>
+        </div>
+        <span class="type-tag ${tc.cls}">${tc.label}</span>
+      </div>
+      ${post.message ? `<div class="post-body">${escHtml(post.message)}</div>` : ''}
+      ${mediaHTML}
+    </div>
+  `
+}
+
+async function loadWallFeed() {
+  try {
+    const { data, error } = await sb
+      .from('posts')
+      .select('*')
+      .eq('approved', true)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (error) throw error
+
+    const feed = document.getElementById('wall-feed')
+    
+    if (!data || data.length === 0) {
+      feed.innerHTML = `
+        <div class="empty-feed">
+          <div class="big">👀</div>
+          <p>Ingen innlegg ennå — vær den første!</p>
+        </div>
+      `
+      return
     }
-  })
+
+    feed.innerHTML = data.map(post => buildPost(post)).join('')
+  } catch (err) {
+    console.error('Failed to load wall:', err)
+    document.getElementById('wall-feed').innerHTML = `
+      <div class="empty-feed">
+        <div class="big">😢</div>
+        <p>Kunne ikke laste innlegg</p>
+      </div>
+    `
+  }
 }
 
-generateQR('music-qr', MUSIC_URL)
-generateQR('submit-qr', SUBMIT_URL)
+// Subscribe to real-time updates
+function subscribeToWall() {
+  sb.channel('home-wall')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts', filter: 'approved=eq.true' }, () => {
+      loadWallFeed()
+    })
+    .subscribe()
+}
+
+loadWallFeed()
+subscribeToWall()
 
 function logout() {
   localStorage.removeItem('fp26_session')
