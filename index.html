@@ -72,6 +72,8 @@
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
+    padding: 10px;
+    gap: 8px;
   }
   .character-card:hover {
     border-color: var(--border-hover);
@@ -86,12 +88,12 @@
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
+    border-radius: var(--radius-sm);
     border: none;
-    border-bottom: 2px solid var(--border);
-    transition: border-color 0.2s;
+    transition: opacity 0.2s;
   }
   .character-card:hover .character-photo {
-    border-bottom-color: var(--accent);
+    opacity: 0.9;
   }
 
   .character-info {
