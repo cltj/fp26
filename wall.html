@@ -307,13 +307,8 @@ const MUSIC_URL         = 'https://music.apple.com/no/playlist/pl.u-AkAm8ENsx3y8
 
 document.getElementById('qr-url-label').textContent = SUBMIT_URL
 
-// Generate post QR
-new QRCode(document.getElementById('qr-post'), {
-  text: SUBMIT_URL,
-  width: 200, height: 200,
-  colorDark: '#000000', colorLight: '#ffffff',
-  correctLevel: QRCode.CorrectLevel.M
-})
+// Post QR generated lazily on first open
+let postQRGenerated = false
 
 // Music QR loaded as static image
 
@@ -522,6 +517,15 @@ function toggleAdmin() {
 
 function toggleQR() {
   document.getElementById('qr-overlay').classList.toggle('open')
+  if (!postQRGenerated) {
+    postQRGenerated = true
+    new QRCode(document.getElementById('qr-post'), {
+      text: SUBMIT_URL,
+      width: 200, height: 200,
+      colorDark: '#000000', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    })
+  }
 }
 
 function toggleMusicQR() {
