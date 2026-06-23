@@ -246,6 +246,8 @@
       
       <div class="teams-section" id="teams-section">
         <p style="width: 100%; color: var(--muted); font-size: 14px; margin-bottom: 0.5rem;">Hvem var nærmest?</p>
+        <!-- Team buttons added by JS -->
+        <button class="team-btn clear-btn" id="clear-winner-btn" style="background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: #f87171; display: none;">✕ Nullstill</button>
       </div>
     </div>
     
@@ -363,12 +365,15 @@ function showQuestion(index) {
   document.getElementById('reveal-btn').textContent = 'Vis fasit'
   
   // Update team buttons
-  document.querySelectorAll('.team-btn').forEach(btn => {
+  document.querySelectorAll('.team-btn:not(.clear-btn)').forEach(btn => {
     btn.classList.remove('winner')
     if (q.winner_team_id && btn.dataset.teamId == q.winner_team_id) {
       btn.classList.add('winner')
     }
   })
+  
+  // Show/hide clear button
+  document.getElementById('clear-winner-btn').style.display = q.winner_team_id ? 'block' : 'none'
   
   // Nav buttons
   document.getElementById('prev-btn').disabled = index === 0
@@ -396,13 +401,33 @@ async function selectWinner(teamId) {
   q.winner_team_id = teamId
   
   // Update UI
-  document.querySelectorAll('.team-btn').forEach(btn => {
+  document.querySelectorAll('.team-btn:not(.clear-btn)').forEach(btn => {
     btn.classList.toggle('winner', btn.dataset.teamId == teamId)
   })
+  document.getElementById('clear-winner-btn').style.display = 'block'
   renderScoreboard()
   
   // Save to DB
   await sb.from('quiz_answers').update({ winner_team_id: teamId }).eq('id', q.id)
+}
+
+async function clearWinner() {
+  const q = questions[currentIndex]
+  const oldWinner = q.winner_team_id
+  
+  if (!oldWinner) return
+  
+  // Update locally
+  scores[oldWinner]--
+  q.winner_team_id = null
+  
+  // Update UI
+  document.querySelectorAll('.team-btn').forEach(btn => btn.classList.remove('winner'))
+  document.getElementById('clear-winner-btn').style.display = 'none'
+  renderScoreboard()
+  
+  // Save to DB - use null properly
+  await sb.from('quiz_answers').update({ winner_team_id: null }).eq('id', q.id)
 }
 
 function nextQuestion() {
@@ -440,6 +465,7 @@ function formatNumber(num) {
 document.getElementById('reveal-btn').onclick = revealAnswer
 document.getElementById('next-btn').onclick = nextQuestion
 document.getElementById('prev-btn').onclick = () => showQuestion(currentIndex - 1)
+document.getElementById('clear-winner-btn').onclick = clearWinner
 
 init()
 </script>
