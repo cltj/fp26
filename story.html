@@ -223,6 +223,19 @@
 </div>
 
 <script>
+const CHAPTERS = [
+  { num: 1, file: 'story/1-kapittel1.md', title: 'Kapittel 1 – Intro' },
+  { num: 2, file: 'story/2-kapittel2.md', title: 'Kapittel 2 – Analyse' },
+  { num: 3, file: 'story/3-kapittel3.md', title: 'Kapittel 3 – Avreise' },
+  { num: 4, file: 'story/4-kapittel4.md', title: 'Kapittel 4 – Landslagssamling' },
+  { num: 5, file: 'story/5-kapittel5.md', title: 'Kapittel 5 – Uttak' },
+  { num: 6, file: 'story/6-kapittel6.md', title: 'Kapittel 6 – Gruppespill' },
+  { num: 7, file: 'story/7-kapittel7.md', title: 'Kapittel 7 – Forberedelser' },
+  { num: 8, file: 'story/8-kapittel8.md', title: 'Kapittel 8 – Finale' },
+]
+
+let currentChapter = 1
+
 // Check admin access
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
 if (!session || !session.isAdmin) {
@@ -238,19 +251,6 @@ if (!session || !session.isAdmin) {
 } else {
   initStory()
 }
-
-const CHAPTERS = [
-  { num: 1, file: 'story/1-kapittel1.md', title: 'Kapittel 1 – Intro' },
-  { num: 2, file: 'story/2-kapittel2.md', title: 'Kapittel 2 – Analyse' },
-  { num: 3, file: 'story/3-kapittel3.md', title: 'Kapittel 3 – Avreise' },
-  { num: 4, file: 'story/4-kapittel4.md', title: 'Kapittel 4 – Landslagssamling' },
-  { num: 5, file: 'story/5-kapittel5.md', title: 'Kapittel 5 – Uttak' },
-  { num: 6, file: 'story/6-kapittel6.md', title: 'Kapittel 6 – Gruppespill' },
-  { num: 7, file: 'story/7-kapittel7.md', title: 'Kapittel 7 – Forberedelser' },
-  { num: 8, file: 'story/8-kapittel8.md', title: 'Kapittel 8 – Finale' },
-]
-
-let currentChapter = 1
 
 function initStory() {
   // Build chapter selector
