@@ -413,6 +413,18 @@
     border-bottom: 0.5px solid var(--border);
   }
   .event-item:last-child { border-bottom: none; }
+  a.event-item {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.15s;
+  }
+  a.event-item:hover {
+    background: rgba(200,244,90,0.08);
+    margin: 0 -12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  a.event-item:hover .event-name { color: var(--accent); }
   .event-num {
     width: 24px;
     height: 24px;
@@ -529,41 +541,25 @@
 
   <section class="admin-section" id="admin-section" style="display: none;">
     <div class="section-title">🔒 Admin Dashboard</div>
-    
-    <!-- Story Navigation -->
-    <div class="admin-card">
-      <div class="admin-card-title">📖 Historie</div>
-      <div class="story-grid">
-        <a href="story/1.html" class="story-btn">1</a>
-        <a href="story/2.html" class="story-btn">2</a>
-        <a href="story/3.html" class="story-btn">3</a>
-        <a href="story/4.html" class="story-btn">4</a>
-        <a href="story/5.html" class="story-btn">5</a>
-        <a href="story/6.html" class="story-btn">6</a>
-        <a href="story/7.html" class="story-btn">7</a>
-        <a href="story/8.html" class="story-btn">8</a>
-      </div>
-      <a href="story.html" class="admin-link-btn">Alle kapitler →</a>
-    </div>
 
     <!-- Event Timeline -->
     <div class="admin-card">
       <div class="admin-card-title">📋 Rekkefølge</div>
       <div class="event-timeline">
-        <div class="event-item" data-time="16:00">
+        <a href="story/1.html" class="event-item event-link" data-time="16:00">
           <span class="event-num">1</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 1 – Intro</div>
             <div class="event-desc">Sette scenen, kontekst, lagutdeling</div>
           </div>
-        </div>
-        <div class="event-item" data-time="16:15">
+        </a>
+        <a href="story/2.html" class="event-item event-link" data-time="16:15">
           <span class="event-num">2</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 2 – Analyse</div>
             <div class="event-desc">Intro til quiz og spilleregler</div>
           </div>
-        </div>
+        </a>
         <div class="event-item" data-time="17:00">
           <span class="event-num">3</span>
           <div class="event-details">
@@ -571,13 +567,13 @@
             <div class="event-desc">30 min, ressurser utdeles</div>
           </div>
         </div>
-        <div class="event-item" data-time="17:30">
+        <a href="story/3.html" class="event-item event-link" data-time="17:30">
           <span class="event-num">4</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 3 – Avreise</div>
             <div class="event-desc">Klargjør for reise til ballbinge</div>
           </div>
-        </div>
+        </a>
         <div class="event-item" data-time="17:45">
           <span class="event-num">5</span>
           <div class="event-details">
@@ -585,13 +581,13 @@
             <div class="event-desc">Transport/gange</div>
           </div>
         </div>
-        <div class="event-item" data-time="18:00">
+        <a href="story/4.html" class="event-item event-link" data-time="18:00">
           <span class="event-num">6</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 4 – Landslagssamling</div>
             <div class="event-desc">Gå gjennom øvelser, minn om kort</div>
           </div>
-        </div>
+        </a>
         <div class="event-item" data-time="18:15">
           <span class="event-num">7</span>
           <div class="event-details">
@@ -599,20 +595,20 @@
             <div class="event-desc">Tverrlegger, presisjon, straffe, 3v3</div>
           </div>
         </div>
-        <div class="event-item" data-time="19:15">
+        <a href="story/5.html" class="event-item event-link" data-time="19:15">
           <span class="event-num">8</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 5 – Uttak + Lagbilde</div>
             <div class="event-desc">Avreise til "USA" (hjem)</div>
           </div>
-        </div>
-        <div class="event-item" data-time="19:30">
+        </a>
+        <a href="story/6.html" class="event-item event-link" data-time="19:30">
           <span class="event-num">9</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 6 – Gruppespill</div>
             <div class="event-desc">FC26 turnering intro, kort fortsatt aktive</div>
           </div>
-        </div>
+        </a>
         <div class="event-item" data-time="19:35">
           <span class="event-num">10</span>
           <div class="event-details">
@@ -620,13 +616,13 @@
             <div class="event-desc">6 kamper, 2×4 min</div>
           </div>
         </div>
-        <div class="event-item" data-time="20:30">
+        <a href="story/7.html" class="event-item event-link" data-time="20:30">
           <span class="event-num">11</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 7 – Forberedelser</div>
             <div class="event-desc">Intro til orakelet</div>
           </div>
-        </div>
+        </a>
         <div class="event-item" data-time="20:40">
           <span class="event-num">12</span>
           <div class="event-details">
@@ -634,13 +630,13 @@
             <div class="event-desc">20 min</div>
           </div>
         </div>
-        <div class="event-item" data-time="21:00">
+        <a href="story/8.html" class="event-item event-link" data-time="21:00">
           <span class="event-num">13</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 8 – Finalekampen</div>
             <div class="event-desc">Intro til TV-kamp</div>
           </div>
-        </div>
+        </a>
         <div class="event-item" data-time="21:00">
           <span class="event-num">14</span>
           <div class="event-details">
