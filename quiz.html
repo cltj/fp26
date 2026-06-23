@@ -231,6 +231,36 @@
     text-align: center;
   }
   .access-denied .icon { font-size: 48px; margin-bottom: 1rem; }
+  
+  .start-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  .start-screen h1 {
+    font-size: 48px;
+    margin: 0;
+  }
+  .start-screen p {
+    color: var(--muted);
+    font-size: 18px;
+  }
+  .start-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    padding: 1.25rem 3rem;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .start-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(200,244,90,0.4);
+  }
 </style>
 </head>
 <body>
@@ -238,14 +268,21 @@
 <div id="quiz-app">
   <header>
     <a href="home.html" class="back-btn">← Hjem</a>
-    <div class="progress">Spørsmål <strong id="current-num">1</strong> / <strong>10</strong></div>
+    <div class="progress" id="progress" style="display: none;">Spørsmål <strong id="current-num">1</strong> / <strong>10</strong></div>
     <span></span>
   </header>
 
   <main>
-    <div class="scoreboard" id="scoreboard"></div>
+    <div class="start-screen" id="start-screen">
+      <h1>🧠</h1>
+      <h1>Quizen</h1>
+      <p>15 spørsmål om Frankrike</p>
+      <button class="start-btn" id="start-btn">Start quiz</button>
+    </div>
     
-    <div id="question-view">
+    <div class="scoreboard" id="scoreboard" style="display: none;"></div>
+    
+    <div id="question-view" style="display: none;">
       <div class="timer" id="timer">45</div>
       <div class="question-num" id="q-category">Kategori 1</div>
       <div class="question-text" id="q-text">Laster...</div>
@@ -268,7 +305,7 @@
     </div>
   </main>
 
-  <div class="controls" id="controls">
+  <div class="controls" id="controls" style="display: none;">
     <button class="ctrl-btn" id="prev-btn" disabled>← Forrige</button>
     <button class="ctrl-btn primary" id="reveal-btn">Vis fasit</button>
     <button class="ctrl-btn" id="next-btn">Neste →</button>
@@ -357,6 +394,17 @@ async function init() {
   
   renderTeamButtons()
   renderScoreboard()
+  
+  // Setup start button
+  document.getElementById('start-btn').onclick = startQuiz
+}
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none'
+  document.getElementById('progress').style.display = 'block'
+  document.getElementById('scoreboard').style.display = 'flex'
+  document.getElementById('question-view').style.display = 'block'
+  document.getElementById('controls').style.display = 'flex'
   showQuestion(0)
 }
 
