@@ -81,11 +81,13 @@
     padding: 1.5rem 3rem;
     margin-bottom: 2rem;
     opacity: 0;
+    visibility: hidden;
     transform: scale(0.9);
-    transition: all 0.3s;
+    transition: opacity 0.3s, transform 0.3s;
   }
   .answer-reveal.visible {
     opacity: 1;
+    visibility: visible;
     transform: scale(1);
   }
   .answer-label {
@@ -343,35 +345,39 @@ function showQuestion(index) {
   currentIndex = index
   const q = questions[index]
   
-  document.getElementById('current-num').textContent = index + 1
-  document.getElementById('q-category').textContent = `Spørsmål ${index + 1}`
-  document.getElementById('q-text').textContent = q.question
-  document.getElementById('answer-value').textContent = formatNumber(q.answer)
-  
-  // Reset state
+  // Hide answer FIRST before updating content
   document.getElementById('answer-box').classList.remove('visible')
   document.getElementById('teams-section').classList.remove('visible')
-  document.getElementById('reveal-btn').disabled = false
-  document.getElementById('reveal-btn').textContent = 'Vis fasit'
   
-  // Update team buttons
-  document.querySelectorAll('.team-btn:not(.clear-btn)').forEach(btn => {
-    btn.classList.remove('winner')
-    if (q.winner_team_id && btn.dataset.teamId == q.winner_team_id) {
-      btn.classList.add('winner')
-    }
-  })
-  
-  // Show/hide clear button
-  document.getElementById('clear-winner-btn').style.display = q.winner_team_id ? 'block' : 'none'
-  
-  // Nav buttons
-  document.getElementById('prev-btn').disabled = index === 0
-  document.getElementById('next-btn').textContent = index === questions.length - 1 ? 'Fullfør' : 'Neste →'
-  
-  // Show question view, hide complete
-  document.getElementById('question-view').style.display = 'block'
-  document.getElementById('complete-screen').classList.remove('visible')
+  // Small delay to ensure answer is hidden before updating
+  setTimeout(() => {
+    document.getElementById('current-num').textContent = index + 1
+    document.getElementById('q-category').textContent = `Spørsmål ${index + 1}`
+    document.getElementById('q-text').textContent = q.question
+    document.getElementById('answer-value').textContent = formatNumber(q.answer)
+    
+    document.getElementById('reveal-btn').disabled = false
+    document.getElementById('reveal-btn').textContent = 'Vis fasit'
+    
+    // Update team buttons
+    document.querySelectorAll('.team-btn:not(.clear-btn)').forEach(btn => {
+      btn.classList.remove('winner')
+      if (q.winner_team_id && btn.dataset.teamId == q.winner_team_id) {
+        btn.classList.add('winner')
+      }
+    })
+    
+    // Show/hide clear button
+    document.getElementById('clear-winner-btn').style.display = q.winner_team_id ? 'block' : 'none'
+    
+    // Nav buttons
+    document.getElementById('prev-btn').disabled = index === 0
+    document.getElementById('next-btn').textContent = index === questions.length - 1 ? 'Fullfør' : 'Neste →'
+    
+    // Show question view, hide complete
+    document.getElementById('question-view').style.display = 'block'
+    document.getElementById('complete-screen').classList.remove('visible')
+  }, 50)
 }
 
 function revealAnswer() {
