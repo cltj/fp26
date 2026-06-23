@@ -4,10 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>📖 Historie – Foppalfæst!!</title>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
     --bg: #0e0e11;
     --surface: #18181c;
@@ -18,301 +16,143 @@
     --radius: 16px;
     --radius-sm: 10px;
   }
-
   body {
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     min-height: 100dvh;
-    padding-bottom: 100px;
+    padding: 2rem 1rem;
   }
-
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(14,14,17,0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 0.5px solid var(--border);
-    padding: 0.85rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .header-left { display: flex; align-items: center; gap: 10px; }
-  .back-btn {
-    background: transparent;
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
+  .container { max-width: 600px; margin: 0 auto; }
+  h1 { font-size: 24px; text-align: center; margin-bottom: 2rem; }
+  .back-link {
+    display: inline-block;
     color: var(--muted);
-    font-size: 13px;
-    font-family: inherit;
-    padding: 6px 12px;
-    cursor: pointer;
     text-decoration: none;
-    transition: all 0.15s;
-  }
-  .back-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
-  .chapter-title { font-size: 16px; font-weight: 600; }
-
-  .chapter-nav {
-    display: flex;
-    gap: 6px;
-  }
-  .nav-arrow {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-size: 18px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-decoration: none;
-  }
-  .nav-arrow:hover { background: rgba(200,244,90,0.1); border-color: var(--accent); }
-  .nav-arrow.disabled { opacity: 0.3; pointer-events: none; }
-
-  main {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem;
-  }
-
-  /* Chapter selector */
-  .chapter-selector {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
     margin-bottom: 1.5rem;
+    font-size: 14px;
   }
-  .chapter-btn {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 10px 8px;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
+  .back-link:hover { color: var(--text); }
+  .chapter-grid {
+    display: grid;
+    gap: 12px;
   }
-  .chapter-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
-  .chapter-btn.active {
-    background: rgba(200,244,90,0.12);
-    border-color: rgba(200,244,90,0.4);
-    color: var(--accent);
-  }
-
-  /* Story content */
-  .story-content {
+  .chapter-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     background: var(--surface);
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
-    padding: 1.5rem;
-    font-size: 16px;
-    line-height: 1.7;
-  }
-  .story-content h1 { font-size: 24px; margin-bottom: 1rem; color: var(--accent); }
-  .story-content h2 { font-size: 20px; margin: 1.5rem 0 0.75rem; color: var(--text); }
-  .story-content h3 { font-size: 17px; margin: 1.25rem 0 0.5rem; }
-  .story-content p { margin-bottom: 1rem; }
-  .story-content hr { 
-    border: none; 
-    border-top: 0.5px solid var(--border); 
-    margin: 1.5rem 0; 
-  }
-  .story-content strong { color: var(--accent); }
-  .story-content em { color: var(--muted); font-style: italic; }
-  .story-content ul, .story-content ol { margin: 1rem 0; padding-left: 1.5rem; }
-  .story-content li { margin: 0.5rem 0; }
-
-  /* Bottom navigation */
-  .bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(14,14,17,0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top: 0.5px solid var(--border);
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .bottom-btn {
-    flex: 1;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
     color: var(--text);
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px;
-    cursor: pointer;
     transition: all 0.15s;
+  }
+  .chapter-link:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .chapter-num {
+    width: 40px;
+    height: 40px;
+    background: rgba(200,244,90,0.12);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-  }
-  .bottom-btn:hover { background: rgba(200,244,90,0.1); border-color: var(--accent); }
-  .bottom-btn.disabled { opacity: 0.3; pointer-events: none; }
-  .bottom-btn.primary {
-    background: rgba(200,244,90,0.15);
-    border-color: rgba(200,244,90,0.4);
+    font-size: 18px;
+    font-weight: 700;
     color: var(--accent);
+    flex-shrink: 0;
   }
-
-  .loading {
-    text-align: center;
-    padding: 3rem;
-    color: var(--muted);
-  }
-
-  /* Access denied */
+  .chapter-info { flex: 1; }
+  .chapter-title { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+  .chapter-desc { font-size: 12px; color: var(--muted); }
   .access-denied {
     text-align: center;
     padding: 4rem 2rem;
   }
   .access-denied .icon { font-size: 48px; margin-bottom: 1rem; }
-  .access-denied h2 { font-size: 20px; margin-bottom: 0.5rem; }
-  .access-denied p { color: var(--muted); margin-bottom: 1.5rem; }
-  .access-denied a {
-    display: inline-block;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--accent);
-    text-decoration: none;
-    padding: 10px 20px;
-  }
 </style>
 </head>
 <body>
-
-<header>
-  <div class="header-left">
-    <a href="home.html" class="back-btn">← Hjem</a>
-    <span class="chapter-title" id="chapter-title">Kapittel 1</span>
+<div class="container">
+  <a href="home.html" class="back-link">← Tilbake til hjem</a>
+  <h1>📖 Historie</h1>
+  
+  <div class="chapter-grid" id="chapters">
+    <a href="story/1.html" class="chapter-link">
+      <span class="chapter-num">1</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Intro</div>
+        <div class="chapter-desc">Sette scenen, lagutdeling</div>
+      </div>
+    </a>
+    <a href="story/2.html" class="chapter-link">
+      <span class="chapter-num">2</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Analyse</div>
+        <div class="chapter-desc">Intro til quiz og spilleregler</div>
+      </div>
+    </a>
+    <a href="story/3.html" class="chapter-link">
+      <span class="chapter-num">3</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Avreise</div>
+        <div class="chapter-desc">Klargjør for reise til ballbinge</div>
+      </div>
+    </a>
+    <a href="story/4.html" class="chapter-link">
+      <span class="chapter-num">4</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Landslagssamling</div>
+        <div class="chapter-desc">Gå gjennom øvelser, kort regler</div>
+      </div>
+    </a>
+    <a href="story/5.html" class="chapter-link">
+      <span class="chapter-num">5</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Uttak</div>
+        <div class="chapter-desc">Avreise til "USA", lagbilde</div>
+      </div>
+    </a>
+    <a href="story/6.html" class="chapter-link">
+      <span class="chapter-num">6</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Gruppespill</div>
+        <div class="chapter-desc">FC26 turnering intro</div>
+      </div>
+    </a>
+    <a href="story/7.html" class="chapter-link">
+      <span class="chapter-num">7</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Forberedelser</div>
+        <div class="chapter-desc">Intro til orakelet/kamptipping</div>
+      </div>
+    </a>
+    <a href="story/8.html" class="chapter-link">
+      <span class="chapter-num">8</span>
+      <div class="chapter-info">
+        <div class="chapter-title">Finale</div>
+        <div class="chapter-desc">Premieutdeling</div>
+      </div>
+    </a>
   </div>
-  <div class="chapter-nav">
-    <button class="nav-arrow" id="prev-btn" onclick="prevChapter()">←</button>
-    <button class="nav-arrow" id="next-btn" onclick="nextChapter()">→</button>
-  </div>
-</header>
-
-<main id="main-content">
-  <div class="chapter-selector" id="chapter-selector"></div>
-  <div class="story-content" id="story-content">
-    <div class="loading">📖 Laster historie...</div>
-  </div>
-</main>
-
-<div class="bottom-nav">
-  <button class="bottom-btn" id="bottom-prev" onclick="prevChapter()">← Forrige</button>
-  <button class="bottom-btn primary" id="bottom-next" onclick="nextChapter()">Neste →</button>
 </div>
 
 <script>
-const CHAPTERS = [
-  { num: 1, file: 'story/1-kapittel1.md', title: 'Kapittel 1 – Intro' },
-  { num: 2, file: 'story/2-kapittel2.md', title: 'Kapittel 2 – Analyse' },
-  { num: 3, file: 'story/3-kapittel3.md', title: 'Kapittel 3 – Avreise' },
-  { num: 4, file: 'story/4-kapittel4.md', title: 'Kapittel 4 – Landslagssamling' },
-  { num: 5, file: 'story/5-kapittel5.md', title: 'Kapittel 5 – Uttak' },
-  { num: 6, file: 'story/6-kapittel6.md', title: 'Kapittel 6 – Gruppespill' },
-  { num: 7, file: 'story/7-kapittel7.md', title: 'Kapittel 7 – Forberedelser' },
-  { num: 8, file: 'story/8-kapittel8.md', title: 'Kapittel 8 – Finale' },
-]
-
-let currentChapter = 1
-
-// Check admin access
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
 if (!session || !session.isAdmin) {
-  document.getElementById('main-content').innerHTML = `
+  document.getElementById('chapters').innerHTML = `
     <div class="access-denied">
       <div class="icon">🔒</div>
       <h2>Kun for admin</h2>
-      <p>Du må være logget inn som admin for å se historien.</p>
-      <a href="index.html">Logg inn</a>
+      <p style="color: var(--muted);">Du må være logget inn som admin.</p>
+      <a href="index.html" style="color: var(--accent);">Logg inn</a>
     </div>
   `
-  document.querySelector('.bottom-nav').style.display = 'none'
-} else {
-  initStory()
 }
-
-function initStory() {
-  // Build chapter selector
-  const selector = document.getElementById('chapter-selector')
-  selector.innerHTML = CHAPTERS.map(ch => 
-    `<button class="chapter-btn" data-chapter="${ch.num}" onclick="loadChapter(${ch.num})">${ch.num}</button>`
-  ).join('')
-
-  // Check URL for chapter param
-  const params = new URLSearchParams(window.location.search)
-  const chapterParam = parseInt(params.get('ch')) || 1
-  loadChapter(chapterParam)
-}
-
-async function loadChapter(num) {
-  currentChapter = num
-  const chapter = CHAPTERS.find(c => c.num === num)
-  if (!chapter) return
-
-  // Update UI
-  document.getElementById('chapter-title').textContent = chapter.title
-  document.querySelectorAll('.chapter-btn').forEach(btn => {
-    btn.classList.toggle('active', parseInt(btn.dataset.chapter) === num)
-  })
-
-  // Update nav buttons
-  document.getElementById('prev-btn').classList.toggle('disabled', num === 1)
-  document.getElementById('next-btn').classList.toggle('disabled', num === CHAPTERS.length)
-  document.getElementById('bottom-prev').classList.toggle('disabled', num === 1)
-  document.getElementById('bottom-next').classList.toggle('disabled', num === CHAPTERS.length)
-
-  // Update URL
-  history.replaceState(null, '', `?ch=${num}`)
-
-  // Load content
-  const content = document.getElementById('story-content')
-  content.innerHTML = '<div class="loading">📖 Laster...</div>'
-
-  try {
-    const response = await fetch(chapter.file)
-    if (!response.ok) throw new Error('Not found')
-    const markdown = await response.text()
-    content.innerHTML = marked.parse(markdown)
-  } catch (err) {
-    content.innerHTML = `<p style="color: var(--muted);">Kunne ikke laste kapittel ${num}</p>`
-  }
-}
-
-function prevChapter() {
-  if (currentChapter > 1) loadChapter(currentChapter - 1)
-}
-
-function nextChapter() {
-  if (currentChapter < CHAPTERS.length) loadChapter(currentChapter + 1)
-}
-
-// Keyboard navigation
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft') prevChapter()
-  if (e.key === 'ArrowRight') nextChapter()
-})
 </script>
-
 </body>
 </html>
