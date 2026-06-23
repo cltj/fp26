@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 Quiz – Foppalfæst!!</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0e0e11;
+    --surface: #18181c;
+    --border: rgba(255,255,255,0.10);
+    --text: #f0eff4;
+    --muted: rgba(240,239,244,0.45);
+    --accent: #c8f45a;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    padding-bottom: 100px;
+  }
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(14,14,17,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .back-btn {
+    background: transparent;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 13px;
+    padding: 8px 12px;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .back-btn:hover { color: var(--text); border-color: var(--accent); }
+  .header-title { font-size: 16px; font-weight: 600; }
+  
+  main { max-width: 600px; margin: 0 auto; padding: 1.5rem 1rem; }
+  
+  .category {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+  .category-header {
+    padding: 1rem;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .category-header .emoji { font-size: 20px; }
+  
+  .question {
+    padding: 1rem;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .question:last-child { border-bottom: none; }
+  .question-text {
+    font-size: 14px;
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+  .question-num {
+    font-weight: 700;
+    color: var(--accent);
+    margin-right: 6px;
+  }
+  .answer-input {
+    width: 100%;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 16px;
+    padding: 12px;
+    outline: none;
+    transition: all 0.15s;
+  }
+  .answer-input:focus { border-color: var(--accent); }
+  .answer-input::placeholder { color: var(--muted); }
+  .answer-input.correct {
+    border-color: #4ade80;
+    background: rgba(74, 222, 128, 0.1);
+  }
+  .answer-input.incorrect {
+    border-color: #f87171;
+    background: rgba(248, 113, 113, 0.1);
+  }
+  
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  
+  .result-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  .result-badge.correct {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+  }
+  .result-badge.incorrect {
+    background: rgba(248, 113, 113, 0.2);
+    color: #f87171;
+  }
+  
+  .submit-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(14,14,17,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 0.5px solid var(--border);
+    padding: 1rem;
+  }
+  .submit-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .score-display {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .score-display strong {
+    color: var(--accent);
+    font-size: 18px;
+  }
+  .submit-btn {
+    flex: 1;
+    background: rgba(200,244,90,0.15);
+    border: 0.5px solid rgba(200,244,90,0.4);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .submit-btn:hover { background: rgba(200,244,90,0.25); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  
+  .admin-only {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+  .admin-only .icon { font-size: 48px; margin-bottom: 1rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="home.html" class="back-btn">← Hjem</a>
+  <span class="header-title">🧠 Quiz</span>
+  <span></span>
+</header>
+
+<main id="quiz-content">
+  <!-- Kategori 1: Frankrike og geografi -->
+  <div class="category">
+    <div class="category-header">
+      <span class="emoji">🇫🇷</span>
+      Kategori 1 – Frankrike og geografi
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">1.</span>
+        Hvor mange innbyggere bor det i Frankrike?
+      </div>
+      <input type="text" class="answer-input" data-category="frankrike" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
+      <div class="hint">Tips: Skriv tall uten mellomrom</div>
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">2.</span>
+        Hvor mange innbyggere bor det i Paris (selve byen)?
+      </div>
+      <input type="text" class="answer-input" data-category="frankrike" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">3.</span>
+        Hvor høyt er Mont Blanc i meter?
+      </div>
+      <input type="text" class="answer-input" data-category="frankrike" data-num="3" inputmode="numeric" placeholder="Skriv meter...">
+    </div>
+  </div>
+
+  <!-- Kategori 2: Mat og drikke -->
+  <div class="category">
+    <div class="category-header">
+      <span class="emoji">🥐</span>
+      Kategori 2 – Mat og drikke
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">1.</span>
+        Hvor mange forskjellige ostetyper sies Frankrike å ha?
+      </div>
+      <input type="text" class="answer-input" data-category="mat" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">2.</span>
+        Hvor mange Michelin-stjerner finnes det totalt i Frankrike?
+      </div>
+      <input type="text" class="answer-input" data-category="mat" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">3.</span>
+        Hvor mange liter vin drikker en gjennomsnittlig franskmann per år?
+      </div>
+      <input type="text" class="answer-input" data-category="mat" data-num="3" inputmode="numeric" placeholder="Skriv liter...">
+    </div>
+  </div>
+
+  <!-- Kategori 3: Paris og kultur -->
+  <div class="category">
+    <div class="category-header">
+      <span class="emoji">🗼</span>
+      Kategori 3 – Paris og kultur
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">1.</span>
+        Hvor mange trappetrinn er det opp til toppen av Eiffeltårnet?
+      </div>
+      <input type="text" class="answer-input" data-category="paris" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">2.</span>
+        Hvor mange besøkende har Eiffeltårnet i løpet av et år?
+      </div>
+      <input type="text" class="answer-input" data-category="paris" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">3.</span>
+        Hvor mange kunstverk finnes det i Louvre Museum?
+      </div>
+      <input type="text" class="answer-input" data-category="paris" data-num="3" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+  </div>
+
+  <!-- Kategori 4: Fransk fotball -->
+  <div class="category">
+    <div class="category-header">
+      <span class="emoji">⚽</span>
+      Kategori 4 – Fransk fotball
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">1.</span>
+        Hvor mange VM-titler har Frankrike vunnet i herrefotball?
+      </div>
+      <input type="text" class="answer-input" data-category="fotball" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">2.</span>
+        Hvor mange mål scoret Frankrike i VM 2018?
+      </div>
+      <input type="text" class="answer-input" data-category="fotball" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">3.</span>
+        Hvor mange landskamper har Frankrike spilt totalt gjennom historien?
+      </div>
+      <input type="text" class="answer-input" data-category="fotball" data-num="3" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+  </div>
+
+  <!-- Kategori 5: Litt av hvert -->
+  <div class="category">
+    <div class="category-header">
+      <span class="emoji">🎲</span>
+      Kategori 5 – Litt av hvert
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">1.</span>
+        Hvor mange turister besøker Frankrike hvert år?
+      </div>
+      <input type="text" class="answer-input" data-category="diverse" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">2.</span>
+        Hvor mange kommuner finnes det i Frankrike?
+      </div>
+      <input type="text" class="answer-input" data-category="diverse" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
+    </div>
+    <div class="question">
+      <div class="question-text">
+        <span class="question-num">3.</span>
+        Hvor mange kilometer er det fra Oslo til Paris i luftlinje?
+      </div>
+      <input type="text" class="answer-input" data-category="diverse" data-num="3" inputmode="numeric" placeholder="Skriv km...">
+    </div>
+  </div>
+</main>
+
+<div class="admin-only" id="admin-only">
+  <div class="icon">🔒</div>
+  <h2>Kun for admin</h2>
+  <p style="color: var(--muted); margin-top: 0.5rem;">Quizen rettes av admin.</p>
+  <a href="home.html" style="color: var(--accent); margin-top: 1rem; display: inline-block;">← Tilbake</a>
+</div>
+
+<div class="submit-section" id="submit-section">
+  <div class="submit-inner">
+    <div class="score-display">
+      Poeng: <strong id="score">0</strong> / 15
+    </div>
+    <button class="submit-btn" id="check-btn">✓ Sjekk svar</button>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
+
+// Only admin can access quiz checking
+if (!session || !session.isAdmin) {
+  document.getElementById('quiz-content').style.display = 'none'
+  document.getElementById('submit-section').style.display = 'none'
+  document.getElementById('admin-only').style.display = 'block'
+}
+
+let answers = {}
+let score = 0
+
+// Load answers from Supabase
+async function loadAnswers() {
+  const { data, error } = await sb
+    .from('quiz_answers')
+    .select('*')
+  
+  if (error) {
+    console.error('Error loading answers:', error)
+    return
+  }
+  
+  data.forEach(row => {
+    const key = `${row.category}_${row.question_num}`
+    answers[key] = {
+      answer: parseFloat(row.answer),
+      tolerance: parseFloat(row.tolerance)
+    }
+  })
+}
+
+loadAnswers()
+
+document.getElementById('check-btn').addEventListener('click', async () => {
+  const inputs = document.querySelectorAll('.answer-input')
+  score = 0
+  
+  inputs.forEach(input => {
+    const category = input.dataset.category
+    const num = input.dataset.num
+    const key = `${category}_${num}`
+    const userAnswer = parseFloat(input.value.replace(/\s/g, '').replace(/,/g, '.'))
+    
+    // Remove old result badges
+    const oldBadge = input.parentElement.querySelector('.result-badge')
+    if (oldBadge) oldBadge.remove()
+    
+    input.classList.remove('correct', 'incorrect')
+    
+    if (answers[key] && !isNaN(userAnswer)) {
+      const correctAnswer = answers[key].answer
+      const tolerance = answers[key].tolerance
+      const diff = Math.abs(userAnswer - correctAnswer)
+      
+      if (diff <= tolerance) {
+        input.classList.add('correct')
+        score++
+        const badge = document.createElement('span')
+        badge.className = 'result-badge correct'
+        badge.textContent = '✓ Riktig!'
+        input.parentElement.appendChild(badge)
+      } else {
+        input.classList.add('incorrect')
+        const badge = document.createElement('span')
+        badge.className = 'result-badge incorrect'
+        badge.textContent = `✗ Fasit: ${formatNumber(correctAnswer)}`
+        input.parentElement.appendChild(badge)
+      }
+    } else if (input.value.trim() !== '') {
+      input.classList.add('incorrect')
+    }
+  })
+  
+  document.getElementById('score').textContent = score
+})
+
+function formatNumber(num) {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + ' mill'
+  if (num >= 1000) return num.toLocaleString('nb-NO')
+  return num.toString()
+}
+</script>
+</body>
+</html>
