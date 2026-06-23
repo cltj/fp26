@@ -159,31 +159,25 @@
   }
   
   .scoreboard {
-    position: fixed;
-    top: 70px;
-    right: 1rem;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    min-width: 160px;
-  }
-  .scoreboard-title {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.75rem;
-  }
-  .score-row {
     display: flex;
-    justify-content: space-between;
-    padding: 6px 0;
-    font-size: 14px;
-    border-bottom: 0.5px solid var(--border);
+    justify-content: center;
+    gap: 2rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
   }
-  .score-row:last-child { border-bottom: none; }
-  .score-points { font-weight: 700; color: var(--accent); }
+  .score-item {
+    text-align: center;
+  }
+  .score-team {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .score-points {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent);
+  }
   
   .complete-screen {
     display: none;
@@ -232,9 +226,9 @@
     <span></span>
   </header>
 
-  <div class="scoreboard" id="scoreboard"></div>
-
   <main>
+    <div class="scoreboard" id="scoreboard"></div>
+    
     <div id="question-view">
       <div class="question-num" id="q-category">Kategori 1</div>
       <div class="question-text" id="q-text">Laster...</div>
@@ -335,15 +329,12 @@ function renderScoreboard() {
     .map(t => ({ name: t.team_name, score: scores[t.id] || 0 }))
     .sort((a, b) => b.score - a.score)
   
-  sb.innerHTML = `
-    <div class="scoreboard-title">Poengstilling</div>
-    ${sorted.map(t => `
-      <div class="score-row">
-        <span>${t.name}</span>
-        <span class="score-points">${t.score}</span>
-      </div>
-    `).join('')}
-  `
+  sb.innerHTML = sorted.map(t => `
+    <div class="score-item">
+      <div class="score-team">${t.name}</div>
+      <div class="score-points">${t.score}</div>
+    </div>
+  `).join('')
 }
 
 function showQuestion(index) {
@@ -440,6 +431,7 @@ function nextQuestion() {
 function showComplete() {
   document.getElementById('question-view').style.display = 'none'
   document.getElementById('controls').style.display = 'none'
+  document.getElementById('scoreboard').style.display = 'none'
   document.getElementById('complete-screen').classList.add('visible')
   
   const sorted = teams
