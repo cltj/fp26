@@ -348,6 +348,117 @@
     background: rgba(200,244,90,0.25);
     transform: translateY(-1px);
   }
+
+  /* Admin Dashboard */
+  .admin-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .admin-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+  }
+  .story-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 6px;
+    margin-bottom: 0.75rem;
+  }
+  .story-btn {
+    background: rgba(200,244,90,0.08);
+    border: 0.5px solid rgba(200,244,90,0.2);
+    border-radius: 6px;
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .story-btn:hover {
+    background: rgba(200,244,90,0.2);
+    transform: translateY(-1px);
+  }
+  .admin-link-btn {
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    padding: 8px;
+    border: 0.5px solid rgba(200,244,90,0.2);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+  .admin-link-btn:hover {
+    background: rgba(200,244,90,0.1);
+  }
+
+  /* Event Timeline */
+  .event-timeline {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .event-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .event-item:last-child { border-bottom: none; }
+  .event-num {
+    width: 24px;
+    height: 24px;
+    background: rgba(200,244,90,0.12);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .event-details { flex: 1; min-width: 0; }
+  .event-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .event-desc { font-size: 11px; color: var(--muted); }
+  .event-item[data-time]::before {
+    content: attr(data-time);
+    font-size: 10px;
+    color: var(--muted);
+    width: 40px;
+    flex-shrink: 0;
+  }
+
+  /* Quick Actions */
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .admin-action-btn {
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 12px 8px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .admin-action-btn:hover {
+    background: rgba(200,244,90,0.1);
+    border-color: var(--accent);
+  }
 </style>
 </head>
 <body>
@@ -417,14 +528,151 @@
   </section>
 
   <section class="admin-section" id="admin-section" style="display: none;">
-    <div class="section-title">🔒 Admin</div>
-    <div class="admin-info">
-      <strong>Du er logget inn som admin.</strong>
-      <ul>
-        <li>Gå til <a href="scores.html" style="color: var(--accent);">Scoreboard</a> for å legge til poeng</li>
-        <li>Gå til <a href="wall.html" style="color: var(--accent);">The Wall</a> for å moderere innlegg</li>
-      </ul>
-      <a href="scores.html" class="admin-scoreboard-btn">🏆 Åpne Scoreboard</a>
+    <div class="section-title">🔒 Admin Dashboard</div>
+    
+    <!-- Story Navigation -->
+    <div class="admin-card">
+      <div class="admin-card-title">📖 Historie</div>
+      <div class="story-grid">
+        <a href="story.html?ch=1" class="story-btn">1</a>
+        <a href="story.html?ch=2" class="story-btn">2</a>
+        <a href="story.html?ch=3" class="story-btn">3</a>
+        <a href="story.html?ch=4" class="story-btn">4</a>
+        <a href="story.html?ch=5" class="story-btn">5</a>
+        <a href="story.html?ch=6" class="story-btn">6</a>
+        <a href="story.html?ch=7" class="story-btn">7</a>
+        <a href="story.html?ch=8" class="story-btn">8</a>
+      </div>
+      <a href="story.html" class="admin-link-btn">Åpne historievisning →</a>
+    </div>
+
+    <!-- Event Timeline -->
+    <div class="admin-card">
+      <div class="admin-card-title">📋 Rekkefølge</div>
+      <div class="event-timeline">
+        <div class="event-item" data-time="16:00">
+          <span class="event-num">1</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 1 – Intro</div>
+            <div class="event-desc">Sette scenen, kontekst, lagutdeling</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="16:15">
+          <span class="event-num">2</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 2 – Analyse</div>
+            <div class="event-desc">Intro til quiz og spilleregler</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="17:00">
+          <span class="event-num">3</span>
+          <div class="event-details">
+            <div class="event-name">🧠 Quiz</div>
+            <div class="event-desc">30 min, ressurser utdeles</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="17:30">
+          <span class="event-num">4</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 3 – Avreise</div>
+            <div class="event-desc">Klargjør for reise til ballbinge</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="17:45">
+          <span class="event-num">5</span>
+          <div class="event-details">
+            <div class="event-name">🚶 Reise til ballbinge</div>
+            <div class="event-desc">Transport/gange</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="18:00">
+          <span class="event-num">6</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 4 – Landslagssamling</div>
+            <div class="event-desc">Gå gjennom øvelser, minn om kort</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="18:15">
+          <span class="event-num">7</span>
+          <div class="event-details">
+            <div class="event-name">⚽ Ballbinge-øvelser</div>
+            <div class="event-desc">Tverrlegger, presisjon, straffe, 3v3</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="19:15">
+          <span class="event-num">8</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 5 – Uttak + Lagbilde</div>
+            <div class="event-desc">Avreise til "USA" (hjem)</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="19:30">
+          <span class="event-num">9</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 6 – Gruppespill</div>
+            <div class="event-desc">FC26 turnering intro, kort fortsatt aktive</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="19:35">
+          <span class="event-num">10</span>
+          <div class="event-details">
+            <div class="event-name">🎮 FC26 Turnering</div>
+            <div class="event-desc">6 kamper, 2×4 min</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="20:30">
+          <span class="event-num">11</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 7 – Forberedelser</div>
+            <div class="event-desc">Intro til orakelet</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="20:40">
+          <span class="event-num">12</span>
+          <div class="event-details">
+            <div class="event-name">🔮 Orakelet (Kamptipping)</div>
+            <div class="event-desc">20 min</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="21:00">
+          <span class="event-num">13</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 8 – Finalekampen</div>
+            <div class="event-desc">Intro til TV-kamp</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="21:00">
+          <span class="event-num">14</span>
+          <div class="event-details">
+            <div class="event-name">📺 Se kampen (NRK)</div>
+            <div class="event-desc">Frankrike vs Norge, 120 min</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="23:00">
+          <span class="event-num">15</span>
+          <div class="event-details">
+            <div class="event-name">🏆 Premieutdeling</div>
+            <div class="event-desc">Kåring av vinnere, pokal</div>
+          </div>
+        </div>
+        <div class="event-item" data-time="23:15">
+          <span class="event-num">16</span>
+          <div class="event-details">
+            <div class="event-name">🎉 Fest!</div>
+            <div class="event-desc">Festing utover natta</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="admin-card">
+      <div class="admin-card-title">⚡ Hurtiglenker</div>
+      <div class="quick-actions">
+        <a href="scores.html" class="admin-action-btn">🏆 Scoreboard</a>
+        <a href="wall.html" class="admin-action-btn">📣 The Wall</a>
+        <a href="story.html" class="admin-action-btn">📖 Historie</a>
+      </div>
     </div>
   </section>
 </main>
