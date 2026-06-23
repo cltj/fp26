@@ -253,7 +253,6 @@
     
     <div class="complete-screen" id="complete-screen">
       <div class="complete-icon">🏆</div>
-      <div class="complete-title">Quiz ferdig!</div>
       <div class="final-scores" id="final-scores"></div>
     </div>
   </main>
@@ -450,7 +449,7 @@ function showComplete() {
   document.getElementById('final-scores').innerHTML = sorted.map(t => `
     <div class="final-row">
       <span>${t.name}</span>
-      <span>${t.score} poeng</span>
+      <span>${t.score}</span>
     </div>
   `).join('')
 }
