@@ -22,20 +22,16 @@
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     min-height: 100dvh;
-    padding-bottom: 100px;
-  }
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 50;
-    background: rgba(14,14,17,0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 0.5px solid var(--border);
-    padding: 0.85rem 1rem;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+  }
+  
+  header {
+    padding: 1rem;
+    display: flex;
     justify-content: space-between;
+    align-items: center;
+    border-bottom: 0.5px solid var(--border);
   }
   .back-btn {
     background: transparent;
@@ -45,311 +41,233 @@
     font-size: 13px;
     padding: 8px 12px;
     text-decoration: none;
-    transition: all 0.15s;
   }
-  .back-btn:hover { color: var(--text); border-color: var(--accent); }
-  .header-title { font-size: 16px; font-weight: 600; }
-  
-  main { max-width: 600px; margin: 0 auto; padding: 1.5rem 1rem; }
-  
-  .category {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
-    overflow: hidden;
-  }
-  .category-header {
-    padding: 1rem;
-    font-size: 16px;
-    font-weight: 600;
-    border-bottom: 0.5px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .category-header .emoji { font-size: 20px; }
-  
-  .question {
-    padding: 1rem;
-    border-bottom: 0.5px solid var(--border);
-  }
-  .question:last-child { border-bottom: none; }
-  .question-text {
+  .progress {
     font-size: 14px;
-    margin-bottom: 10px;
-    line-height: 1.5;
+    color: var(--muted);
   }
+  .progress strong { color: var(--accent); }
+  
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    text-align: center;
+  }
+  
   .question-num {
+    font-size: 14px;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  
+  .question-text {
+    font-size: 28px;
+    font-weight: 600;
+    max-width: 700px;
+    line-height: 1.4;
+    margin-bottom: 2rem;
+  }
+  
+  .answer-reveal {
+    background: rgba(200,244,90,0.1);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: var(--radius);
+    padding: 1.5rem 3rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.3s;
+  }
+  .answer-reveal.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .answer-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+  }
+  .answer-value {
+    font-size: 48px;
     font-weight: 700;
     color: var(--accent);
-    margin-right: 6px;
   }
-  .answer-input {
-    width: 100%;
-    background: var(--bg);
+  
+  .teams-section {
+    display: none;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  .teams-section.visible { display: flex; }
+  
+  .team-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-width: 150px;
+  }
+  .team-btn:hover {
+    border-color: var(--accent);
+    background: rgba(200,244,90,0.1);
+  }
+  .team-btn.winner {
+    background: rgba(200,244,90,0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  
+  .controls {
+    padding: 1.5rem;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .ctrl-btn {
+    background: var(--surface);
     border: 0.5px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
-    font-size: 16px;
-    padding: 12px;
-    outline: none;
-    transition: all 0.15s;
-  }
-  .answer-input:focus { border-color: var(--accent); }
-  .answer-input::placeholder { color: var(--muted); }
-  .answer-input.correct {
-    border-color: #4ade80;
-    background: rgba(74, 222, 128, 0.1);
-  }
-  .answer-input.incorrect {
-    border-color: #f87171;
-    background: rgba(248, 113, 113, 0.1);
-  }
-  
-  .hint {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 6px;
-    font-style: italic;
-  }
-  
-  .result-badge {
-    display: inline-block;
-    font-size: 11px;
-    padding: 4px 8px;
-    border-radius: 20px;
-    margin-top: 8px;
-    font-weight: 500;
-  }
-  .result-badge.correct {
-    background: rgba(74, 222, 128, 0.2);
-    color: #4ade80;
-  }
-  .result-badge.incorrect {
-    background: rgba(248, 113, 113, 0.2);
-    color: #f87171;
-  }
-  
-  .submit-section {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(14,14,17,0.95);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top: 0.5px solid var(--border);
-    padding: 1rem;
-  }
-  .submit-inner {
-    max-width: 600px;
-    margin: 0 auto;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
-  .score-display {
     font-size: 14px;
-    color: var(--muted);
-  }
-  .score-display strong {
-    color: var(--accent);
-    font-size: 18px;
-  }
-  .submit-btn {
-    flex: 1;
-    background: rgba(200,244,90,0.15);
-    border: 0.5px solid rgba(200,244,90,0.4);
-    border-radius: var(--radius-sm);
-    color: var(--accent);
-    font-size: 15px;
-    font-weight: 600;
-    padding: 14px;
+    font-weight: 500;
+    padding: 12px 24px;
     cursor: pointer;
     transition: all 0.15s;
   }
-  .submit-btn:hover { background: rgba(200,244,90,0.25); }
-  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  
-  .admin-only {
-    display: none;
-    text-align: center;
-    padding: 4rem 2rem;
+  .ctrl-btn:hover { border-color: var(--accent); }
+  .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .ctrl-btn.primary {
+    background: rgba(200,244,90,0.15);
+    border-color: rgba(200,244,90,0.4);
+    color: var(--accent);
   }
-  .admin-only .icon { font-size: 48px; margin-bottom: 1rem; }
+  
+  .scoreboard {
+    position: fixed;
+    top: 70px;
+    right: 1rem;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    min-width: 160px;
+  }
+  .scoreboard-title {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.75rem;
+  }
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 14px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-points { font-weight: 700; color: var(--accent); }
+  
+  .complete-screen {
+    display: none;
+  }
+  .complete-screen.visible {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .complete-icon { font-size: 64px; margin-bottom: 1rem; }
+  .complete-title { font-size: 32px; font-weight: 700; margin-bottom: 2rem; }
+  .final-scores {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem 2rem;
+    min-width: 250px;
+  }
+  .final-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 18px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .final-row:last-child { border-bottom: none; }
+  .final-row:first-child { font-weight: 700; color: var(--accent); }
+  
+  .access-denied {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .access-denied .icon { font-size: 48px; margin-bottom: 1rem; }
 </style>
 </head>
 <body>
 
-<header>
-  <a href="home.html" class="back-btn">← Hjem</a>
-  <span class="header-title">🧠 Quiz</span>
-  <span></span>
-</header>
+<div id="quiz-app">
+  <header>
+    <a href="home.html" class="back-btn">← Hjem</a>
+    <div class="progress">Spørsmål <strong id="current-num">1</strong> / <strong id="total-num">15</strong></div>
+    <span></span>
+  </header>
 
-<main id="quiz-content">
-  <!-- Kategori 1: Frankrike og geografi -->
-  <div class="category">
-    <div class="category-header">
-      <span class="emoji">🇫🇷</span>
-      Kategori 1 – Frankrike og geografi
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">1.</span>
-        Hvor mange innbyggere bor det i Frankrike?
+  <div class="scoreboard" id="scoreboard"></div>
+
+  <main>
+    <div id="question-view">
+      <div class="question-num" id="q-category">Kategori 1</div>
+      <div class="question-text" id="q-text">Laster...</div>
+      
+      <div class="answer-reveal" id="answer-box">
+        <div class="answer-label">Fasit</div>
+        <div class="answer-value" id="answer-value">-</div>
       </div>
-      <input type="text" class="answer-input" data-category="frankrike" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
-      <div class="hint">Tips: Skriv tall uten mellomrom</div>
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">2.</span>
-        Hvor mange innbyggere bor det i Paris (selve byen)?
+      
+      <div class="teams-section" id="teams-section">
+        <p style="width: 100%; color: var(--muted); font-size: 14px; margin-bottom: 0.5rem;">Hvem var nærmest?</p>
       </div>
-      <input type="text" class="answer-input" data-category="frankrike" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
     </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">3.</span>
-        Hvor høyt er Mont Blanc i meter?
-      </div>
-      <input type="text" class="answer-input" data-category="frankrike" data-num="3" inputmode="numeric" placeholder="Skriv meter...">
+    
+    <div class="complete-screen" id="complete-screen">
+      <div class="complete-icon">🏆</div>
+      <div class="complete-title">Quiz ferdig!</div>
+      <div class="final-scores" id="final-scores"></div>
     </div>
+  </main>
+
+  <div class="controls" id="controls">
+    <button class="ctrl-btn" id="prev-btn" disabled>← Forrige</button>
+    <button class="ctrl-btn primary" id="reveal-btn">Vis fasit</button>
+    <button class="ctrl-btn" id="next-btn">Neste →</button>
   </div>
-
-  <!-- Kategori 2: Mat og drikke -->
-  <div class="category">
-    <div class="category-header">
-      <span class="emoji">🥐</span>
-      Kategori 2 – Mat og drikke
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">1.</span>
-        Hvor mange forskjellige ostetyper sies Frankrike å ha?
-      </div>
-      <input type="text" class="answer-input" data-category="mat" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">2.</span>
-        Hvor mange Michelin-stjerner finnes det totalt i Frankrike?
-      </div>
-      <input type="text" class="answer-input" data-category="mat" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">3.</span>
-        Hvor mange liter vin drikker en gjennomsnittlig franskmann per år?
-      </div>
-      <input type="text" class="answer-input" data-category="mat" data-num="3" inputmode="numeric" placeholder="Skriv liter...">
-    </div>
-  </div>
-
-  <!-- Kategori 3: Paris og kultur -->
-  <div class="category">
-    <div class="category-header">
-      <span class="emoji">🗼</span>
-      Kategori 3 – Paris og kultur
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">1.</span>
-        Hvor mange trappetrinn er det opp til toppen av Eiffeltårnet?
-      </div>
-      <input type="text" class="answer-input" data-category="paris" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">2.</span>
-        Hvor mange besøkende har Eiffeltårnet i løpet av et år?
-      </div>
-      <input type="text" class="answer-input" data-category="paris" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">3.</span>
-        Hvor mange kunstverk finnes det i Louvre Museum?
-      </div>
-      <input type="text" class="answer-input" data-category="paris" data-num="3" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-  </div>
-
-  <!-- Kategori 4: Fransk fotball -->
-  <div class="category">
-    <div class="category-header">
-      <span class="emoji">⚽</span>
-      Kategori 4 – Fransk fotball
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">1.</span>
-        Hvor mange VM-titler har Frankrike vunnet i herrefotball?
-      </div>
-      <input type="text" class="answer-input" data-category="fotball" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">2.</span>
-        Hvor mange mål scoret Frankrike i VM 2018?
-      </div>
-      <input type="text" class="answer-input" data-category="fotball" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">3.</span>
-        Hvor mange landskamper har Frankrike spilt totalt gjennom historien?
-      </div>
-      <input type="text" class="answer-input" data-category="fotball" data-num="3" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-  </div>
-
-  <!-- Kategori 5: Litt av hvert -->
-  <div class="category">
-    <div class="category-header">
-      <span class="emoji">🎲</span>
-      Kategori 5 – Litt av hvert
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">1.</span>
-        Hvor mange turister besøker Frankrike hvert år?
-      </div>
-      <input type="text" class="answer-input" data-category="diverse" data-num="1" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">2.</span>
-        Hvor mange kommuner finnes det i Frankrike?
-      </div>
-      <input type="text" class="answer-input" data-category="diverse" data-num="2" inputmode="numeric" placeholder="Skriv antall...">
-    </div>
-    <div class="question">
-      <div class="question-text">
-        <span class="question-num">3.</span>
-        Hvor mange kilometer er det fra Oslo til Paris i luftlinje?
-      </div>
-      <input type="text" class="answer-input" data-category="diverse" data-num="3" inputmode="numeric" placeholder="Skriv km...">
-    </div>
-  </div>
-</main>
-
-<div class="admin-only" id="admin-only">
-  <div class="icon">🔒</div>
-  <h2>Kun for admin</h2>
-  <p style="color: var(--muted); margin-top: 0.5rem;">Quizen rettes av admin.</p>
-  <a href="home.html" style="color: var(--accent); margin-top: 1rem; display: inline-block;">← Tilbake</a>
 </div>
 
-<div class="submit-section" id="submit-section">
-  <div class="submit-inner">
-    <div class="score-display">
-      Poeng: <strong id="score">0</strong> / 15
-    </div>
-    <button class="submit-btn" id="check-btn">✓ Sjekk svar</button>
-  </div>
+<div class="access-denied" id="access-denied" style="display: none;">
+  <div class="icon">🔒</div>
+  <h2>Kun for admin</h2>
+  <p style="color: var(--muted); margin-top: 0.5rem;">Quizen styres av admin.</p>
+  <a href="home.html" style="color: var(--accent); margin-top: 1rem;">← Tilbake</a>
 </div>
 
 <script>
@@ -359,86 +277,171 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
 
-// Only admin can access quiz checking
 if (!session || !session.isAdmin) {
-  document.getElementById('quiz-content').style.display = 'none'
-  document.getElementById('submit-section').style.display = 'none'
-  document.getElementById('admin-only').style.display = 'block'
+  document.getElementById('quiz-app').style.display = 'none'
+  document.getElementById('access-denied').style.display = 'flex'
 }
 
-let answers = {}
-let score = 0
+let questions = []
+let teams = []
+let currentIndex = 0
+let scores = {}
 
-// Load answers from Supabase
-async function loadAnswers() {
-  const { data, error } = await sb
-    .from('quiz_answers')
-    .select('*')
+async function init() {
+  // Load teams
+  const { data: teamsData } = await sb.from('teams').select('*').order('id')
+  teams = teamsData || []
   
-  if (error) {
-    console.error('Error loading answers:', error)
-    return
+  // Load questions
+  const { data: questionsData } = await sb.from('quiz_answers').select('*').order('id')
+  questions = questionsData || []
+  
+  // Init scores
+  teams.forEach(t => scores[t.id] = 0)
+  
+  // Count existing wins
+  questions.forEach(q => {
+    if (q.winner_team_id) {
+      scores[q.winner_team_id] = (scores[q.winner_team_id] || 0) + 1
+    }
+  })
+  
+  document.getElementById('total-num').textContent = questions.length
+  
+  renderTeamButtons()
+  renderScoreboard()
+  showQuestion(0)
+}
+
+function renderTeamButtons() {
+  const container = document.getElementById('teams-section')
+  const existingBtns = container.querySelectorAll('.team-btn')
+  existingBtns.forEach(b => b.remove())
+  
+  teams.forEach(team => {
+    const btn = document.createElement('button')
+    btn.className = 'team-btn'
+    btn.textContent = team.team_name
+    btn.dataset.teamId = team.id
+    btn.onclick = () => selectWinner(team.id)
+    container.appendChild(btn)
+  })
+}
+
+function renderScoreboard() {
+  const sb = document.getElementById('scoreboard')
+  const sorted = teams
+    .map(t => ({ name: t.team_name, score: scores[t.id] || 0 }))
+    .sort((a, b) => b.score - a.score)
+  
+  sb.innerHTML = `
+    <div class="scoreboard-title">Poengstilling</div>
+    ${sorted.map(t => `
+      <div class="score-row">
+        <span>${t.name}</span>
+        <span class="score-points">${t.score}</span>
+      </div>
+    `).join('')}
+  `
+}
+
+function showQuestion(index) {
+  if (index < 0 || index >= questions.length) return
+  
+  currentIndex = index
+  const q = questions[index]
+  
+  document.getElementById('current-num').textContent = index + 1
+  document.getElementById('q-category').textContent = `Spørsmål ${index + 1}`
+  document.getElementById('q-text').textContent = q.question
+  document.getElementById('answer-value').textContent = formatNumber(q.answer)
+  
+  // Reset state
+  document.getElementById('answer-box').classList.remove('visible')
+  document.getElementById('teams-section').classList.remove('visible')
+  document.getElementById('reveal-btn').disabled = false
+  document.getElementById('reveal-btn').textContent = 'Vis fasit'
+  
+  // Update team buttons
+  document.querySelectorAll('.team-btn').forEach(btn => {
+    btn.classList.remove('winner')
+    if (q.winner_team_id && btn.dataset.teamId == q.winner_team_id) {
+      btn.classList.add('winner')
+    }
+  })
+  
+  // Nav buttons
+  document.getElementById('prev-btn').disabled = index === 0
+  document.getElementById('next-btn').textContent = index === questions.length - 1 ? 'Fullfør' : 'Neste →'
+  
+  // Show question view, hide complete
+  document.getElementById('question-view').style.display = 'block'
+  document.getElementById('complete-screen').classList.remove('visible')
+}
+
+function revealAnswer() {
+  document.getElementById('answer-box').classList.add('visible')
+  document.getElementById('teams-section').classList.add('visible')
+  document.getElementById('reveal-btn').disabled = true
+  document.getElementById('reveal-btn').textContent = 'Velg vinner ↓'
+}
+
+async function selectWinner(teamId) {
+  const q = questions[currentIndex]
+  const oldWinner = q.winner_team_id
+  
+  // Update locally
+  if (oldWinner) scores[oldWinner]--
+  scores[teamId]++
+  q.winner_team_id = teamId
+  
+  // Update UI
+  document.querySelectorAll('.team-btn').forEach(btn => {
+    btn.classList.toggle('winner', btn.dataset.teamId == teamId)
+  })
+  renderScoreboard()
+  
+  // Save to DB
+  await sb.from('quiz_answers').update({ winner_team_id: teamId }).eq('id', q.id)
+}
+
+function nextQuestion() {
+  if (currentIndex === questions.length - 1) {
+    showComplete()
+  } else {
+    showQuestion(currentIndex + 1)
   }
-  
-  data.forEach(row => {
-    const key = `${row.category}_${row.question_num}`
-    answers[key] = {
-      answer: parseFloat(row.answer),
-      tolerance: parseFloat(row.tolerance)
-    }
-  })
 }
 
-loadAnswers()
-
-document.getElementById('check-btn').addEventListener('click', async () => {
-  const inputs = document.querySelectorAll('.answer-input')
-  score = 0
+function showComplete() {
+  document.getElementById('question-view').style.display = 'none'
+  document.getElementById('controls').style.display = 'none'
+  document.getElementById('complete-screen').classList.add('visible')
   
-  inputs.forEach(input => {
-    const category = input.dataset.category
-    const num = input.dataset.num
-    const key = `${category}_${num}`
-    const userAnswer = parseFloat(input.value.replace(/\s/g, '').replace(/,/g, '.'))
-    
-    // Remove old result badges
-    const oldBadge = input.parentElement.querySelector('.result-badge')
-    if (oldBadge) oldBadge.remove()
-    
-    input.classList.remove('correct', 'incorrect')
-    
-    if (answers[key] && !isNaN(userAnswer)) {
-      const correctAnswer = answers[key].answer
-      const tolerance = answers[key].tolerance
-      const diff = Math.abs(userAnswer - correctAnswer)
-      
-      if (diff <= tolerance) {
-        input.classList.add('correct')
-        score++
-        const badge = document.createElement('span')
-        badge.className = 'result-badge correct'
-        badge.textContent = '✓ Riktig!'
-        input.parentElement.appendChild(badge)
-      } else {
-        input.classList.add('incorrect')
-        const badge = document.createElement('span')
-        badge.className = 'result-badge incorrect'
-        badge.textContent = `✗ Fasit: ${formatNumber(correctAnswer)}`
-        input.parentElement.appendChild(badge)
-      }
-    } else if (input.value.trim() !== '') {
-      input.classList.add('incorrect')
-    }
-  })
+  const sorted = teams
+    .map(t => ({ name: t.team_name, score: scores[t.id] || 0 }))
+    .sort((a, b) => b.score - a.score)
   
-  document.getElementById('score').textContent = score
-})
+  document.getElementById('final-scores').innerHTML = sorted.map(t => `
+    <div class="final-row">
+      <span>${t.name}</span>
+      <span>${t.score} poeng</span>
+    </div>
+  `).join('')
+}
 
 function formatNumber(num) {
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + ' mill'
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + ' millioner'
   if (num >= 1000) return num.toLocaleString('nb-NO')
   return num.toString()
 }
+
+// Event listeners
+document.getElementById('reveal-btn').onclick = revealAnswer
+document.getElementById('next-btn').onclick = nextQuestion
+document.getElementById('prev-btn').onclick = () => showQuestion(currentIndex - 1)
+
+init()
 </script>
 </body>
 </html>

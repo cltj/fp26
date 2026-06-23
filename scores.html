@@ -220,21 +220,16 @@ const SUPABASE_URL      = 'https://zbjngimdvoazcshkvbgv.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
 const TABLE_NAME = 'scores'
 
-const TEAMS = [
-  { id: 'norge',     name: 'Norge',     flag: '🇳🇴' },
-  { id: 'frankrike', name: 'Frankrike', flag: '🇫🇷' },
-  { id: 'senegal',   name: 'Senegal',   flag: '🇸🇳' },
-  { id: 'irak',      name: 'Irak',      flag: '🇮🇶' },
-]
 const EXERCISES = ['Øvelse 1', 'Øvelse 2', 'Øvelse 3', 'Øvelse 4']
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+// Teams loaded from database
+let TEAMS = []
+
 // scores[teamId] = [null, null, null, null]  — null = not yet activated
 let scores = {}
 let isAdmin = false
-
-TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
 
 // Check if admin from session
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
@@ -373,6 +368,13 @@ async function resetAll() {
 
 function setStatus(msg) { document.getElementById('status').textContent = msg }
 
+async function loadTeams() {
+  const { data, error } = await sb.from('teams').select('*').order('id')
+  if (error) { setStatus('⚠️ Could not load teams'); return }
+  TEAMS = data.map(t => ({ id: t.id, name: t.team_name, flag: t.flag || '🏳️' }))
+  TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
+}
+
 async function loadScores() {
   const { data, error } = await sb.from(TABLE_NAME).select('team_id, scores')
   if (error) { setStatus('⚠️ Could not load scores'); return }
@@ -393,8 +395,13 @@ function subscribeRealtime() {
     .subscribe()
 }
 
-loadScores()
-subscribeRealtime()
+async function init() {
+  await loadTeams()
+  await loadScores()
+  subscribeRealtime()
+}
+
+init()
 </script>
 </body>
 </html>
