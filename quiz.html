@@ -224,7 +224,7 @@
 <div id="quiz-app">
   <header>
     <a href="home.html" class="back-btn">← Hjem</a>
-    <div class="progress">Spørsmål <strong id="current-num">1</strong> / <strong id="total-num">15</strong></div>
+    <div class="progress">Spørsmål <strong id="current-num">1</strong> / <strong>10</strong></div>
     <span></span>
   </header>
 
@@ -302,8 +302,6 @@ async function init() {
       scores[q.winner_team_id] = (scores[q.winner_team_id] || 0) + 1
     }
   })
-  
-  document.getElementById('total-num').textContent = questions.length
   
   renderTeamButtons()
   renderScoreboard()
