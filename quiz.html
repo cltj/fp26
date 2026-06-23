@@ -58,6 +58,20 @@
     text-align: center;
   }
   
+  .timer {
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer.warning { color: #fbbf24; }
+  .timer.danger { color: #f87171; animation: pulse 0.5s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
   .question-num {
     font-size: 14px;
     color: var(--accent);
@@ -232,6 +246,7 @@
     <div class="scoreboard" id="scoreboard"></div>
     
     <div id="question-view">
+      <div class="timer" id="timer">45</div>
       <div class="question-num" id="q-category">Kategori 1</div>
       <div class="question-text" id="q-text">Laster...</div>
       
@@ -283,6 +298,43 @@ let questions = []
 let teams = []
 let currentIndex = 0
 let scores = {}
+let timerInterval = null
+let timeLeft = 45
+const TIMER_SECONDS = 45
+
+function startTimer() {
+  stopTimer()
+  timeLeft = TIMER_SECONDS
+  updateTimerDisplay()
+  
+  timerInterval = setInterval(() => {
+    timeLeft--
+    updateTimerDisplay()
+    
+    if (timeLeft <= 0) {
+      stopTimer()
+    }
+  }, 1000)
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+}
+
+function updateTimerDisplay() {
+  const timerEl = document.getElementById('timer')
+  timerEl.textContent = timeLeft
+  
+  timerEl.classList.remove('warning', 'danger')
+  if (timeLeft <= 5) {
+    timerEl.classList.add('danger')
+  } else if (timeLeft <= 10) {
+    timerEl.classList.add('warning')
+  }
+}
 
 async function init() {
   // Load teams
@@ -375,10 +427,14 @@ function showQuestion(index) {
     // Show question view, hide complete
     document.getElementById('question-view').style.display = 'block'
     document.getElementById('complete-screen').classList.remove('visible')
+    
+    // Start timer
+    startTimer()
   }, 50)
 }
 
 function revealAnswer() {
+  stopTimer()
   document.getElementById('answer-box').classList.add('visible')
   document.getElementById('teams-section').classList.add('visible')
   document.getElementById('reveal-btn').disabled = true
@@ -433,6 +489,7 @@ function nextQuestion() {
 }
 
 function showComplete() {
+  stopTimer()
   document.getElementById('question-view').style.display = 'none'
   document.getElementById('controls').style.display = 'none'
   document.getElementById('scoreboard').style.display = 'none'
