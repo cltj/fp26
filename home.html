@@ -929,12 +929,25 @@
           <a href="wall.html" class="action-btn">Åpne The Wall →</a>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="action-card orakel" id="orakel-card" style="display: none;">
+  <section id="activities-section" style="display: none;">
+    <div class="section-title">🏆 Aktiviteter</div>
+    <div class="action-grid">
+      <div class="action-card" id="analyse-card" style="display: none; background: linear-gradient(135deg, rgba(255,200,100,0.15), rgba(200,244,90,0.15));">
         <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title">🔮 Orakelet er åpent!</div>
-          <div class="action-desc">Tipp resultatet på Norge – Frankrike</div>
-          <a href="orakel.html" class="action-btn">Gå til tipping →</a>
+          <div class="action-title">📊 Analyse</div>
+          <div class="action-desc">Gjett de riktige svarene</div>
+          <a href="analyse.html" class="action-btn">Start analyse →</a>
+        </div>
+      </div>
+
+      <div class="action-card" id="ballbinge-card" style="display: none; background: linear-gradient(135deg, rgba(100,255,150,0.15), rgba(200,244,90,0.15));">
+        <div class="action-content" style="text-align: center; padding: 1.5rem;">
+          <div class="action-title">⚽ Ballbinge Live!</div>
+          <div class="action-desc">Følg poengene live</div>
+          <a href="ballbinge.html" class="action-btn">Se tabell →</a>
         </div>
       </div>
 
@@ -946,11 +959,11 @@
         </div>
       </div>
 
-      <div class="action-card" id="ballbinge-card" style="display: none; background: linear-gradient(135deg, rgba(100,255,150,0.15), rgba(200,244,90,0.15));">
+      <div class="action-card orakel" id="orakel-card" style="display: none;">
         <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title">⚽ Ballbinge Live!</div>
-          <div class="action-desc">Følg poengene live</div>
-          <a href="ballbinge.html" class="action-btn">Se tabell →</a>
+          <div class="action-title">🔮 Orakelet er åpent!</div>
+          <div class="action-desc">Tipp resultatet på Norge – Frankrike</div>
+          <a href="orakel.html" class="action-btn">Gå til tipping →</a>
         </div>
       </div>
     </div>
@@ -1275,17 +1288,30 @@ async function checkActiveActivities() {
     return
   }
   
+  let anyActive = false
   activities?.forEach(activity => {
-    if (activity.id === 'orakel') {
-      document.getElementById('orakel-card').style.display = 'block'
-    }
-    if (activity.id === 'fc26') {
-      document.getElementById('fc26-card').style.display = 'block'
+    if (activity.id === 'analyse') {
+      document.getElementById('analyse-card').style.display = 'block'
+      anyActive = true
     }
     if (activity.id === 'ballbinge') {
       document.getElementById('ballbinge-card').style.display = 'block'
+      anyActive = true
+    }
+    if (activity.id === 'fc26') {
+      document.getElementById('fc26-card').style.display = 'block'
+      anyActive = true
+    }
+    if (activity.id === 'orakel') {
+      document.getElementById('orakel-card').style.display = 'block'
+      anyActive = true
     }
   })
+  
+  // Show section only if at least one activity is active
+  if (anyActive) {
+    document.getElementById('activities-section').style.display = 'block'
+  }
 }
 checkActiveActivities()
 </script>
