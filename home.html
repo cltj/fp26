@@ -532,6 +532,53 @@
     margin-bottom: 1rem;
   }
 
+  /* Activity Toggles */
+  .activity-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .activity-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+  }
+  .activity-name {
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .toggle-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .toggle-btn.inactive {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.6);
+  }
+  .toggle-btn.active {
+    background: rgba(100,200,100,0.3);
+    color: #90EE90;
+  }
+  .toggle-btn:hover {
+    transform: scale(1.05);
+  }
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .admin-section .section-title { 
+    color: #fff; 
+    margin-bottom: 1rem;
+  }
+
   /* Admin Dashboard */
   .admin-card {
     background: rgba(0,0,0,0.3);
@@ -671,6 +718,29 @@
 <main>
   <section class="admin-section" id="admin-section" style="display: none;">
     <div class="section-title">🔒 Admin Dashboard</div>
+
+    <!-- Activity Toggles -->
+    <div class="admin-card">
+      <div class="admin-card-title">🎯 Aktiver øvelser</div>
+      <div class="activity-toggles">
+        <div class="activity-toggle">
+          <span class="activity-name">🧠 Quiz/Analyse</span>
+          <button class="toggle-btn inactive" id="toggle-quiz" onclick="toggleActivity('quiz')">AV</button>
+        </div>
+        <div class="activity-toggle">
+          <span class="activity-name">⚽ Ballbinge</span>
+          <button class="toggle-btn inactive" id="toggle-ballbinge" onclick="toggleActivity('ballbinge')">AV</button>
+        </div>
+        <div class="activity-toggle">
+          <span class="activity-name">🎮 FC26 Turnering</span>
+          <button class="toggle-btn inactive" id="toggle-fc26" onclick="toggleActivity('fc26')">AV</button>
+        </div>
+        <div class="activity-toggle">
+          <span class="activity-name">🔮 Orakelet</span>
+          <button class="toggle-btn inactive" id="toggle-orakel" onclick="toggleActivity('orakel')">AV</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Quick Actions -->
     <div class="admin-card">
@@ -917,6 +987,60 @@ if (session.isAdmin || session.name === 'Tj') {
   document.getElementById('user-badge').classList.add('admin-badge')
   document.getElementById('user-badge').innerHTML = '🔒 Admin'
   document.getElementById('admin-section').style.display = 'block'
+  loadActivityStates()
+}
+
+// Activity toggle functions
+async function loadActivityStates() {
+  const { data: activities, error } = await sb
+    .from('activities')
+    .select('id, is_active')
+  
+  if (error) {
+    console.log('Could not load activities:', error)
+    return
+  }
+  
+  activities?.forEach(activity => {
+    const btn = document.getElementById(`toggle-${activity.id}`)
+    if (btn) {
+      updateToggleButton(btn, activity.is_active)
+    }
+  })
+}
+
+function updateToggleButton(btn, isActive) {
+  if (isActive) {
+    btn.classList.remove('inactive')
+    btn.classList.add('active')
+    btn.textContent = 'PÅ'
+  } else {
+    btn.classList.remove('active')
+    btn.classList.add('inactive')
+    btn.textContent = 'AV'
+  }
+}
+
+async function toggleActivity(activityId) {
+  const btn = document.getElementById(`toggle-${activityId}`)
+  const isCurrentlyActive = btn.classList.contains('active')
+  const newState = !isCurrentlyActive
+  
+  // Optimistic update
+  updateToggleButton(btn, newState)
+  
+  const { error } = await sb
+    .from('activities')
+    .upsert({ id: activityId, is_active: newState, updated_at: new Date().toISOString() })
+  
+  if (error) {
+    console.error('Could not toggle activity:', error)
+    // Revert on error
+    updateToggleButton(btn, isCurrentlyActive)
+    return
+  }
+  
+  console.log(`Activity ${activityId} is now ${newState ? 'ON' : 'OFF'}`)
 }
 
 // Fetch and display team

@@ -217,6 +217,15 @@
       </a>
     </div>
 
+    <div id="activity-closed" class="highlight-box" style="display: none;">
+      <p>⏳ <strong>Orakelet er ikke åpent ennå.</strong><br>
+      Vent til ledelsen aktiverer øvelsen.</p>
+      <a href="home.html" class="action-box" style="display: block; text-decoration: none; color: inherit; margin-top: 1rem;">
+        <p>← Tilbake til hjem</p>
+      </a>
+    </div>
+
+    <div id="main-content">
     <div class="highlight-box">
       <p><strong>Poengskala for sluttresultat:</strong></p>
       <table class="points-table">
@@ -330,6 +339,7 @@
     <a href="scores.html" class="action-box" style="display: block; text-decoration: none; color: inherit;">
       <p>🏆 Til Scoreboard →</p>
     </a>
+    </div><!-- end main-content -->
 
   </div>
 </main>
@@ -350,6 +360,19 @@ if (stored) {
 }
 
 async function init() {
+  // First check if the activity is active
+  const { data: activity } = await sb
+    .from('activities')
+    .select('is_active')
+    .eq('id', 'orakel')
+    .single()
+  
+  if (!activity?.is_active) {
+    document.getElementById('activity-closed').style.display = 'block'
+    document.getElementById('main-content').style.display = 'none'
+    return
+  }
+  
   if (!session || !session.id) {
     document.getElementById('login-prompt').style.display = 'block'
     return

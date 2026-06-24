@@ -93,12 +93,45 @@
     <p>Når siste svar er levert vil skjebnen være forseglet.</p>
     <p><strong>Og den siste kampen om trofeet er i gang.</strong></p>
 
-    <a href="../orakel.html" class="action-box" style="display: block; text-decoration: none; color: inherit;">
+    <div id="orakel-inactive" class="highlight-box" style="display: none;">
+      <p>⏳ <strong>Orakelet er ikke åpent ennå.</strong><br>
+      Vent til ledelsen aktiverer øvelsen.</p>
+    </div>
+
+    <a href="../orakel.html" id="orakel-link" class="action-box" style="display: none; text-decoration: none; color: inherit;">
       <p>🔮 Til Orakelet →</p>
     </a>
 
   </div>
 </main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NTI3NDIsImV4cCI6MjA2NTEyODc0Mn0.UNTs7jOSV2fROnIlVOcN3QYs-d_hfcoC2RXgHgLaGvs'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+async function checkOrakelStatus() {
+  const { data, error } = await sb
+    .from('activities')
+    .select('is_active')
+    .eq('id', 'orakel')
+    .single()
+  
+  if (data?.is_active) {
+    document.getElementById('orakel-link').style.display = 'block'
+    document.getElementById('orakel-inactive').style.display = 'none'
+  } else {
+    document.getElementById('orakel-link').style.display = 'none'
+    document.getElementById('orakel-inactive').style.display = 'block'
+  }
+}
+
+checkOrakelStatus()
+
+// Poll for updates every 10 seconds
+setInterval(checkOrakelStatus, 10000)
+</script>
 
 </body>
 </html>
