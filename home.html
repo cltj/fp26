@@ -945,6 +945,14 @@
           <a href="fc26.html" class="action-btn">Se tabell →</a>
         </div>
       </div>
+
+      <div class="action-card" id="ballbinge-card" style="display: none; background: linear-gradient(135deg, rgba(100,255,150,0.15), rgba(200,244,90,0.15));">
+        <div class="action-content" style="text-align: center; padding: 1.5rem;">
+          <div class="action-title">⚽ Ballbinge Live!</div>
+          <div class="action-desc">Følg poengene live</div>
+          <a href="ballbinge.html" class="action-btn">Se tabell →</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1273,6 +1281,9 @@ async function checkActiveActivities() {
     }
     if (activity.id === 'fc26') {
       document.getElementById('fc26-card').style.display = 'block'
+    }
+    if (activity.id === 'ballbinge') {
+      document.getElementById('ballbinge-card').style.display = 'block'
     }
   })
 }
