@@ -466,9 +466,30 @@ function showSubmittedState(prediction) {
   document.getElementById('oracle-form').style.display = 'none'
   document.getElementById('submitted-msg').style.display = 'block'
   
+  const formatAnswer = (val) => {
+    if (!val) return '—'
+    const map = {
+      'norge': '🇳🇴 Norge',
+      'frankrike': '🇫🇷 Frankrike',
+      'ingen': 'Ingen mål',
+      'likt': 'Likt',
+      'ja': 'Ja ✓',
+      'nei': 'Nei ✗'
+    }
+    return map[val] || val
+  }
+  
   document.getElementById('submitted-team').innerHTML = `
-    <strong>${session.name}</strong><br>
-    Tippet: Norge ${prediction.score_norge} – ${prediction.score_frankrike} Frankrike
+    <strong>${session.name}</strong>
+    <table style="width:100%; margin-top: 1rem; text-align: left; font-size: 14px;">
+      <tr><td>🏆 Sluttresultat</td><td style="text-align:right"><strong>Norge ${prediction.score_norge} – ${prediction.score_frankrike} Frankrike</strong></td></tr>
+      <tr><td>⚽ Scorer først</td><td style="text-align:right">${formatAnswer(prediction.first_goal)}</td></tr>
+      <tr><td>🟨 Flest gule kort</td><td style="text-align:right">${formatAnswer(prediction.yellow_cards)}</td></tr>
+      <tr><td>🧤 Norge holder nullen</td><td style="text-align:right">${formatAnswer(prediction.clean_sheet)}</td></tr>
+      <tr><td>⚡ Haaland scorer</td><td style="text-align:right">${formatAnswer(prediction.haaland_scores)}</td></tr>
+      <tr><td>💨 Mbappé scorer</td><td style="text-align:right">${formatAnswer(prediction.mbappe_scores)}</td></tr>
+      <tr><td>🎯 Straffescoring</td><td style="text-align:right">${formatAnswer(prediction.penalty)}</td></tr>
+    </table>
   `
 }
 
