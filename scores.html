@@ -467,8 +467,9 @@ async function loadTeams() {
 
 async function loadParticipants() {
   const { data, error } = await sb.from('participants').select('id, participant, photo_url, team_id').order('participant')
-  if (error) { console.error('Could not load participants'); return }
+  if (error) { console.error('Could not load participants:', error); return }
   allParticipants = data || []
+  console.log('Loaded participants:', allParticipants.map(p => ({ id: p.id, name: p.participant, team_id: p.team_id })))
 }
 
 function getUnassignedParticipants() {
@@ -476,7 +477,10 @@ function getUnassignedParticipants() {
 }
 
 function getTeamMembers(teamId) {
-  return allParticipants.filter(p => p.team_id === teamId)
+  teamId = parseInt(teamId) // Ensure integer comparison
+  const members = allParticipants.filter(p => p.team_id === teamId)
+  console.log(`Team ${teamId} members:`, members.map(m => m.participant))
+  return members
 }
 
 function renderTeamMembers(teamId) {
@@ -499,18 +503,23 @@ async function addMemberToTeam(teamId) {
   const participantId = parseInt(select.value)
   if (!participantId) return
   
+  teamId = parseInt(teamId) // Ensure integer
+  
+  console.log(`Adding participant ${participantId} to team ${teamId}`)
+  
   setStatus('Lagrer...')
-  const { error } = await sb.from('participants').update({ team_id: teamId }).eq('id', participantId)
+  const { data, error } = await sb.from('participants').update({ team_id: teamId }).eq('id', participantId).select()
+  
+  console.log('Update result:', { data, error })
   
   if (error) {
+    console.error('Add member error:', error)
     setStatus('⚠️ Kunne ikke lagre')
     return
   }
   
-  // Update local data
-  const p = allParticipants.find(x => x.id === participantId)
-  if (p) p.team_id = teamId
-  
+  // Reload participants from database to ensure consistency
+  await loadParticipants()
   render()
   setStatus('Lagret ✓')
   setTimeout(() => setStatus(''), 1500)
@@ -520,20 +529,25 @@ async function removeMemberFromTeam(participantId) {
   if (!checkAdmin()) return
   if (!confirm('Fjerne fra laget?')) return
   
+  participantId = parseInt(participantId) // Ensure integer
+  
+  console.log(`Removing participant ${participantId} from team`)
+  
   setStatus('Lagrer...')
-  const { error } = await sb.from('participants').update({ team_id: null }).eq('id', participantId)
+  const { data, error } = await sb.from('participants').update({ team_id: null }).eq('id', participantId).select()
+  
+  console.log('Remove result:', { data, error })
   
   if (error) {
+    console.error('Remove member error:', error)
     setStatus('⚠️ Kunne ikke lagre')
     return
   }
   
-  // Update local data
-  const p = allParticipants.find(x => x.id === participantId)
-  if (p) p.team_id = null
-  
+  // Reload participants from database to ensure consistency
+  await loadParticipants()
   render()
-  setStatus('Lagret ✓')
+  setStatus('Fjernet ✓')
   setTimeout(() => setStatus(''), 1500)
 }
 
