@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧠 Quiz Resultater</title>
+<link rel="stylesheet" href="story/story.css">
+<style>
+  .quiz-table {
+    background: rgba(30,30,30,0.8);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+  .quiz-header {
+    background: #4a1a7a;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .quiz-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    gap: 12px;
+  }
+  .quiz-row:last-child { border-bottom: none; }
+  .quiz-row.has-winner {
+    background: rgba(200,244,90,0.08);
+  }
+  .quiz-num {
+    width: 24px;
+    height: 24px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    flex-shrink: 0;
+  }
+  .quiz-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .quiz-question {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .quiz-answer {
+    font-size: 12px;
+    color: #c8f45a;
+    margin-top: 4px;
+  }
+  .quiz-winner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #c8f45a;
+    flex-shrink: 0;
+  }
+  .quiz-winner.pending {
+    color: rgba(255,255,255,0.3);
+    font-weight: 400;
+  }
+  .quiz-winner .flag {
+    font-size: 18px;
+  }
+  .info-box {
+    background: rgba(200,244,90,0.1);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 1rem 0;
+  }
+  .info-box p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .activity-closed {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255,100,100,0.1);
+    border: 1px solid rgba(255,100,100,0.3);
+    border-radius: 12px;
+  }
+  .winner-summary {
+    margin-top: 1.5rem;
+    padding: 16px;
+    background: rgba(200,244,90,0.1);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: 12px;
+  }
+  .winner-summary h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #c8f45a;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+  .summary-name .flag {
+    font-size: 20px;
+  }
+  .summary-count {
+    font-weight: 700;
+    color: #c8f45a;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a href="home.html" class="back-btn">← Hjem</a>
+    <span class="chapter-title">🧠 Quiz Resultater</span>
+  </div>
+</header>
+
+<main>
+  <div class="story-content">
+    
+    <div id="activity-closed" class="activity-closed" style="display: none;">
+      <p>⏳ <strong>Quizen er ikke startet ennå.</strong><br>
+      Vent til ledelsen aktiverer øvelsen.</p>
+    </div>
+
+    <div id="main-content">
+      <h1>🧠 Quiz</h1>
+      
+      <div class="info-box">
+        <p>Hvem gjettet nærmest på hvert spørsmål? Ingen poeng - bare ære!</p>
+      </div>
+
+      <div class="quiz-table">
+        <div class="quiz-header">
+          <span>#</span>
+          <span style="flex: 1;">Spørsmål</span>
+          <span>Vinner</span>
+        </div>
+        <div id="quiz-body">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <div id="winner-summary" class="winner-summary" style="display: none;">
+        <h3>🏆 Oppsummering</h3>
+        <div id="summary-list">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+// Check if admin (same logic as home.html)
+let isAdmin = false
+const stored = localStorage.getItem('fp26_session')
+if (stored) {
+  const session = JSON.parse(stored)
+  isAdmin = session.isAdmin === true || session.name === 'Tj'
+}
+
+let teams = {}
+let questions = []
+
+async function init() {
+  // Check if activity is active (skip for admin)
+  if (!isAdmin) {
+    const { data: activity, error } = await sb
+      .from('activities')
+      .select('is_active')
+      .eq('id', 'quiz')
+      .single()
+    
+    if (!error && activity && activity.is_active === false) {
+      document.getElementById('activity-closed').style.display = 'block'
+      document.getElementById('main-content').style.display = 'none'
+      return
+    }
+  }
+
+  // Load teams
+  const { data: teamsData } = await sb
+    .from('teams')
+    .select('id, team_name, flag')
+  
+  if (teamsData) {
+    teamsData.forEach(t => {
+      teams[t.id] = t
+    })
+  }
+
+  await loadQuestions()
+}
+
+async function loadQuestions() {
+  const { data: questionsData, error } = await sb
+    .from('quiz_answers')
+    .select('id, question, answer, winner_team_id')
+    .order('id')
+  
+  if (error) {
+    console.error('Error loading questions:', error)
+  }
+  
+  questions = questionsData || []
+  
+  render()
+  renderSummary()
+}
+
+function formatNumber(num) {
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + ' mill'
+  if (num >= 1000) return (num / 1000).toFixed(0) + 'k'
+  return num.toString()
+}
+
+function render() {
+  const container = document.getElementById('quiz-body')
+  
+  container.innerHTML = questions.map((q, i) => {
+    const winner = q.winner_team_id ? teams[q.winner_team_id] : null
+    
+    let winnerHtml = '<span class="quiz-winner pending">—</span>'
+    if (winner) {
+      winnerHtml = `<span class="quiz-winner"><span class="flag">${winner.flag}</span>${winner.team_name}</span>`
+    }
+    
+    return `
+      <div class="quiz-row ${winner ? 'has-winner' : ''}">
+        <div class="quiz-num">${i + 1}</div>
+        <div class="quiz-content">
+          <div class="quiz-question">${q.question}</div>
+          <div class="quiz-answer">Fasit: ${formatNumber(q.answer)}</div>
+        </div>
+        ${winnerHtml}
+      </div>
+    `
+  }).join('')
+}
+
+function renderSummary() {
+  // Count wins per team
+  const winCounts = {}
+  questions.forEach(q => {
+    if (q.winner_team_id) {
+      winCounts[q.winner_team_id] = (winCounts[q.winner_team_id] || 0) + 1
+    }
+  })
+  
+  // Sort by count
+  const sorted = Object.entries(winCounts)
+    .map(([id, count]) => ({ team: teams[parseInt(id)], count }))
+    .filter(item => item.team)
+    .sort((a, b) => b.count - a.count)
+  
+  if (sorted.length === 0) {
+    document.getElementById('winner-summary').style.display = 'none'
+    return
+  }
+  
+  document.getElementById('winner-summary').style.display = 'block'
+  document.getElementById('summary-list').innerHTML = sorted.map(item => {
+    return `
+      <div class="summary-row">
+        <span class="summary-name"><span class="flag">${item.team.flag}</span>${item.team.team_name}</span>
+        <span class="summary-count">${item.count} nærmest</span>
+      </div>
+    `
+  }).join('')
+}
+
+init()
+
+// Auto-refresh every 10 seconds
+setInterval(loadQuestions, 10000)
+</script>
+
+</body>
+</html>

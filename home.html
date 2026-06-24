@@ -966,6 +966,14 @@
           <a href="orakel.html" class="action-btn">Gå til tipping →</a>
         </div>
       </div>
+
+      <div class="action-card" id="quiz-card" style="display: none; background: linear-gradient(135deg, rgba(150,100,200,0.15), rgba(200,244,90,0.15));">
+        <div class="action-content" style="text-align: center; padding: 1.5rem;">
+          <div class="action-title">🧠 Quiz Resultater</div>
+          <div class="action-desc">Se hvem som svarte riktig</div>
+          <a href="quiz_score.html" class="action-btn">Se resultater →</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1304,6 +1312,10 @@ async function checkActiveActivities() {
     }
     if (activity.id === 'orakel') {
       document.getElementById('orakel-card').style.display = 'block'
+      anyActive = true
+    }
+    if (activity.id === 'quiz') {
+      document.getElementById('quiz-card').style.display = 'block'
       anyActive = true
     }
   })
