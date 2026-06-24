@@ -6,37 +6,39 @@
 <title>🔮 Orakelet – Kamptipping</title>
 <link rel="stylesheet" href="story/story.css">
 <style>
+  .participant-info {
+    background: rgba(200,244,90,0.1);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .participant-photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #c8f45a;
+  }
+  .participant-details {
+    flex: 1;
+  }
+  .participant-name {
+    font-weight: 600;
+    font-size: 16px;
+  }
+  .participant-team {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+  }
   .oracle-form {
     display: flex;
     flex-direction: column;
     gap: 20px;
     margin: 1.5rem 0;
-  }
-  .team-selector {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-  }
-  .team-selector button {
-    flex: 1;
-    min-width: 70px;
-    padding: 12px 8px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    color: #fff;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .team-selector button:hover {
-    background: rgba(255,255,255,0.1);
-  }
-  .team-selector button.active {
-    background: rgba(200,244,90,0.2);
-    border-color: #c8f45a;
-    color: #c8f45a;
   }
   .question-card {
     background: rgba(255,255,255,0.05);
@@ -199,6 +201,22 @@
   <div class="story-content">
     <h1>Kamptipping: Norge – Frankrike</h1>
 
+    <!-- Participant info -->
+    <div class="participant-info" id="participant-info" style="display: none;">
+      <img src="" alt="" class="participant-photo" id="participant-photo">
+      <div class="participant-details">
+        <div class="participant-name" id="participant-name"></div>
+        <div class="participant-team" id="participant-team-display"></div>
+      </div>
+    </div>
+
+    <div id="login-prompt" class="highlight-box" style="display: none;">
+      <p>⚠️ Du må være logget inn for å tippe!</p>
+      <a href="index.html" class="action-box" style="display: block; text-decoration: none; color: inherit; margin-top: 1rem;">
+        <p>→ Gå til innlogging</p>
+      </a>
+    </div>
+
     <div class="highlight-box">
       <p><strong>Poengskala for sluttresultat:</strong></p>
       <table class="points-table">
@@ -211,15 +229,7 @@
 
     <hr>
 
-    <p><strong>Velg ditt lag:</strong></p>
-    <div class="team-selector" id="team-selector">
-      <button onclick="selectTeam('irak')">🇮🇶 Irak</button>
-      <button onclick="selectTeam('senegal')">🇸🇳 Senegal</button>
-      <button onclick="selectTeam('frankrike')">🇫🇷 Frankrike</button>
-      <button onclick="selectTeam('norge')">🇳🇴 Norge</button>
-    </div>
-
-    <div id="oracle-form" class="oracle-form">
+    <div id="oracle-form" class="oracle-form" style="display: none;">
       
       <!-- Sluttresultat -->
       <div class="question-card">
@@ -324,25 +334,57 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const ORACLE_KEY = 'fp26_oracle_predictions'
-let selectedTeam = null
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NTI3NDIsImV4cCI6MjA2NTEyODc0Mn0.UNTs7jOSV2fROnIlVOcN3QYs-d_hfcoC2RXgHgLaGvs'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+let session = null
 let answers = {}
 
-function selectTeam(team) {
-  selectedTeam = team
-  document.querySelectorAll('#team-selector button').forEach(btn => {
-    btn.classList.remove('active')
-  })
-  event.target.classList.add('active')
+// Load session
+const stored = localStorage.getItem('fp26_session')
+if (stored) {
+  session = JSON.parse(stored)
+}
+
+async function init() {
+  if (!session || !session.id) {
+    document.getElementById('login-prompt').style.display = 'block'
+    return
+  }
   
-  // Check if this team already submitted
-  const predictions = getPredictions()
-  if (predictions[team]) {
-    showSubmittedState(team, predictions[team])
+  // Show participant info
+  document.getElementById('participant-info').style.display = 'flex'
+  document.getElementById('participant-name').textContent = session.name
+  if (session.photo) {
+    document.getElementById('participant-photo').src = session.photo
+  }
+  
+  // Get participant's team
+  const { data: participant } = await sb
+    .from('participants')
+    .select('team_id, teams(flag, team_name)')
+    .eq('id', session.id)
+    .single()
+  
+  if (participant?.teams) {
+    document.getElementById('participant-team-display').textContent = 
+      `${participant.teams.flag} ${participant.teams.team_name}`
+  }
+  
+  // Check if already submitted
+  const { data: existing } = await sb
+    .from('predictions')
+    .select('*')
+    .eq('participant_id', session.id)
+    .single()
+  
+  if (existing) {
+    showSubmittedState(existing)
   } else {
     document.getElementById('oracle-form').style.display = 'flex'
-    document.getElementById('submitted-msg').style.display = 'none'
   }
 }
 
@@ -355,14 +397,9 @@ function selectOption(question, value) {
   event.target.classList.add('selected')
 }
 
-function getPredictions() {
-  const stored = localStorage.getItem(ORACLE_KEY)
-  return stored ? JSON.parse(stored) : {}
-}
-
-function submitPrediction() {
-  if (!selectedTeam) {
-    alert('Velg et lag først!')
+async function submitPrediction() {
+  if (!session || !session.id) {
+    alert('Du må være logget inn!')
     return
   }
   
@@ -375,57 +412,55 @@ function submitPrediction() {
     return
   }
   
+  // Get participant's team_id
+  const { data: participant } = await sb
+    .from('participants')
+    .select('team_id')
+    .eq('id', session.id)
+    .single()
+  
   const prediction = {
-    team: selectedTeam,
-    timestamp: new Date().toISOString(),
-    scoreNorge: parseInt(scoreNorge),
-    scoreFrankrike: parseInt(scoreFrankrike),
-    firstGoal: answers['first-goal'] || null,
-    firstScorer: firstScorer || null,
-    yellowCards: answers['yellow-cards'] || null,
-    cleanSheet: answers['clean-sheet'] || null,
-    haalandScores: answers['haaland-scores'] || null,
-    mbappeScores: answers['mbappe-scores'] || null,
+    participant_id: session.id,
+    team_id: participant?.team_id || null,
+    score_norge: parseInt(scoreNorge),
+    score_frankrike: parseInt(scoreFrankrike),
+    first_goal: answers['first-goal'] || null,
+    first_scorer: firstScorer || null,
+    yellow_cards: answers['yellow-cards'] || null,
+    clean_sheet: answers['clean-sheet'] || null,
+    haaland_scores: answers['haaland-scores'] || null,
+    mbappe_scores: answers['mbappe-scores'] || null,
     penalty: answers['penalty'] || null
   }
   
-  const predictions = getPredictions()
-  predictions[selectedTeam] = prediction
-  localStorage.setItem(ORACLE_KEY, JSON.stringify(predictions))
+  const { data, error } = await sb
+    .from('predictions')
+    .insert(prediction)
+    .select()
+    .single()
   
-  showSubmittedState(selectedTeam, prediction)
-  console.log('Prediction saved:', prediction)
+  if (error) {
+    console.error('Error saving prediction:', error)
+    alert('Kunne ikke lagre spådommen. Prøv igjen.')
+    return
+  }
+  
+  showSubmittedState(data)
+  console.log('Prediction saved:', data)
 }
 
-function showSubmittedState(team, prediction) {
+function showSubmittedState(prediction) {
   document.getElementById('oracle-form').style.display = 'none'
   document.getElementById('submitted-msg').style.display = 'block'
   
-  const teamNames = {
-    'irak': '🇮🇶 Irak',
-    'senegal': '🇸🇳 Senegal',
-    'frankrike': '🇫🇷 Frankrike',
-    'norge': '🇳🇴 Norge'
-  }
-  
   document.getElementById('submitted-team').innerHTML = `
-    <strong>${teamNames[team]}</strong><br>
-    Tippet: Norge ${prediction.scoreNorge} – ${prediction.scoreFrankrike} Frankrike
+    <strong>${session.name}</strong><br>
+    Tippet: Norge ${prediction.score_norge} – ${prediction.score_frankrike} Frankrike
   `
 }
 
-// Check URL params or localStorage for existing submissions
-document.addEventListener('DOMContentLoaded', () => {
-  const predictions = getPredictions()
-  // Highlight teams that have already submitted
-  Object.keys(predictions).forEach(team => {
-    const btn = document.querySelector(`#team-selector button[onclick*="${team}"]`)
-    if (btn) {
-      btn.style.borderColor = 'rgba(100,200,100,0.5)'
-      btn.innerHTML += ' ✓'
-    }
-  })
-})
+// Initialize
+init()
 </script>
 
 </body>
