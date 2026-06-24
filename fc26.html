@@ -268,10 +268,13 @@ const stored = localStorage.getItem('fp26_session')
 if (stored) {
   const session = JSON.parse(stored)
   isAdmin = session.is_admin === true
+  console.log('FC26 Session:', session)
+  console.log('Is admin:', isAdmin)
 }
 
 if (isAdmin) {
   document.body.classList.add('is-admin')
+  console.log('Admin mode enabled')
 }
 
 let teams = {}
