@@ -76,11 +76,16 @@
 
   /* Mini Scoreboard - Group Stage Style */
   .mini-scoreboard {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .mini-sb-table {
     background: var(--surface);
     border: 0.5px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
-    margin-bottom: 1.5rem;
+    flex-shrink: 0;
   }
   .mini-sb-header {
     background: #1a5f2a;
@@ -97,50 +102,115 @@
   .mini-sb-row {
     display: flex;
     align-items: center;
-    padding: 10px 12px;
+    padding: 8px 12px;
     border-bottom: 0.5px solid var(--border);
-    gap: 10px;
+    gap: 8px;
+    min-height: 52px;
+    box-sizing: border-box;
   }
   .mini-sb-row:last-child { border-bottom: none; }
   .mini-sb-row.qualified { background: rgba(34,197,94,0.12); }
   .mini-sb-row.playoff { background: rgba(234,179,8,0.12); }
   .mini-sb-row.eliminated { background: rgba(239,68,68,0.08); }
   .mini-sb-pos {
-    width: 20px;
+    width: 18px;
     font-size: 12px;
     font-weight: 600;
     color: var(--muted);
   }
-  .mini-sb-flag { font-size: 18px; }
-  .mini-sb-name { font-size: 14px; font-weight: 500; min-width: 70px; }
+  .mini-sb-flag { font-size: 16px; }
+  .mini-sb-name { font-size: 13px; font-weight: 500; min-width: 65px; }
   .mini-sb-pts {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--accent);
-    min-width: 30px;
-    text-align: center;
+    min-width: 24px;
+    text-align: right;
   }
-  .mini-sb-members {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+  .mini-sb-photos {
     flex: 1;
-    justify-content: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-top: 29px; /* Offset for table header */
   }
+  .mini-sb-photo-row {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    min-height: 52px;
+    border-bottom: 0.5px solid transparent; /* Match table row spacing */
+    box-sizing: border-box;
+  }
+  .mini-sb-photo-row:last-child { border-bottom: none; }
   .mini-sb-member {
-    width: 36px;
-    height: 48px;
+    width: 30px;
+    height: 40px;
     border-radius: 4px;
     object-fit: cover;
     border: 1.5px solid var(--border);
   }
   .mini-sb-placeholder {
-    width: 36px;
-    height: 48px;
+    width: 30px;
+    height: 40px;
     border-radius: 4px;
     background: var(--surface2);
     border: 1.5px dashed var(--border);
   }
+  .mini-sb-member {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .mini-sb-member:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  /* Photo Overlay */
+  .photo-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .photo-overlay.active { display: flex; }
+  .photo-overlay-img {
+    max-width: 85vw;
+    max-height: 70vh;
+    border-radius: 12px;
+    object-fit: contain;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    border: 3px solid var(--accent);
+  }
+  .photo-overlay-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .photo-overlay-close {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    color: var(--text);
+    background: rgba(255,255,255,0.1);
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .photo-overlay-close:hover { background: rgba(255,255,255,0.2); }
 
   main {
     max-width: 600px;
@@ -771,25 +841,31 @@ async function loadMiniScoreboard() {
       return '<div class="mini-sb-placeholder"></div>'
     }
     return members.map(m => `
-      <img src="${m.photo_url || 'placeholder.png'}" alt="${m.participant}" class="mini-sb-member" onerror="this.src='placeholder.png'">
+      <img src="${m.photo_url || 'placeholder.png'}" alt="${m.participant}" class="mini-sb-member" onclick="showPhotoOverlay('${m.photo_url || ''}', '${m.participant}')" onerror="this.src='placeholder.png'">
     `).join('')
   }
   
   // Render
   document.getElementById('mini-scoreboard').innerHTML = `
-    <div class="mini-sb-header">
-      <span>🏆 Gruppe I</span>
-      <span>Pts</span>
-    </div>
-    ${ranked.map((t, i) => `
-      <div class="mini-sb-row ${getRowClass(i)}">
-        <span class="mini-sb-pos">${i + 1}</span>
-        <span class="mini-sb-flag">${t.flag}</span>
-        <span class="mini-sb-name">${t.name}</span>
-        <span class="mini-sb-pts">${t.pts}</span>
-        <div class="mini-sb-members">${renderMembers(t.members)}</div>
+    <div class="mini-sb-table">
+      <div class="mini-sb-header">
+        <span>🏆 Gruppe I</span>
+        <span>Pts</span>
       </div>
-    `).join('')}
+      ${ranked.map((t, i) => `
+        <div class="mini-sb-row ${getRowClass(i)}">
+          <span class="mini-sb-pos">${i + 1}</span>
+          <span class="mini-sb-flag">${t.flag}</span>
+          <span class="mini-sb-name">${t.name}</span>
+          <span class="mini-sb-pts">${t.pts}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div class="mini-sb-photos">
+      ${ranked.map(t => `
+        <div class="mini-sb-photo-row">${renderMembers(t.members)}</div>
+      `).join('')}
+    </div>
   `
 }
 loadMiniScoreboard()
@@ -798,7 +874,30 @@ function logout() {
   localStorage.removeItem('fp26_session')
   window.location.href = 'index.html'
 }
+
+// Photo overlay
+function showPhotoOverlay(url, name) {
+  if (!url) return
+  const overlay = document.getElementById('photo-overlay')
+  document.getElementById('overlay-img').src = url
+  document.getElementById('overlay-name').textContent = name
+  overlay.classList.add('active')
+}
+
+function closePhotoOverlay() {
+  document.getElementById('photo-overlay').classList.remove('active')
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closePhotoOverlay()
+})
 </script>
+
+<div id="photo-overlay" class="photo-overlay" onclick="closePhotoOverlay()">
+  <button class="photo-overlay-close" onclick="closePhotoOverlay()">×</button>
+  <img id="overlay-img" class="photo-overlay-img" src="" alt="">
+  <div id="overlay-name" class="photo-overlay-name"></div>
+</div>
 
 </body>
 </html>
