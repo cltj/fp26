@@ -223,21 +223,71 @@
   </div>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const MATCHES_KEY = 'fp26_fc26_matches'
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-function getMatches() {
-  const stored = localStorage.getItem(MATCHES_KEY)
-  return stored ? JSON.parse(stored) : {}
+// Check if admin
+let isAdmin = false
+const stored = localStorage.getItem('fp26_session')
+if (stored) {
+  const session = JSON.parse(stored)
+  isAdmin = session.is_admin === true
 }
 
-function saveMatch(matchNum) {
+async function loadMatches() {
+  const { data: matches, error } = await sb
+    .from('fc26_matches')
+    .select('*')
+  
+  if (error) {
+    console.error('Error loading matches:', error)
+    return
+  }
+  
+  for (const match of matches) {
+    const homeInput = document.getElementById(`match${match.match_num}-home`)
+    const awayInput = document.getElementById(`match${match.match_num}-away`)
+    if (homeInput && match.home_score !== null) homeInput.value = match.home_score
+    if (awayInput && match.away_score !== null) awayInput.value = match.away_score
+  }
+  
+  // Disable inputs if not admin
+  if (!isAdmin) {
+    document.querySelectorAll('.match-result input').forEach(input => {
+      input.disabled = true
+      input.style.opacity = '0.7'
+    })
+    document.querySelectorAll('.save-btn, .reset-btn').forEach(btn => {
+      btn.style.display = 'none'
+    })
+  }
+}
+
+async function saveMatch(matchNum) {
+  if (!isAdmin) {
+    alert('Kun admin kan oppdatere resultater')
+    return
+  }
+  
   const homeScore = document.getElementById(`match${matchNum}-home`).value
   const awayScore = document.getElementById(`match${matchNum}-away`).value
   
-  const matches = getMatches()
-  matches[matchNum] = { home: homeScore, away: awayScore }
-  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches))
+  const { error } = await sb
+    .from('fc26_matches')
+    .upsert({
+      match_num: matchNum,
+      home_score: homeScore !== '' ? parseInt(homeScore) : null,
+      away_score: awayScore !== '' ? parseInt(awayScore) : null
+    }, { onConflict: 'match_num' })
+  
+  if (error) {
+    console.error('Error saving match:', error)
+    alert('Kunne ikke lagre. Prøv igjen.')
+    return
+  }
   
   // Visual feedback
   const btn = event.target
@@ -251,30 +301,30 @@ function saveMatch(matchNum) {
   console.log(`Match ${matchNum} saved:`, homeScore, '-', awayScore)
 }
 
-function resetMatch(matchNum) {
+async function resetMatch(matchNum) {
+  if (!isAdmin) {
+    alert('Kun admin kan oppdatere resultater')
+    return
+  }
+  
   // Clear inputs
   document.getElementById(`match${matchNum}-home`).value = ''
   document.getElementById(`match${matchNum}-away`).value = ''
   
-  // Remove from storage
-  const matches = getMatches()
-  delete matches[matchNum]
-  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches))
+  // Remove from database
+  const { error } = await sb
+    .from('fc26_matches')
+    .delete()
+    .eq('match_num', matchNum)
+  
+  if (error) {
+    console.error('Error resetting match:', error)
+  }
   
   console.log(`Match ${matchNum} reset`)
 }
 
-function loadMatches() {
-  const matches = getMatches()
-  for (const [num, result] of Object.entries(matches)) {
-    const homeInput = document.getElementById(`match${num}-home`)
-    const awayInput = document.getElementById(`match${num}-away`)
-    if (homeInput && result.home !== '') homeInput.value = result.home
-    if (awayInput && result.away !== '') awayInput.value = result.away
-  }
-}
-
-// Load saved matches on page load
+// Load matches on page load
 loadMatches()
 </script>
 
