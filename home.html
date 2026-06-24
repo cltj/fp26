@@ -521,25 +521,31 @@
 
   /* Admin Section */
   .admin-section {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 0.5px solid var(--border);
+    background: rgba(180, 40, 40, 0.85);
+    border: 1px solid rgba(255, 100, 100, 0.4);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
   }
-  .admin-section .section-title { color: #ff9f9f; }
+  .admin-section .section-title { 
+    color: #fff; 
+    margin-bottom: 1rem;
+  }
 
   /* Admin Dashboard */
   .admin-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
+    background: rgba(0,0,0,0.3);
+    border: 0.5px solid rgba(255,255,255,0.15);
     border-radius: var(--radius);
     padding: 1rem;
     margin-bottom: 1rem;
   }
+  .admin-card:last-child { margin-bottom: 0; }
   .admin-card-title {
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 0.75rem;
-    color: var(--text);
+    color: #fff;
   }
   .story-grid {
     display: grid;
@@ -588,7 +594,7 @@
     align-items: flex-start;
     gap: 10px;
     padding: 10px 0;
-    border-bottom: 0.5px solid var(--border);
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
   }
   .event-item:last-child { border-bottom: none; }
   a.event-item {
@@ -597,7 +603,7 @@
     transition: all 0.15s;
   }
   a.event-item:hover {
-    background: rgba(200,244,90,0.08);
+    background: rgba(255,255,255,0.08);
     margin: 0 -12px;
     padding: 10px 12px;
     border-radius: 8px;
@@ -606,23 +612,23 @@
   .event-num {
     width: 24px;
     height: 24px;
-    background: rgba(200,244,90,0.12);
+    background: rgba(255,255,255,0.15);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 11px;
     font-weight: 700;
-    color: var(--accent);
+    color: #fff;
     flex-shrink: 0;
   }
   .event-details { flex: 1; min-width: 0; }
-  .event-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
-  .event-desc { font-size: 11px; color: var(--muted); }
+  .event-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; color: #fff; }
+  .event-desc { font-size: 11px; color: rgba(255,255,255,0.6); }
   .event-item[data-time]::before {
     content: attr(data-time);
     font-size: 10px;
-    color: var(--muted);
+    color: rgba(255,255,255,0.5);
     width: 40px;
     flex-shrink: 0;
   }
@@ -634,10 +640,10 @@
     gap: 8px;
   }
   .admin-action-btn {
-    background: rgba(255,255,255,0.05);
-    border: 0.5px solid var(--border);
+    background: rgba(255,255,255,0.1);
+    border: 0.5px solid rgba(255,255,255,0.2);
     border-radius: var(--radius-sm);
-    color: var(--text);
+    color: #fff;
     font-size: 12px;
     font-weight: 500;
     padding: 12px 8px;
@@ -664,28 +670,6 @@
 </header>
 
 <main>
-  <section class="welcome-section">
-    <div class="welcome-photo-row">
-      <img src="" alt="" class="welcome-photo" id="welcome-photo" style="display:none;">
-      <div class="team-badge" id="team-badge">
-        <span class="team-flag" id="team-flag"></span>
-        <span class="team-name" id="team-name-display"></span>
-      </div>
-    </div>
-    <div class="welcome-row" id="placeholder-row" style="display:none;">
-      <img src="" alt="" class="welcome-photo" id="placeholder-photo">
-      <div class="tv2-promo">
-        <img src="tv2.png" alt="TV2 Fotballkort" class="tv2-qr">
-        <a href="https://www.tv2.no/fotballkort" target="_blank" class="tv2-link">Lag ditt bilde her →</a>
-      </div>
-    </div>
-    <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
-    
-    <div class="mini-scoreboard" id="mini-scoreboard">
-      <!-- Loaded by JS -->
-    </div>
-  </section>
-
   <section class="admin-section" id="admin-section" style="display: none;">
     <div class="section-title">🔒 Admin Dashboard</div>
 
@@ -819,6 +803,28 @@
     </div>
   </section>
 
+  <section class="welcome-section">
+    <div class="welcome-photo-row">
+      <img src="" alt="" class="welcome-photo" id="welcome-photo" style="display:none;">
+      <div class="team-badge" id="team-badge">
+        <span class="team-flag" id="team-flag"></span>
+        <span class="team-name" id="team-name-display"></span>
+      </div>
+    </div>
+    <div class="welcome-row" id="placeholder-row" style="display:none;">
+      <img src="" alt="" class="welcome-photo" id="placeholder-photo">
+      <div class="tv2-promo">
+        <img src="tv2.png" alt="TV2 Fotballkort" class="tv2-qr">
+        <a href="https://www.tv2.no/fotballkort" target="_blank" class="tv2-link">Lag ditt bilde her →</a>
+      </div>
+    </div>
+    <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
+    
+    <div class="mini-scoreboard" id="mini-scoreboard">
+      <!-- Loaded by JS -->
+    </div>
+  </section>
+
   <section>
     <div class="section-title">🎊 Bidra med feststemning</div>
     
@@ -907,8 +913,8 @@ if (session.photo && !session.photo.toLowerCase().includes('placeholder')) {
   }
 }
 
-// Show admin badge and section if admin
-if (session.isAdmin) {
+// Show admin badge and section if admin (user "Tj")
+if (session.isAdmin || session.name === 'Tj') {
   document.getElementById('user-badge').classList.add('admin-badge')
   document.getElementById('user-badge').innerHTML = '🔒 Admin'
   document.getElementById('admin-section').style.display = 'block'
