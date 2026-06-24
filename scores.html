@@ -192,83 +192,78 @@
   }
   .reset-btn:hover { color: #ff9f9f; border-color: rgba(255,107,107,0.4); }
   
-  /* Team Members - 2 Slot Design */
+  /* Team Members - Simple Design */
   .team-members {
     border-top: 0.5px solid var(--border);
     padding: 0.75rem 1.25rem 1rem;
-    display: none;
   }
-  .team-members.visible { display: block; }
+  .team-members-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
   .team-members-title {
     font-size: 11px;
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
   }
-  .team-slots {
+  .team-members-actions {
     display: flex;
-    gap: 12px;
+    gap: 6px;
   }
-  .team-slot {
-    flex: 1;
+  .team-action-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .team-action-btn:hover {
+    background: rgba(200,244,90,0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .team-action-btn.remove:hover {
+    background: rgba(248,113,113,0.15);
+    border-color: #f87171;
+    color: #f87171;
+  }
+  .team-members-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .team-member-chip {
     display: flex;
     align-items: center;
     gap: 8px;
     background: var(--surface2);
     border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 8px 10px;
-    min-height: 52px;
+    border-radius: 99px;
+    padding: 6px 12px 6px 6px;
   }
-  .team-slot.empty {
-    border-style: dashed;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .team-slot.empty:hover {
-    background: rgba(255,255,255,0.03);
-    border-color: rgba(200,244,90,0.4);
-  }
-  .slot-photo {
-    width: 36px;
-    height: 36px;
+  .team-member-chip img {
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
-    flex-shrink: 0;
   }
-  .slot-info {
-    flex: 1;
-    min-width: 0;
-  }
-  .slot-name {
+  .team-member-chip span {
     font-size: 13px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
-  .slot-add {
-    font-size: 20px;
+  .team-member-empty {
+    font-size: 12px;
     color: var(--muted);
-    transition: color 0.15s;
-  }
-  .team-slot.empty:hover .slot-add { color: var(--accent); }
-  .slot-remove {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
-    transition: background 0.15s, color 0.15s;
-    flex-shrink: 0;
-  }
-  .slot-remove:hover {
-    background: rgba(248,113,113,0.15);
-    color: #f87171;
+    padding: 8px 0;
   }
   
   /* Participant Picker Modal */
@@ -372,7 +367,6 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // Teams loaded from database
 let TEAMS = []
-let allParticipants = []
 
 // scores[teamId] = [null, null, null, null]  — null = not yet activated
 let scores = {}
@@ -396,7 +390,6 @@ function getSortedTeams() {
 }
 
 function render() {
-  console.log('render() called. TEAMS:', TEAMS.length, 'allParticipants:', allParticipants.length)
   const sorted = getSortedTeams()
   document.getElementById('scoreboard').innerHTML = sorted.map((team, i) => {
     const rank = i + 1
@@ -439,10 +432,18 @@ function render() {
           <div class="team-name">${team.name}</div>
           <div class="total-score">${total(team.id)}</div>
         </div>
-        <div class="team-members visible" id="members-${team.id}">
-          <div class="team-members-title">Lagmedlemmer</div>
-          <div class="team-slots" id="slots-${team.id}">
-            ${renderTeamSlots(team.id)}
+        <div class="team-members" id="members-${team.id}">
+          <div class="team-members-header">
+            <span class="team-members-title">Lagmedlemmer</span>
+            ${isAdmin ? `
+              <div class="team-members-actions">
+                <button class="team-action-btn" onclick="openAddPicker(${team.id})" title="Legg til">+</button>
+                <button class="team-action-btn remove" onclick="openRemovePicker(${team.id})" title="Fjern">−</button>
+              </div>
+            ` : ''}
+          </div>
+          <div class="team-members-list" id="members-list-${team.id}">
+            <span class="team-member-empty">Laster...</span>
           </div>
         </div>
         <div class="exercises ${anyActive || isAdmin ? '' : 'hidden'}" id="exercises-${team.id}">
@@ -452,6 +453,9 @@ function render() {
   }).join('')
 
   applyAdminUI()
+  
+  // Load members for each team
+  TEAMS.forEach(team => loadTeamMembers(team.id))
 }
 
 function applyAdminUI() {
@@ -525,102 +529,89 @@ function setStatus(msg) { document.getElementById('status').textContent = msg }
 async function loadTeams() {
   const { data, error } = await sb.from('teams').select('*').order('id')
   if (error) { setStatus('⚠️ Could not load teams'); return }
-  console.log('Raw teams data:', JSON.stringify(data, null, 2))
   TEAMS = data.map(t => ({ id: t.id, name: t.team_name, flag: t.flag || '🏳️' }))
-  console.log('TEAMS array:', TEAMS)
   TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
 }
 
-async function loadParticipants() {
-  const { data, error } = await sb.from('participants').select('id, participant, photo_url, team_id').order('participant')
-  if (error) { console.error('Could not load participants:', error); return }
-  allParticipants = data || []
-  console.log('Raw participants data:', JSON.stringify(data, null, 2))
-  console.log('Participants with teams:', allParticipants.filter(p => p.team_id !== null).map(p => ({ id: p.id, name: p.participant, team_id: p.team_id, type: typeof p.team_id })))
-}
-
-function getUnassignedParticipants() {
-  return allParticipants.filter(p => !p.team_id)
-}
-
-function getTeamMembers(teamId) {
-  console.log(`getTeamMembers called with teamId: ${teamId} (type: ${typeof teamId})`)
-  const teamIdNum = parseInt(teamId)
-  const members = allParticipants.filter(p => {
-    const match = p.team_id === teamIdNum
-    if (p.team_id !== null) {
-      console.log(`  Checking participant ${p.participant}: team_id=${p.team_id} (type: ${typeof p.team_id}), match=${match}`)
-    }
-    return match
-  })
-  console.log(`Team ${teamIdNum} has ${members.length} members:`, members.map(m => m.participant))
-  return members
-}
-
-function renderTeamSlots(teamId) {
-  const members = getTeamMembers(teamId)
-  const slots = []
+// Load and display members for a specific team (direct query)
+async function loadTeamMembers(teamId) {
+  const container = document.getElementById(`members-list-${teamId}`)
+  if (!container) return
   
-  // Slot 1
-  if (members[0]) {
-    slots.push(`
-      <div class="team-slot">
-        <img src="${members[0].photo_url || 'placeholder.png'}" class="slot-photo" onerror="this.src='placeholder.png'">
-        <div class="slot-info">
-          <div class="slot-name">${members[0].participant}</div>
-        </div>
-        ${isAdmin ? `<button class="slot-remove" onclick="removeMemberFromTeam(${members[0].id})" title="Fjern">−</button>` : ''}
-      </div>
-    `)
-  } else if (isAdmin) {
-    slots.push(`
-      <div class="team-slot empty" onclick="openPicker(${teamId})">
-        <span class="slot-add">+</span>
-      </div>
-    `)
-  } else {
-    slots.push(`
-      <div class="team-slot empty" style="cursor:default;border-color:var(--border);">
-        <span class="slot-add" style="color:var(--border);">?</span>
-      </div>
-    `)
+  const { data, error } = await sb
+    .from('participants')
+    .select('id, participant, photo_url')
+    .eq('team_id', teamId)
+    .order('participant')
+  
+  if (error) {
+    container.innerHTML = '<span class="team-member-empty">Feil ved lasting</span>'
+    console.error('Error loading team members:', error)
+    return
   }
   
-  // Slot 2
-  if (members[1]) {
-    slots.push(`
-      <div class="team-slot">
-        <img src="${members[1].photo_url || 'placeholder.png'}" class="slot-photo" onerror="this.src='placeholder.png'">
-        <div class="slot-info">
-          <div class="slot-name">${members[1].participant}</div>
-        </div>
-        ${isAdmin ? `<button class="slot-remove" onclick="removeMemberFromTeam(${members[1].id})" title="Fjern">−</button>` : ''}
-      </div>
-    `)
-  } else if (isAdmin) {
-    slots.push(`
-      <div class="team-slot empty" onclick="openPicker(${teamId})">
-        <span class="slot-add">+</span>
-      </div>
-    `)
-  } else {
-    slots.push(`
-      <div class="team-slot empty" style="cursor:default;border-color:var(--border);">
-        <span class="slot-add" style="color:var(--border);">?</span>
-      </div>
-    `)
+  if (!data || data.length === 0) {
+    container.innerHTML = '<span class="team-member-empty">Ingen medlemmer</span>'
+    return
   }
   
-  return slots.join('')
+  container.innerHTML = data.map(p => `
+    <div class="team-member-chip">
+      <img src="${p.photo_url || 'placeholder.png'}" onerror="this.src='placeholder.png'">
+      <span>${p.participant}</span>
+    </div>
+  `).join('')
+}
+
+// Load unassigned participants for picker
+async function loadUnassignedParticipants() {
+  const { data, error } = await sb
+    .from('participants')
+    .select('id, participant, photo_url')
+    .is('team_id', null)
+    .order('participant')
+  
+  if (error) {
+    console.error('Error loading unassigned:', error)
+    return []
+  }
+  return data || []
+}
+
+// Load team members for remove picker
+async function loadTeamMembersForRemove(teamId) {
+  const { data, error } = await sb
+    .from('participants')
+    .select('id, participant, photo_url')
+    .eq('team_id', teamId)
+    .order('participant')
+  
+  if (error) {
+    console.error('Error loading team members:', error)
+    return []
+  }
+  return data || []
 }
 
 // Picker state
 let pickerTeamId = null
+let pickerMode = 'add' // 'add' or 'remove'
 
-function openPicker(teamId) {
+function openAddPicker(teamId) {
   if (!isAdmin) return
   pickerTeamId = teamId
-  renderPicker()
+  pickerMode = 'add'
+  document.getElementById('picker-title').textContent = 'Legg til deltaker'
+  renderAddPicker()
+  document.getElementById('picker-overlay').classList.add('active')
+}
+
+function openRemovePicker(teamId) {
+  if (!isAdmin) return
+  pickerTeamId = teamId
+  pickerMode = 'remove'
+  document.getElementById('picker-title').textContent = 'Fjern deltaker'
+  renderRemovePicker()
   document.getElementById('picker-overlay').classList.add('active')
 }
 
@@ -629,9 +620,11 @@ function closePicker() {
   pickerTeamId = null
 }
 
-function renderPicker() {
-  const unassigned = getUnassignedParticipants()
+async function renderAddPicker() {
   const list = document.getElementById('picker-list')
+  list.innerHTML = '<div class="picker-empty">Laster...</div>'
+  
+  const unassigned = await loadUnassignedParticipants()
   
   if (unassigned.length === 0) {
     list.innerHTML = '<div class="picker-empty">Ingen ledige deltakere</div>'
@@ -639,56 +632,74 @@ function renderPicker() {
   }
   
   list.innerHTML = unassigned.map(p => `
-    <div class="picker-item" onclick="selectParticipant(${p.id})">
+    <div class="picker-item" onclick="addToTeam(${p.id})">
       <img src="${p.photo_url || 'placeholder.png'}" class="picker-item-photo" onerror="this.src='placeholder.png'">
       <span class="picker-item-name">${p.participant}</span>
     </div>
   `).join('')
 }
 
-async function selectParticipant(participantId) {
+async function renderRemovePicker() {
+  const list = document.getElementById('picker-list')
+  list.innerHTML = '<div class="picker-empty">Laster...</div>'
+  
+  const members = await loadTeamMembersForRemove(pickerTeamId)
+  
+  if (members.length === 0) {
+    list.innerHTML = '<div class="picker-empty">Ingen medlemmer å fjerne</div>'
+    return
+  }
+  
+  list.innerHTML = members.map(p => `
+    <div class="picker-item" onclick="removeFromTeam(${p.id})" style="border-left: 3px solid #f87171;">
+      <img src="${p.photo_url || 'placeholder.png'}" class="picker-item-photo" onerror="this.src='placeholder.png'">
+      <span class="picker-item-name">${p.participant}</span>
+    </div>
+  `).join('')
+}
+
+async function addToTeam(participantId) {
   if (!pickerTeamId) return
   
-  const teamId = parseInt(pickerTeamId)
-  participantId = parseInt(participantId)
-  
   closePicker()
-  setStatus('Lagrer...')
+  setStatus('Legger til...')
   
-  const { data, error } = await sb.from('participants').update({ team_id: teamId }).eq('id', participantId).select()
-  
-  console.log('Add result:', { data, error })
+  const { error } = await sb
+    .from('participants')
+    .update({ team_id: pickerTeamId })
+    .eq('id', participantId)
   
   if (error) {
-    console.error('Add member error:', error)
+    console.error('Add error:', error)
     setStatus('⚠️ Kunne ikke lagre')
     return
   }
   
-  await loadParticipants()
-  render()
+  // Refresh this team's members
+  await loadTeamMembers(pickerTeamId)
   setStatus('Lagt til ✓')
   setTimeout(() => setStatus(''), 1500)
 }
 
-async function removeMemberFromTeam(participantId) {
-  if (!isAdmin) return
-  
-  participantId = parseInt(participantId)
-  
+async function removeFromTeam(participantId) {
+  closePicker()
   setStatus('Fjerner...')
-  const { data, error } = await sb.from('participants').update({ team_id: null }).eq('id', participantId).select()
   
-  console.log('Remove result:', { data, error })
+  const teamId = pickerTeamId
+  
+  const { error } = await sb
+    .from('participants')
+    .update({ team_id: null })
+    .eq('id', participantId)
   
   if (error) {
-    console.error('Remove member error:', error)
+    console.error('Remove error:', error)
     setStatus('⚠️ Kunne ikke lagre')
     return
   }
   
-  await loadParticipants()
-  render()
+  // Refresh this team's members
+  await loadTeamMembers(teamId)
   setStatus('Fjernet ✓')
   setTimeout(() => setStatus(''), 1500)
 }
@@ -715,7 +726,6 @@ function subscribeRealtime() {
 
 async function init() {
   await loadTeams()
-  await loadParticipants()
   await loadScores()
   subscribeRealtime()
 }
@@ -727,7 +737,7 @@ init()
 <div id="picker-overlay" class="picker-overlay" onclick="if(event.target===this)closePicker()">
   <div class="picker-modal">
     <div class="picker-header">
-      <span class="picker-title">Velg deltaker</span>
+      <span class="picker-title" id="picker-title">Velg deltaker</span>
       <button class="picker-close" onclick="closePicker()">×</button>
     </div>
     <div class="picker-list" id="picker-list"></div>
