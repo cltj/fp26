@@ -340,7 +340,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NTI3NDIsImV4cCI6MjA2NTEyODc0Mn0.UNTs7jOSV2fROnIlVOcN3QYs-d_hfcoC2RXgHgLaGvs'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 let session = null
@@ -354,13 +354,17 @@ if (stored) {
 
 async function init() {
   // First check if the activity is active
-  const { data: activity } = await sb
+  const { data: activity, error } = await sb
     .from('activities')
     .select('is_active')
     .eq('id', 'orakel')
     .single()
   
-  if (!activity?.is_active) {
+  console.log('Activity check:', { activity, error })
+  
+  // If there's an error (table doesn't exist), allow access
+  // Only block if we explicitly know is_active is false
+  if (!error && activity && activity.is_active === false) {
     document.getElementById('activity-closed').style.display = 'block'
     document.getElementById('main-content').style.display = 'none'
     return
