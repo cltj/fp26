@@ -418,48 +418,6 @@
   .admin-link-btn:hover {
     background: rgba(200,244,90,0.1);
   }
-  
-  /* Team Management */
-  .team-mgmt-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-  .team-mgmt-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    background: var(--surface2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius-sm);
-  }
-  .team-mgmt-photo {
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
-    object-fit: cover;
-  }
-  .team-mgmt-name {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 500;
-  }
-  .team-mgmt-select {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-size: 13px;
-    padding: 6px 10px;
-    cursor: pointer;
-  }
-  .team-mgmt-select:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
 
   /* Event Timeline */
   .event-timeline {
@@ -565,49 +523,18 @@
     <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
   </section>
 
-  <section>
-    <div class="section-title">🎊 Bidra med feststemning</div>
-    
-    <div class="action-grid">
-      <div class="action-card music">
-        <img src="fp26music.png" alt="Musikk QR" class="action-qr">
-        <div class="action-content">
-          <div class="action-title">🎵 Legg til musikk i spillelista</div>
-          <div class="action-desc">Scan QR eller trykk for å legge til sanger</div>
-          <a href="https://music.apple.com/no/playlist/pl.u-AkAm8ENsx3y8dzL?a=join&it=Y2Be7k4fWZPv7JBhqp8GG&l=nb" target="_blank" class="action-btn">Åpne spilleliste →</a>
-        </div>
-      </div>
-
-      <div class="action-card submit">
-        <img src="fp26submit.png" alt="Submit QR" class="action-qr">
-        <div class="action-content">
-          <div class="action-title">📝 Haru no å melle!!</div>
-          <div class="action-desc">- Så meld i vei da vel</div>
-          <a href="submit.html" class="action-btn">Skriv innlegg →</a>
-        </div>
-      </div>
-    </div>
-
-    <a href="scores.html" class="scoreboard-btn disabled" id="scoreboard-btn">
-      <span class="icon">🏆</span>
-      <span>Scoreboard</span>
-      <span style="font-size: 12px; color: var(--muted); font-weight: 400;">(Åpner snart)</span>
-    </a>
-  </section>
-
-  <section class="wall-section">
-    <div class="section-title">📣 The Wall</div>
-    <div class="wall-feed" id="wall-feed">
-      <div class="empty-feed">
-        <div class="big">👀</div>
-        <p>Laster innlegg...</p>
-      </div>
-    </div>
-    <a href="wall.html" class="view-all-link">Se alle innlegg på storskjerm →</a>
-  </section>
-
   <section class="admin-section" id="admin-section" style="display: none;">
     <div class="section-title">🔒 Admin Dashboard</div>
+
+    <!-- Quick Actions -->
+    <div class="admin-card">
+      <div class="admin-card-title">⚡ Hurtiglenker</div>
+      <div class="quick-actions">
+        <a href="scores.html" class="admin-action-btn">🏁 Fordel lag</a>
+        <a href="scores.html" class="admin-action-btn">🏆 Scoreboard</a>
+        <a href="wall.html" class="admin-action-btn">📣 The Wall</a>
+      </div>
+    </div>
 
     <!-- Event Timeline -->
     <div class="admin-card">
@@ -727,24 +654,47 @@
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- Quick Actions -->
-    <div class="admin-card">
-      <div class="admin-card-title">⚡ Hurtiglenker</div>
-      <div class="quick-actions">
-        <a href="scores.html" class="admin-action-btn">🏆 Scoreboard</a>
-        <a href="wall.html" class="admin-action-btn">📣 The Wall</a>
-        <a href="story.html" class="admin-action-btn">📖 Historie</a>
-      </div>
-    </div>
+  <section>
+    <div class="section-title">🎊 Bidra med feststemning</div>
     
-    <!-- Team Management -->
-    <div class="admin-card">
-      <div class="admin-card-title">🏁 Lagfordeling</div>
-      <div class="team-mgmt-list" id="team-mgmt-list">
-        <div style="color: var(--muted); font-size: 13px;">Laster...</div>
+    <div class="action-grid">
+      <div class="action-card music">
+        <img src="fp26music.png" alt="Musikk QR" class="action-qr">
+        <div class="action-content">
+          <div class="action-title">🎵 Legg til musikk i spillelista</div>
+          <div class="action-desc">Scan QR eller trykk for å legge til sanger</div>
+          <a href="https://music.apple.com/no/playlist/pl.u-AkAm8ENsx3y8dzL?a=join&it=Y2Be7k4fWZPv7JBhqp8GG&l=nb" target="_blank" class="action-btn">Åpne spilleliste →</a>
+        </div>
+      </div>
+
+      <div class="action-card submit">
+        <img src="fp26submit.png" alt="Submit QR" class="action-qr">
+        <div class="action-content">
+          <div class="action-title">📝 Haru no å melle!!</div>
+          <div class="action-desc">- Så meld i vei da vel</div>
+          <a href="submit.html" class="action-btn">Skriv innlegg →</a>
+        </div>
       </div>
     </div>
+
+    <a href="scores.html" class="scoreboard-btn disabled" id="scoreboard-btn">
+      <span class="icon">🏆</span>
+      <span>Scoreboard</span>
+      <span style="font-size: 12px; color: var(--muted); font-weight: 400;">(Åpner snart)</span>
+    </a>
+  </section>
+
+  <section class="wall-section">
+    <div class="section-title">📣 The Wall</div>
+    <div class="wall-feed" id="wall-feed">
+      <div class="empty-feed">
+        <div class="big">👀</div>
+        <p>Laster innlegg...</p>
+      </div>
+    </div>
+    <a href="wall.html" class="view-all-link">Se alle innlegg på storskjerm →</a>
   </section>
 </main>
 
@@ -810,65 +760,6 @@ async function loadUserTeam() {
   }
 }
 loadUserTeam()
-
-// Team Management (Admin only)
-let allTeams = []
-let allParticipants = []
-
-async function loadTeamManagement() {
-  if (!session.isAdmin) return
-  
-  // Load teams
-  const { data: teamsData } = await sb.from('teams').select('*').order('id')
-  allTeams = teamsData || []
-  
-  // Load participants with their team info
-  const { data: participantsData } = await sb
-    .from('participants')
-    .select('id, participant, photo_url, team_id')
-    .order('participant')
-  allParticipants = participantsData || []
-  
-  renderTeamManagement()
-}
-
-function renderTeamManagement() {
-  const container = document.getElementById('team-mgmt-list')
-  if (!container) return
-  
-  container.innerHTML = allParticipants.map(p => `
-    <div class="team-mgmt-row">
-      <img src="${p.photo_url || 'placeholder.png'}" alt="" class="team-mgmt-photo" onerror="this.src='placeholder.png'">
-      <div class="team-mgmt-name">${p.participant}</div>
-      <select class="team-mgmt-select" onchange="assignTeam(${p.id}, this.value)">
-        <option value="">Ikke tildelt</option>
-        ${allTeams.map(t => `
-          <option value="${t.id}" ${p.team_id === t.id ? 'selected' : ''}>${t.flag} ${t.team_name}</option>
-        `).join('')}
-      </select>
-    </div>
-  `).join('')
-}
-
-async function assignTeam(participantId, teamId) {
-  const value = teamId === '' ? null : parseInt(teamId)
-  
-  const { error } = await sb
-    .from('participants')
-    .update({ team_id: value })
-    .eq('id', participantId)
-  
-  if (error) {
-    alert('Kunne ikke oppdatere lag: ' + error.message)
-    return
-  }
-  
-  // Update local data
-  const p = allParticipants.find(x => x.id === participantId)
-  if (p) p.team_id = value
-}
-
-loadTeamManagement()
 
 // Avatar colors
 const AVATAR_COLORS = ['#c8f45a','#60c8ff','#ff6b9d','#ffb347','#a78bfa','#34d399','#f472b6','#38bdf8']

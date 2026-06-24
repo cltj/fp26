@@ -191,6 +191,79 @@
     transition: color 0.15s, border-color 0.15s;
   }
   .reset-btn:hover { color: #ff9f9f; border-color: rgba(255,107,107,0.4); }
+  
+  /* Team Members */
+  .team-members {
+    border-top: 0.5px solid var(--border);
+    padding: 0.75rem 1.25rem 1rem;
+    display: none;
+  }
+  .team-members.visible { display: block; }
+  .team-members-title {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+  .team-members-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 0.75rem;
+  }
+  .team-member {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: 99px;
+    padding: 4px 10px 4px 4px;
+    font-size: 12px;
+  }
+  .team-member-photo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  .team-member-remove {
+    display: none;
+    background: transparent;
+    border: none;
+    color: #f87171;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 2px;
+    margin-left: 4px;
+  }
+  .team-member-remove.visible { display: inline; }
+  .add-member-row {
+    display: none;
+    gap: 8px;
+    align-items: center;
+  }
+  .add-member-row.visible { display: flex; }
+  .add-member-select {
+    flex: 1;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  .add-member-btn {
+    background: rgba(200,244,90,0.15);
+    border: 0.5px solid rgba(200,244,90,0.3);
+    border-radius: 6px;
+    color: var(--accent);
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .add-member-btn:hover { background: rgba(200,244,90,0.25); }
 </style>
 </head>
 <body>
@@ -226,6 +299,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // Teams loaded from database
 let TEAMS = []
+let allParticipants = []
 
 // scores[teamId] = [null, null, null, null]  — null = not yet activated
 let scores = {}
@@ -291,6 +365,19 @@ function render() {
           <div class="team-name">${team.name}</div>
           <div class="total-score">${total(team.id)}</div>
         </div>
+        <div class="team-members ${isAdmin ? 'visible' : ''}" id="members-${team.id}">
+          <div class="team-members-title">Lagmedlemmer</div>
+          <div class="team-members-list" id="members-list-${team.id}">
+            ${renderTeamMembers(team.id)}
+          </div>
+          <div class="add-member-row ${isAdmin ? 'visible' : ''}">
+            <select class="add-member-select" id="add-select-${team.id}">
+              <option value="">Legg til deltaker...</option>
+              ${getUnassignedParticipants().map(p => `<option value="${p.id}">${p.participant}</option>`).join('')}
+            </select>
+            <button class="add-member-btn" onclick="addMemberToTeam(${team.id})">Legg til</button>
+          </div>
+        </div>
         <div class="exercises ${anyActive || isAdmin ? '' : 'hidden'}" id="exercises-${team.id}">
           ${exItems}
         </div>
@@ -312,6 +399,9 @@ function applyAdminUI() {
   // Show exercises section even if nothing active yet (so admin sees add buttons)
   if (isAdmin) {
     document.querySelectorAll('.exercises').forEach(el => el.classList.remove('hidden'))
+    document.querySelectorAll('.team-members').forEach(el => el.classList.add('visible'))
+    document.querySelectorAll('.add-member-row').forEach(el => el.classList.add('visible'))
+    document.querySelectorAll('.team-member-remove').forEach(el => el.classList.add('visible'))
   }
   document.getElementById('reset-bar').style.display = isAdmin ? 'block' : 'none'
   document.getElementById('admin-badge').style.display = isAdmin ? 'inline-block' : 'none'
@@ -375,6 +465,78 @@ async function loadTeams() {
   TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
 }
 
+async function loadParticipants() {
+  const { data, error } = await sb.from('participants').select('id, participant, photo_url, team_id').order('participant')
+  if (error) { console.error('Could not load participants'); return }
+  allParticipants = data || []
+}
+
+function getUnassignedParticipants() {
+  return allParticipants.filter(p => !p.team_id)
+}
+
+function getTeamMembers(teamId) {
+  return allParticipants.filter(p => p.team_id === teamId)
+}
+
+function renderTeamMembers(teamId) {
+  const members = getTeamMembers(teamId)
+  if (members.length === 0) {
+    return '<span style="font-size: 12px; color: var(--muted);">Ingen medlemmer ennå</span>'
+  }
+  return members.map(p => `
+    <div class="team-member">
+      <img src="${p.photo_url || 'placeholder.png'}" class="team-member-photo" onerror="this.src='placeholder.png'">
+      <span>${p.participant}</span>
+      <button class="team-member-remove" onclick="removeMemberFromTeam(${p.id})">×</button>
+    </div>
+  `).join('')
+}
+
+async function addMemberToTeam(teamId) {
+  if (!checkAdmin()) return
+  const select = document.getElementById(`add-select-${teamId}`)
+  const participantId = parseInt(select.value)
+  if (!participantId) return
+  
+  setStatus('Lagrer...')
+  const { error } = await sb.from('participants').update({ team_id: teamId }).eq('id', participantId)
+  
+  if (error) {
+    setStatus('⚠️ Kunne ikke lagre')
+    return
+  }
+  
+  // Update local data
+  const p = allParticipants.find(x => x.id === participantId)
+  if (p) p.team_id = teamId
+  
+  render()
+  setStatus('Lagret ✓')
+  setTimeout(() => setStatus(''), 1500)
+}
+
+async function removeMemberFromTeam(participantId) {
+  if (!checkAdmin()) return
+  if (!confirm('Fjerne fra laget?')) return
+  
+  setStatus('Lagrer...')
+  const { error } = await sb.from('participants').update({ team_id: null }).eq('id', participantId)
+  
+  if (error) {
+    setStatus('⚠️ Kunne ikke lagre')
+    return
+  }
+  
+  // Update local data
+  const p = allParticipants.find(x => x.id === participantId)
+  if (p) p.team_id = null
+  
+  render()
+  setStatus('Lagret ✓')
+  setTimeout(() => setStatus(''), 1500)
+}
+
 async function loadScores() {
   const { data, error } = await sb.from(TABLE_NAME).select('team_id, scores')
   if (error) { setStatus('⚠️ Could not load scores'); return }
@@ -397,6 +559,7 @@ function subscribeRealtime() {
 
 async function init() {
   await loadTeams()
+  await loadParticipants()
   await loadScores()
   subscribeRealtime()
 }
