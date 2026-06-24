@@ -212,7 +212,7 @@
     </div>
 
     <div id="main-content">
-      <h1>🏆 Live Tabell</h1>
+      <h1>🏆 Standings</h1>
       
       <table class="standings-table">
         <thead>
@@ -262,12 +262,12 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // Competition points for final placement
 const PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
 
-// Check if admin
+// Check if admin (same logic as home.html)
 let isAdmin = false
 const stored = localStorage.getItem('fp26_session')
 if (stored) {
   const session = JSON.parse(stored)
-  isAdmin = session.is_admin === true
+  isAdmin = session.isAdmin === true || session.name === 'Tj'
   console.log('FC26 Session:', session)
   console.log('Is admin:', isAdmin)
 }
