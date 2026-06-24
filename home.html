@@ -518,6 +518,18 @@
   .action-card.wall .action-btn:hover {
     background: rgba(251,191,36,0.25);
   }
+  .action-card.orakel { 
+    border-color: rgba(168,85,247,0.4); 
+    background: rgba(168,85,247,0.1);
+  }
+  .action-card.orakel .action-title { color: #a855f7; }
+  .action-card.orakel .action-btn {
+    background: rgba(168,85,247,0.2);
+    border: 0.5px solid rgba(168,85,247,0.4);
+  }
+  .action-card.orakel .action-btn:hover {
+    background: rgba(168,85,247,0.3);
+  }
 
   /* Admin Section */
   .admin-section {
@@ -924,6 +936,14 @@
           <a href="wall.html" class="action-btn">Åpne The Wall →</a>
         </div>
       </div>
+
+      <div class="action-card orakel" id="orakel-card" style="display: none;">
+        <div class="action-content" style="text-align: center; padding: 1.5rem;">
+          <div class="action-title">🔮 Orakelet er åpent!</div>
+          <div class="action-desc">Tipp resultatet på Norge – Frankrike</div>
+          <a href="orakel.html" class="action-btn">Gå til tipping →</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1233,6 +1253,26 @@ async function loadPitchFormation() {
   document.getElementById('pitch-formation').innerHTML = html
 }
 loadPitchFormation()
+
+// Check active activities for participants
+async function checkActiveActivities() {
+  const { data: activities, error } = await sb
+    .from('activities')
+    .select('id, is_active')
+    .eq('is_active', true)
+  
+  if (error) {
+    console.log('Could not check activities:', error)
+    return
+  }
+  
+  activities?.forEach(activity => {
+    if (activity.id === 'orakel') {
+      document.getElementById('orakel-card').style.display = 'block'
+    }
+  })
+}
+checkActiveActivities()
 </script>
 
 <div id="photo-overlay" class="photo-overlay" onclick="closePhotoOverlay()">
