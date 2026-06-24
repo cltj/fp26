@@ -21,7 +21,20 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
+  .fc26-header .title { flex: 1; padding-left: 50px; }
+  .fc26-header .col { 
+    font-size: 10px; 
+    color: rgba(255,255,255,0.5); 
+    text-align: center; 
+    width: 28px;
+    font-weight: 500;
+  }
+  .fc26-header .col.gd { width: 35px; }
+  .fc26-header .col.pts { width: 35px; text-align: right; }
   .fc26-row {
     display: flex;
     align-items: center;
@@ -30,9 +43,10 @@
     gap: 10px;
   }
   .fc26-row:last-child { border-bottom: none; }
-  .fc26-row.first { background: rgba(255,215,0,0.12); }
-  .fc26-row.second { background: rgba(192,192,192,0.08); }
-  .fc26-row.third { background: rgba(205,127,50,0.08); }
+  .fc26-row.first { background: rgba(34,197,94,0.15); }
+  .fc26-row.second { background: rgba(34,197,94,0.15); }
+  .fc26-row.third { background: rgba(234,179,8,0.15); }
+  .fc26-row.fourth { background: rgba(239,68,68,0.12); }
   .fc26-pos {
     width: 20px;
     font-size: 13px;
@@ -41,10 +55,14 @@
   }
   .fc26-flag { font-size: 18px; }
   .fc26-name { font-size: 14px; font-weight: 500; flex: 1; }
-  .fc26-stats { 
-    font-size: 11px; 
-    color: rgba(255,255,255,0.5);
-    text-align: right;
+  .fc26-stat { 
+    font-size: 12px; 
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    width: 28px;
+  }
+  .fc26-stat.gd {
+    width: 35px;
   }
   .fc26-pts {
     font-size: 14px;
@@ -249,7 +267,14 @@
       
       <div class="fc26-table">
         <div class="fc26-header">
-          <span>FC26 Gruppespill</span>
+          <span style="width: 20px;"></span>
+          <span style="width: 18px;"></span>
+          <span class="title">Gruppe I</span>
+          <span class="col">K</span>
+          <span class="col">M+</span>
+          <span class="col">M-</span>
+          <span class="col gd">+/-</span>
+          <span class="col pts">P</span>
         </div>
         <div id="standings-body">
           <!-- Filled by JS -->
@@ -490,17 +515,21 @@ function calculateStandings() {
     const gd = s.goalsFor - s.goalsAgainst
     const gdStr = gd > 0 ? `+${gd}` : gd.toString()
     
-    const posClass = idx === 0 ? 'first' : idx === 1 ? 'second' : idx === 2 ? 'third' : ''
+    const posClass = idx === 0 ? 'first' : idx === 1 ? 'second' : idx === 2 ? 'third' : idx === 3 ? 'fourth' : ''
     
     const row = document.createElement('div')
-    row.className = 'fc26-row' + (posClass ? ' ' + posClass : '')
+    row.className = 'fc26-row ' + posClass
     const gdDisplay = gd > 0 ? `+${gd}` : gd === 0 ? '0' : gd.toString()
+    const placementPts = PLACEMENT_POINTS[idx + 1] || 0
     row.innerHTML = `
       <span class="fc26-pos">${idx + 1}</span>
       <span class="fc26-flag">${s.team.flag}</span>
       <span class="fc26-name">${s.team.team_name}</span>
-      <span class="fc26-stats">${s.played}k ${gdDisplay}</span>
-      <span class="fc26-pts">${s.points}p</span>
+      <span class="fc26-stat">${s.played}</span>
+      <span class="fc26-stat">${s.goalsFor}</span>
+      <span class="fc26-stat">${s.goalsAgainst}</span>
+      <span class="fc26-stat gd">${gdDisplay}</span>
+      <span class="fc26-pts">${placementPts}p</span>
     `
     tbody.appendChild(row)
   })
