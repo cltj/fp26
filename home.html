@@ -112,7 +112,28 @@
     color: var(--muted);
   }
   .mini-sb-flag { font-size: 18px; }
-  .mini-sb-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .mini-sb-info { flex: 1; }
+  .mini-sb-name { font-size: 14px; font-weight: 500; }
+  .mini-sb-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .mini-sb-member {
+    width: 28px;
+    height: 37px;
+    border-radius: 4px;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+  .mini-sb-placeholder {
+    width: 28px;
+    height: 37px;
+    border-radius: 4px;
+    background: var(--surface2);
+    border: 1px dashed var(--border);
+  }
   .mini-sb-pts {
     font-size: 16px;
     font-weight: 700;
@@ -275,110 +296,15 @@
   .action-card.submit .action-btn:hover {
     background: rgba(96,200,255,0.25);
   }
-
-  /* Scoreboard Button */
-  .scoreboard-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    text-decoration: none;
-    color: var(--text);
-    font-size: 15px;
-    font-weight: 600;
-    transition: all 0.2s;
-    margin-bottom: 2rem;
+  .action-card.wall { border-color: rgba(251,191,36,0.3); }
+  .action-card.wall .action-title { color: #fbbf24; }
+  .action-card.wall .action-btn {
+    background: rgba(251,191,36,0.15);
+    border: 0.5px solid rgba(251,191,36,0.3);
   }
-  .scoreboard-btn:hover {
-    border-color: var(--accent);
-    background: rgba(200,244,90,0.05);
-    transform: translateY(-2px);
+  .action-card.wall .action-btn:hover {
+    background: rgba(251,191,36,0.25);
   }
-  .scoreboard-btn.disabled {
-    opacity: 0.4;
-    pointer-events: none;
-    cursor: not-allowed;
-  }
-  .scoreboard-btn .icon { font-size: 24px; }
-
-  /* Wall Feed */
-  .wall-section {
-    margin-top: 1rem;
-  }
-
-  .wall-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .post {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    animation: slideIn 0.35s ease both;
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .avatar {
-    width: 36px; height: 48px;
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700;
-    flex-shrink: 0;
-    color: #0e0e11;
-    overflow: hidden;
-    border: 1.5px solid var(--border);
-  }
-  .avatar img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-  .post-name { font-size: 14px; font-weight: 600; }
-  .post-time { font-size: 12px; color: var(--muted); margin-top: 1px; }
-
-  .type-tag {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 99px;
-    margin-left: auto;
-    flex-shrink: 0;
-  }
-  .tag-complaint { background: rgba(255,107,107,0.15); color: #ff9f9f; }
-  .tag-cheer     { background: rgba(200,244,90,0.12); color: var(--accent); }
-  .tag-chaos     { background: rgba(255,165,0,0.12); color: #ffb347; }
-
-  .post-body { font-size: 15px; line-height: 1.55; color: var(--text); word-break: break-word; }
-
-  .post-media { margin-top: 10px; border-radius: var(--radius-sm); overflow: hidden; background: rgba(255,255,255,0.04); }
-  .post-media img, .post-media video { width: 100%; max-height: 280px; object-fit: cover; display: block; }
-
-  .empty-feed {
-    text-align: center;
-    padding: 2rem;
-    color: var(--muted);
-  }
-  .empty-feed .big { font-size: 40px; margin-bottom: 0.5rem; }
-
-  .view-all-link {
-    display: block;
-    text-align: center;
-    margin-top: 1rem;
-    color: var(--accent);
-    font-size: 14px;
-    text-decoration: none;
-  }
-  .view-all-link:hover { text-decoration: underline; }
 
   /* Admin Section */
   .admin-section {
@@ -387,33 +313,6 @@
     border-top: 0.5px solid var(--border);
   }
   .admin-section .section-title { color: #ff9f9f; }
-  .admin-info {
-    background: rgba(255,107,107,0.08);
-    border: 0.5px solid rgba(255,107,107,0.2);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .admin-info ul { margin-top: 0.5rem; padding-left: 1.25rem; }
-  .admin-info li { margin: 0.25rem 0; }
-  .admin-scoreboard-btn {
-    display: inline-block;
-    margin-top: 1rem;
-    padding: 10px 20px;
-    background: rgba(200,244,90,0.15);
-    border: 0.5px solid rgba(200,244,90,0.4);
-    border-radius: var(--radius-sm);
-    color: var(--accent);
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.15s;
-  }
-  .admin-scoreboard-btn:hover {
-    background: rgba(200,244,90,0.25);
-    transform: translateY(-1px);
-  }
 
   /* Admin Dashboard */
   .admin-card {
@@ -728,24 +627,16 @@
           <a href="submit.html" class="action-btn">Skriv innlegg →</a>
         </div>
       </div>
-    </div>
 
-    <a href="scores.html" class="scoreboard-btn disabled" id="scoreboard-btn">
-      <span class="icon">🏆</span>
-      <span>Scoreboard</span>
-      <span style="font-size: 12px; color: var(--muted); font-weight: 400;">(Åpner snart)</span>
-    </a>
-  </section>
-
-  <section class="wall-section">
-    <div class="section-title">📣 The Wall</div>
-    <div class="wall-feed" id="wall-feed">
-      <div class="empty-feed">
-        <div class="big">👀</div>
-        <p>Laster innlegg...</p>
+      <div class="action-card wall">
+        <img src="fp26wall.png" alt="The Wall QR" class="action-qr">
+        <div class="action-content">
+          <div class="action-title">📣 The Wall</div>
+          <div class="action-desc">Se alle innlegg på storskjerm</div>
+          <a href="wall.html" class="action-btn">Åpne The Wall →</a>
+        </div>
       </div>
     </div>
-    <a href="wall.html" class="view-all-link">Se alle innlegg på storskjerm →</a>
   </section>
 </main>
 
@@ -789,26 +680,39 @@ if (session.isAdmin) {
   document.getElementById('user-badge').classList.add('admin-badge')
   document.getElementById('user-badge').innerHTML = '🔒 Admin'
   document.getElementById('admin-section').style.display = 'block'
-  // Enable scoreboard for admin
-  document.getElementById('scoreboard-btn').classList.remove('disabled')
-  document.getElementById('scoreboard-btn').innerHTML = '<span class="icon">🏆</span><span>Scoreboard</span>'
 }
 
 // Fetch and display team
 async function loadUserTeam() {
   if (!session.id) return
   
-  const { data } = await sb
+  // First get participant's team_id
+  const { data: participant, error: pErr } = await sb
     .from('participants')
-    .select('team_id, teams(flag, team_name)')
+    .select('team_id')
     .eq('id', session.id)
     .single()
   
-  if (data?.team_id && data?.teams) {
-    document.getElementById('team-flag').textContent = data.teams.flag || '🏳️'
-    document.getElementById('team-name-display').textContent = 'Team ' + data.teams.team_name
-    document.getElementById('team-badge').classList.add('visible')
+  if (pErr || !participant?.team_id) {
+    console.log('No team assigned:', pErr || 'team_id is null')
+    return
   }
+  
+  // Then get team info
+  const { data: team, error: tErr } = await sb
+    .from('teams')
+    .select('flag, team_name')
+    .eq('id', participant.team_id)
+    .single()
+  
+  if (tErr || !team) {
+    console.log('Could not load team:', tErr)
+    return
+  }
+  
+  document.getElementById('team-flag').textContent = team.flag || '🏳️'
+  document.getElementById('team-name-display').textContent = 'Team ' + team.team_name
+  document.getElementById('team-badge').classList.add('visible')
 }
 loadUserTeam()
 
@@ -820,6 +724,20 @@ async function loadMiniScoreboard() {
   
   // Load scores
   const { data: scoresData } = await sb.from('scores').select('team_id, scores')
+  
+  // Load participants with team assignments
+  const { data: participantsData } = await sb.from('participants').select('id, participant, photo_url, team_id')
+  
+  // Group participants by team
+  const teamMembers = {}
+  if (participantsData) {
+    participantsData.forEach(p => {
+      if (p.team_id) {
+        if (!teamMembers[p.team_id]) teamMembers[p.team_id] = []
+        teamMembers[p.team_id].push(p)
+      }
+    })
+  }
   
   // Calculate totals
   const scoreMap = {}
@@ -833,9 +751,11 @@ async function loadMiniScoreboard() {
   
   // Merge and sort
   const ranked = teamsData.map(t => ({
+    id: t.id,
     flag: t.flag || '🏳️',
     name: t.team_name,
-    pts: scoreMap[t.id] || 0
+    pts: scoreMap[t.id] || 0,
+    members: teamMembers[t.id] || []
   })).sort((a, b) => b.pts - a.pts)
   
   // Determine position classes
@@ -843,6 +763,16 @@ async function loadMiniScoreboard() {
     if (i < 2) return 'qualified'
     if (i === 2) return 'playoff'
     return 'eliminated'
+  }
+  
+  // Render members
+  const renderMembers = (members) => {
+    if (members.length === 0) {
+      return '<div class="mini-sb-placeholder"></div>'
+    }
+    return members.map(m => `
+      <img src="${m.photo_url || 'placeholder.png'}" alt="${m.participant}" class="mini-sb-member" onerror="this.src='placeholder.png'">
+    `).join('')
   }
   
   // Render
@@ -855,136 +785,16 @@ async function loadMiniScoreboard() {
       <div class="mini-sb-row ${getRowClass(i)}">
         <span class="mini-sb-pos">${i + 1}</span>
         <span class="mini-sb-flag">${t.flag}</span>
-        <span class="mini-sb-name">${t.name}</span>
+        <div class="mini-sb-info">
+          <div class="mini-sb-name">${t.name}</div>
+          <div class="mini-sb-members">${renderMembers(t.members)}</div>
+        </div>
         <span class="mini-sb-pts">${t.pts}</span>
       </div>
     `).join('')}
   `
 }
 loadMiniScoreboard()
-
-// Avatar colors
-const AVATAR_COLORS = ['#c8f45a','#60c8ff','#ff6b9d','#ffb347','#a78bfa','#34d399','#f472b6','#38bdf8']
-function avatarColor(name) {
-  let h = 0
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffffffff
-  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length]
-}
-function initials(name) {
-  return name.trim().split(/\s+/).slice(0,2).map(w => w[0].toUpperCase()).join('')
-}
-
-// Participant photo cache
-let participantPhotos = {}
-async function loadParticipantPhotos() {
-  const { data } = await sb.from('participants').select('participant, photo_url')
-  if (data) {
-    data.forEach(p => {
-      participantPhotos[p.participant.toLowerCase()] = p.photo_url
-    })
-  }
-}
-function getParticipantPhoto(name) {
-  return participantPhotos[name.toLowerCase()] || null
-}
-
-const typeConfig = {
-  complaint: { label: '😤 Complaint', cls: 'tag-complaint' },
-  cheer:     { label: '🙌 Cheer',     cls: 'tag-cheer' },
-  chaos:     { label: '🔥 Chaos',     cls: 'tag-chaos' },
-}
-
-function fmtTime(ts) {
-  const d = new Date(ts)
-  return d.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })
-}
-
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-}
-
-function buildPost(post) {
-  const tc = typeConfig[post.type] || typeConfig.complaint
-  const col = avatarColor(post.name)
-  const photo = getParticipantPhoto(post.name)
-
-  const avatarHTML = photo
-    ? `<div class="avatar"><img src="${photo}" alt="${escHtml(post.name)}"></div>`
-    : `<div class="avatar" style="background:${col}">${initials(post.name)}</div>`
-
-  const mediaHTML = post.media_url
-    ? `<div class="post-media">${
-        post.media_type === 'video'
-          ? `<video src="${post.media_url}" controls playsinline muted></video>`
-          : `<img src="${post.media_url}" alt="Photo by ${post.name}" loading="lazy">`
-      }</div>`
-    : ''
-
-  return `
-    <div class="post">
-      <div class="post-header">
-        ${avatarHTML}
-        <div>
-          <div class="post-name">${escHtml(post.name)}</div>
-          <div class="post-time">${fmtTime(post.created_at)}</div>
-        </div>
-        <span class="type-tag ${tc.cls}">${tc.label}</span>
-      </div>
-      ${post.message ? `<div class="post-body">${escHtml(post.message)}</div>` : ''}
-      ${mediaHTML}
-    </div>
-  `
-}
-
-async function loadWallFeed() {
-  try {
-    const { data, error } = await sb
-      .from('posts')
-      .select('*')
-      .eq('approved', true)
-      .order('created_at', { ascending: false })
-      .limit(20)
-
-    if (error) throw error
-
-    const feed = document.getElementById('wall-feed')
-    
-    if (!data || data.length === 0) {
-      feed.innerHTML = `
-        <div class="empty-feed">
-          <div class="big">👀</div>
-          <p>Ingen innlegg ennå — vær den første!</p>
-        </div>
-      `
-      return
-    }
-
-    feed.innerHTML = data.map(post => buildPost(post)).join('')
-  } catch (err) {
-    console.error('Failed to load wall:', err)
-    document.getElementById('wall-feed').innerHTML = `
-      <div class="empty-feed">
-        <div class="big">😢</div>
-        <p>Kunne ikke laste innlegg</p>
-      </div>
-    `
-  }
-}
-
-// Subscribe to real-time updates
-function subscribeToWall() {
-  sb.channel('home-wall')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts', filter: 'approved=eq.true' }, () => {
-      loadWallFeed()
-    })
-    .subscribe()
-}
-
-// Load participants first, then wall feed
-loadParticipantPhotos().then(() => {
-  loadWallFeed()
-  subscribeToWall()
-})
 
 function logout() {
   localStorage.removeItem('fp26_session')
