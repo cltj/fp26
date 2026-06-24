@@ -108,6 +108,12 @@
     font-size: 12px;
     width: 80px;
   }
+  .placement-row select:disabled {
+    opacity: 0.8;
+    background: rgba(200,244,90,0.1);
+    border-color: rgba(200,244,90,0.3);
+    cursor: not-allowed;
+  }
   .placement-row select {
     flex: 1;
     padding: 6px 8px;
@@ -357,28 +363,28 @@
 
         <div class="exercise-admin">
           <h4>Øvelse 4 – 3v3 (2 mot 2 lag)</h4>
-          <p style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px;">Lag A (plass 1+4) vs Lag B (plass 2+3)</p>
+          <p style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px;">Auto-fylt basert på tabellen: Lag A (plass 1+4) vs Lag B (plass 2+3)</p>
           <div class="placement-row">
-            <label>Lag A - 1:</label>
-            <select id="e4-teamA1">
+            <label>Lag A - #1:</label>
+            <select id="e4-teamA1" disabled>
               <option value="">Velg lag</option>
             </select>
           </div>
           <div class="placement-row">
-            <label>Lag A - 2:</label>
-            <select id="e4-teamA2">
+            <label>Lag A - #4:</label>
+            <select id="e4-teamA2" disabled>
               <option value="">Velg lag</option>
             </select>
           </div>
           <div class="placement-row">
-            <label>Lag B - 1:</label>
-            <select id="e4-teamB1">
+            <label>Lag B - #2:</label>
+            <select id="e4-teamB1" disabled>
               <option value="">Velg lag</option>
             </select>
           </div>
           <div class="placement-row">
-            <label>Lag B - 2:</label>
-            <select id="e4-teamB2">
+            <label>Lag B - #3:</label>
+            <select id="e4-teamB2" disabled>
               <option value="">Velg lag</option>
             </select>
           </div>
@@ -662,26 +668,17 @@ async function loadAdminSelects() {
     placements.forEach(p => {
       const select = document.getElementById(`e${p.exercise}-place${p.placement}`)
       if (select) select.value = p.team_id
-      
-      // Handle exercise 4 separately
-      if (p.exercise === '4') {
-        if (p.placement === 1) {
-          document.getElementById('e4-team1').value = p.team_id
-        } else if (p.placement === 2) {
-          document.getElementById('e4-team2').value = p.team_id
-        }
-      }
     })
   }
   
-  // Load e4 result
+  // Load e4 result if already saved
   const { data: e4data } = await sb
     .from('ballbinge_placements')
     .select('*')
     .eq('exercise', '4')
   
   if (e4data && e4data.length > 0) {
-    // Load teams into selects
+    // Load teams into selects from saved data
     const teamA1 = e4data.find(d => d.placement === 1)
     const teamA2 = e4data.find(d => d.placement === 2)
     const teamB1 = e4data.find(d => d.placement === 3)
@@ -700,6 +697,32 @@ async function loadAdminSelects() {
     } else if (teamA1 && teamA1.points === 3) {
       document.getElementById('e4-result').value = 'draw'
     }
+  } else {
+    // Auto-fill e4 based on standings after e1-e3
+    autoFillExercise4()
+  }
+}
+
+function autoFillExercise4() {
+  // Calculate standings from exercises 1-3 only (exclude e4)
+  const standings = Object.values(teams).map(team => {
+    const s = scores[team.id] || { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
+    const e2Total = (s.e2a || 0) + (s.e2b || 0)
+    const total = (s.e1 || 0) + e2Total + (s.e3 || 0) // Exclude e4!
+    return { team, total }
+  })
+  
+  // Sort by total (descending)
+  standings.sort((a, b) => b.total - a.total)
+  
+  // Only auto-fill if we have 4 teams with some points
+  if (standings.length >= 4) {
+    // Lag A: 1. plass + 4. plass
+    document.getElementById('e4-teamA1').value = standings[0].team.id
+    document.getElementById('e4-teamA2').value = standings[3].team.id
+    // Lag B: 2. plass + 3. plass
+    document.getElementById('e4-teamB1').value = standings[1].team.id
+    document.getElementById('e4-teamB2').value = standings[2].team.id
   }
 }
 
