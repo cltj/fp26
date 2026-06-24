@@ -80,6 +80,18 @@
     background: rgba(100,200,100,0.3);
     border-color: rgba(100,200,100,0.5);
   }
+  .reset-btn {
+    background: rgba(255,100,100,0.15);
+    border: 1px solid rgba(255,100,100,0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover {
+    background: rgba(255,100,100,0.25);
+  }
 </style>
 </head>
 <body>
@@ -112,6 +124,7 @@
           <span class="score-sep">–</span>
           <input type="number" id="match1-away" min="0" max="99" placeholder="-">
           <button onclick="saveMatch(1)" class="save-btn">💾</button>
+          <button onclick="resetMatch(1)" class="reset-btn">↺</button>
         </div>
       </div>
 
@@ -126,6 +139,7 @@
           <span class="score-sep">–</span>
           <input type="number" id="match2-away" min="0" max="99" placeholder="-">
           <button onclick="saveMatch(2)" class="save-btn">💾</button>
+          <button onclick="resetMatch(2)" class="reset-btn">↺</button>
         </div>
       </div>
 
@@ -140,6 +154,7 @@
           <span class="score-sep">–</span>
           <input type="number" id="match3-away" min="0" max="99" placeholder="-">
           <button onclick="saveMatch(3)" class="save-btn">💾</button>
+          <button onclick="resetMatch(3)" class="reset-btn">↺</button>
         </div>
       </div>
 
@@ -154,6 +169,7 @@
           <span class="score-sep">–</span>
           <input type="number" id="match4-away" min="0" max="99" placeholder="-">
           <button onclick="saveMatch(4)" class="save-btn">💾</button>
+          <button onclick="resetMatch(4)" class="reset-btn">↺</button>
         </div>
       </div>
 
@@ -168,6 +184,7 @@
           <span class="score-sep">–</span>
           <input type="number" id="match5-away" min="0" max="99" placeholder="-">
           <button onclick="saveMatch(5)" class="save-btn">💾</button>
+          <button onclick="resetMatch(5)" class="reset-btn">↺</button>
         </div>
       </div>
 
@@ -182,6 +199,7 @@
           <span class="score-sep">–</span>
           <input type="number" id="match6-away" min="0" max="99" placeholder="-">
           <button onclick="saveMatch(6)" class="save-btn">💾</button>
+          <button onclick="resetMatch(6)" class="reset-btn">↺</button>
         </div>
       </div>
     </div>
@@ -231,6 +249,19 @@ function saveMatch(matchNum) {
   }, 1500)
   
   console.log(`Match ${matchNum} saved:`, homeScore, '-', awayScore)
+}
+
+function resetMatch(matchNum) {
+  // Clear inputs
+  document.getElementById(`match${matchNum}-home`).value = ''
+  document.getElementById(`match${matchNum}-away`).value = ''
+  
+  // Remove from storage
+  const matches = getMatches()
+  delete matches[matchNum]
+  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches))
+  
+  console.log(`Match ${matchNum} reset`)
 }
 
 function loadMatches() {
