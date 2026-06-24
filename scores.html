@@ -535,14 +535,21 @@ async function loadTeams() {
 
 // Load and display members for a specific team (direct query)
 async function loadTeamMembers(teamId) {
-  const container = document.getElementById(`members-list-${teamId}`)
-  if (!container) return
+  const tid = parseInt(teamId)
+  console.log('loadTeamMembers called for team:', tid)
+  const container = document.getElementById(`members-list-${tid}`)
+  if (!container) {
+    console.error('Container not found for team:', tid)
+    return
+  }
   
   const { data, error } = await sb
     .from('participants')
     .select('id, participant, photo_url')
-    .eq('team_id', teamId)
+    .eq('team_id', tid)
     .order('participant')
+  
+  console.log('Team members result for team', tid, ':', { data, error })
   
   if (error) {
     container.innerHTML = '<span class="team-member-empty">Feil ved lasting</span>'
@@ -565,11 +572,14 @@ async function loadTeamMembers(teamId) {
 
 // Load unassigned participants for picker
 async function loadUnassignedParticipants() {
+  console.log('Loading unassigned participants...')
   const { data, error } = await sb
     .from('participants')
-    .select('id, participant, photo_url')
+    .select('id, participant, photo_url, team_id')
     .is('team_id', null)
     .order('participant')
+  
+  console.log('Unassigned result:', { data, error })
   
   if (error) {
     console.error('Error loading unassigned:', error)
@@ -580,11 +590,14 @@ async function loadUnassignedParticipants() {
 
 // Load team members for remove picker
 async function loadTeamMembersForRemove(teamId) {
+  console.log('loadTeamMembersForRemove called for team:', teamId)
   const { data, error } = await sb
     .from('participants')
     .select('id, participant, photo_url')
-    .eq('team_id', teamId)
+    .eq('team_id', parseInt(teamId))
     .order('participant')
+  
+  console.log('Team members for remove:', { data, error })
   
   if (error) {
     console.error('Error loading team members:', error)
@@ -659,42 +672,69 @@ async function renderRemovePicker() {
 }
 
 async function addToTeam(participantId) {
-  if (!pickerTeamId) return
+  if (!pickerTeamId) {
+    console.error('No pickerTeamId set')
+    return
+  }
   
+  const teamId = parseInt(pickerTeamId)
+  const pId = parseInt(participantId)
   closePicker()
   setStatus('Legger til...')
   
-  const { error } = await sb
+  console.log('Adding participant', pId, 'to team', teamId)
+  
+  const { data, error } = await sb
     .from('participants')
-    .update({ team_id: pickerTeamId })
-    .eq('id', participantId)
+    .update({ team_id: teamId })
+    .eq('id', pId)
+    .select()
+  
+  console.log('Update result:', { data, error })
   
   if (error) {
     console.error('Add error:', error)
-    setStatus('⚠️ Kunne ikke lagre')
+    setStatus('⚠️ Kunne ikke lagre: ' + error.message)
+    return
+  }
+  
+  if (!data || data.length === 0) {
+    console.error('No rows updated - check RLS policies')
+    setStatus('⚠️ Ingen endring (sjekk RLS)')
     return
   }
   
   // Refresh this team's members
-  await loadTeamMembers(pickerTeamId)
+  await loadTeamMembers(teamId)
   setStatus('Lagt til ✓')
   setTimeout(() => setStatus(''), 1500)
 }
 
 async function removeFromTeam(participantId) {
+  const teamId = parseInt(pickerTeamId)
+  const pId = parseInt(participantId)
   closePicker()
   setStatus('Fjerner...')
   
-  const teamId = pickerTeamId
+  console.log('Removing participant', pId, 'from team')
   
-  const { error } = await sb
+  const { data, error } = await sb
     .from('participants')
     .update({ team_id: null })
-    .eq('id', participantId)
+    .eq('id', pId)
+    .select()
+  
+  console.log('Remove result:', { data, error })
   
   if (error) {
     console.error('Remove error:', error)
-    setStatus('⚠️ Kunne ikke lagre')
+    setStatus('⚠️ Kunne ikke lagre: ' + error.message)
+    return
+  }
+  
+  if (!data || data.length === 0) {
+    console.error('No rows updated - check RLS policies')
+    setStatus('⚠️ Ingen endring (sjekk RLS)')
     return
   }
   
