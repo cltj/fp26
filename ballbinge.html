@@ -356,16 +356,29 @@
         </div>
 
         <div class="exercise-admin">
-          <h4>Øvelse 4 – 3v3 (6p seier / 3p uavgjort / 0p tap)</h4>
+          <h4>Øvelse 4 – 3v3 (2 mot 2 lag)</h4>
+          <p style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px;">Lag A (plass 1+4) vs Lag B (plass 2+3)</p>
           <div class="placement-row">
-            <label>Lag 1:</label>
-            <select id="e4-team1">
+            <label>Lag A - 1:</label>
+            <select id="e4-teamA1">
               <option value="">Velg lag</option>
             </select>
           </div>
           <div class="placement-row">
-            <label>Lag 2:</label>
-            <select id="e4-team2">
+            <label>Lag A - 2:</label>
+            <select id="e4-teamA2">
+              <option value="">Velg lag</option>
+            </select>
+          </div>
+          <div class="placement-row">
+            <label>Lag B - 1:</label>
+            <select id="e4-teamB1">
+              <option value="">Velg lag</option>
+            </select>
+          </div>
+          <div class="placement-row">
+            <label>Lag B - 2:</label>
+            <select id="e4-teamB2">
               <option value="">Velg lag</option>
             </select>
           </div>
@@ -373,9 +386,9 @@
             <label>Resultat:</label>
             <select id="e4-result">
               <option value="">Velg resultat</option>
-              <option value="team1">Lag 1 vinner</option>
-              <option value="draw">Uavgjort</option>
-              <option value="team2">Lag 2 vinner</option>
+              <option value="teamA">Lag A vinner (6p hver)</option>
+              <option value="draw">Uavgjort (3p alle)</option>
+              <option value="teamB">Lag B vinner (6p hver)</option>
             </select>
           </div>
           <button class="save-exercise-btn" onclick="saveExercise(4)">💾 Lagre Øvelse 4</button>
@@ -471,17 +484,17 @@
 
       <div class="action-box">
         <p>🏆 <strong>Poeng:</strong><br>
-        Seier = 6p<br>
-        Uavgjort = 3p<br>
-        Tap = 0p</p>
+        Vinnende lag (begge) = 6p hver<br>
+        Uavgjort = 3p alle<br>
+        Tapende lag (begge) = 0p</p>
       </div>
 
       <hr>
 
       <div class="highlight-box">
         <p>📊 <strong>Totalt poeng tilgjengelig:</strong><br><br>
-        Maks 22 poeng (dersom seier i 3 mot 3)<br>
-        Maks 19 poeng (dersom uavgjort i 3 mot 3)</p>
+        Maks 22 poeng (4+8+4+6 ved seier i alt)<br>
+        Maks 19 poeng (4+8+4+3 ved uavgjort i 3v3)</p>
       </div>
 
       <div class="exercise-results" id="exercise-results">
@@ -668,20 +681,24 @@ async function loadAdminSelects() {
     .eq('exercise', '4')
   
   if (e4data && e4data.length > 0) {
+    // Load teams into selects
+    const teamA1 = e4data.find(d => d.placement === 1)
+    const teamA2 = e4data.find(d => d.placement === 2)
+    const teamB1 = e4data.find(d => d.placement === 3)
+    const teamB2 = e4data.find(d => d.placement === 4)
+    
+    if (teamA1) document.getElementById('e4-teamA1').value = teamA1.team_id
+    if (teamA2) document.getElementById('e4-teamA2').value = teamA2.team_id
+    if (teamB1) document.getElementById('e4-teamB1').value = teamB1.team_id
+    if (teamB2) document.getElementById('e4-teamB2').value = teamB2.team_id
+    
     // Determine result from points
-    const team1 = e4data.find(d => d.placement === 1)
-    const team2 = e4data.find(d => d.placement === 2)
-    if (team1 && team2) {
-      document.getElementById('e4-team1').value = team1.team_id
-      document.getElementById('e4-team2').value = team2.team_id
-      
-      if (team1.points === 6) {
-        document.getElementById('e4-result').value = 'team1'
-      } else if (team2.points === 6) {
-        document.getElementById('e4-result').value = 'team2'
-      } else if (team1.points === 3) {
-        document.getElementById('e4-result').value = 'draw'
-      }
+    if (teamA1 && teamA1.points === 6) {
+      document.getElementById('e4-result').value = 'teamA'
+    } else if (teamB1 && teamB1.points === 6) {
+      document.getElementById('e4-result').value = 'teamB'
+    } else if (teamA1 && teamA1.points === 3) {
+      document.getElementById('e4-result').value = 'draw'
     }
   }
 }
@@ -692,38 +709,44 @@ async function saveExercise(exerciseNum) {
   const exerciseId = exerciseNum.toString()
   
   if (exerciseNum === 4) {
-    // Handle 3v3 match
-    const team1Id = document.getElementById('e4-team1').value
-    const team2Id = document.getElementById('e4-team2').value
+    // Handle 3v3 match (2 teams vs 2 teams)
+    const teamA1Id = document.getElementById('e4-teamA1').value
+    const teamA2Id = document.getElementById('e4-teamA2').value
+    const teamB1Id = document.getElementById('e4-teamB1').value
+    const teamB2Id = document.getElementById('e4-teamB2').value
     const result = document.getElementById('e4-result').value
     
-    if (!team1Id || !team2Id || !result) {
-      alert('Velg begge lag og resultat')
+    if (!teamA1Id || !teamA2Id || !teamB1Id || !teamB2Id || !result) {
+      alert('Velg alle 4 lag og resultat')
       return
     }
     
-    let team1Points = 0, team2Points = 0
-    if (result === 'team1') {
-      team1Points = 6
-      team2Points = 0
-    } else if (result === 'team2') {
-      team1Points = 0
-      team2Points = 6
+    let teamAPoints = 0, teamBPoints = 0
+    if (result === 'teamA') {
+      teamAPoints = 6
+      teamBPoints = 0
+    } else if (result === 'teamB') {
+      teamAPoints = 0
+      teamBPoints = 6
     } else {
-      team1Points = 3
-      team2Points = 3
+      teamAPoints = 3
+      teamBPoints = 3
     }
     
     // Save placements
     await sb.from('ballbinge_placements').upsert([
-      { exercise: '4', placement: 1, team_id: parseInt(team1Id), points: team1Points },
-      { exercise: '4', placement: 2, team_id: parseInt(team2Id), points: team2Points }
+      { exercise: '4', placement: 1, team_id: parseInt(teamA1Id), points: teamAPoints },
+      { exercise: '4', placement: 2, team_id: parseInt(teamA2Id), points: teamAPoints },
+      { exercise: '4', placement: 3, team_id: parseInt(teamB1Id), points: teamBPoints },
+      { exercise: '4', placement: 4, team_id: parseInt(teamB2Id), points: teamBPoints }
     ], { onConflict: 'exercise,placement' })
     
-    // Save scores
+    // Save scores for all 4 teams
     await sb.from('ballbinge_scores').upsert([
-      { team_id: parseInt(team1Id), exercise: 'e4', points: team1Points },
-      { team_id: parseInt(team2Id), exercise: 'e4', points: team2Points }
+      { team_id: parseInt(teamA1Id), exercise: 'e4', points: teamAPoints },
+      { team_id: parseInt(teamA2Id), exercise: 'e4', points: teamAPoints },
+      { team_id: parseInt(teamB1Id), exercise: 'e4', points: teamBPoints },
+      { team_id: parseInt(teamB2Id), exercise: 'e4', points: teamBPoints }
     ], { onConflict: 'team_id,exercise' })
     
   } else {
