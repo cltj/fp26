@@ -307,26 +307,27 @@
     align-items: center;
   }
   .pitch-row.gk { justify-content: center; }
-  .pitch-row.fwd { padding: 0 15%; }
+  .pitch-row.fwd { padding: 0 8%; }
+  .pitch-row.mid { padding: 0 12%; }
   .pitch-player {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
   }
   .pitch-player-photo {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
+    width: 48px;
+    height: 64px;
+    border-radius: 6px;
     object-fit: cover;
-    border: 2.5px solid rgba(255,255,255,0.9);
-    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
     background: var(--surface2);
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.15s;
   }
   .pitch-player-photo:hover {
-    transform: scale(1.2);
+    transform: scale(1.15);
     box-shadow: 0 6px 20px rgba(0,0,0,0.6);
   }
   .pitch-player-photo.placeholder {
@@ -337,7 +338,7 @@
   }
   .pitch-player-photo.placeholder:hover {
     transform: none;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.5);
   }
   .pitch-player-name {
     font-size: 10px;
@@ -1060,10 +1061,10 @@ async function loadPitchFormation() {
     .select('id, participant, photo_url')
     .order('id')
   
-  // 4-4-2 formation: 4 DEF, 4 MID, 2 FWD = 10 players
+  // 4-3-3 formation: 4 DEF, 3 MID, 3 FWD = 10 players
   const formation = [
-    { row: 'fwd', count: 2 },
-    { row: 'mid', count: 4 },
+    { row: 'fwd', count: 3 },
+    { row: 'mid', count: 3 },
     { row: 'def', count: 4 }
   ]
   
