@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 FC26 Turnering</title>
+<link rel="stylesheet" href="story/story.css">
+<style>
+  .match-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 1.5rem 0;
+  }
+  .match-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .match-teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .team-name {
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .vs {
+    color: rgba(255,255,255,0.5);
+    font-size: 12px;
+  }
+  .match-result {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .match-result input {
+    width: 48px;
+    height: 40px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+  .match-result input::-webkit-outer-spin-button,
+  .match-result input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .match-result input:focus {
+    outline: none;
+    border-color: #c8f45a;
+  }
+  .score-sep {
+    font-size: 18px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.6);
+  }
+  .save-btn {
+    background: rgba(200,244,90,0.15);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+  .save-btn:hover {
+    background: rgba(200,244,90,0.25);
+  }
+  .save-btn.saved {
+    background: rgba(100,200,100,0.3);
+    border-color: rgba(100,200,100,0.5);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <a href="home.html" class="back-btn">← Hjem</a>
+    <span class="chapter-title">🎮 FC26 Turnering</span>
+  </div>
+</header>
+
+<main>
+  <div class="story-content">
+    <h1>Gruppespill</h1>
+    <p>Alle lag møter alle. Hver kamp teller!</p>
+
+    <hr>
+
+    <h2>🎮 Kampoppsett</h2>
+
+    <div class="match-schedule">
+      <div class="match-card">
+        <div class="match-teams">
+          <span class="team-name">🇮🇶 Irak</span>
+          <span class="vs">vs</span>
+          <span class="team-name">🇸🇳 Senegal</span>
+        </div>
+        <div class="match-result">
+          <input type="number" id="match1-home" min="0" max="99" placeholder="-">
+          <span class="score-sep">–</span>
+          <input type="number" id="match1-away" min="0" max="99" placeholder="-">
+          <button onclick="saveMatch(1)" class="save-btn">💾</button>
+        </div>
+      </div>
+
+      <div class="match-card">
+        <div class="match-teams">
+          <span class="team-name">🇫🇷 Frankrike</span>
+          <span class="vs">vs</span>
+          <span class="team-name">🇳🇴 Norge</span>
+        </div>
+        <div class="match-result">
+          <input type="number" id="match2-home" min="0" max="99" placeholder="-">
+          <span class="score-sep">–</span>
+          <input type="number" id="match2-away" min="0" max="99" placeholder="-">
+          <button onclick="saveMatch(2)" class="save-btn">💾</button>
+        </div>
+      </div>
+
+      <div class="match-card">
+        <div class="match-teams">
+          <span class="team-name">🇮🇶 Irak</span>
+          <span class="vs">vs</span>
+          <span class="team-name">🇫🇷 Frankrike</span>
+        </div>
+        <div class="match-result">
+          <input type="number" id="match3-home" min="0" max="99" placeholder="-">
+          <span class="score-sep">–</span>
+          <input type="number" id="match3-away" min="0" max="99" placeholder="-">
+          <button onclick="saveMatch(3)" class="save-btn">💾</button>
+        </div>
+      </div>
+
+      <div class="match-card">
+        <div class="match-teams">
+          <span class="team-name">🇸🇳 Senegal</span>
+          <span class="vs">vs</span>
+          <span class="team-name">🇳🇴 Norge</span>
+        </div>
+        <div class="match-result">
+          <input type="number" id="match4-home" min="0" max="99" placeholder="-">
+          <span class="score-sep">–</span>
+          <input type="number" id="match4-away" min="0" max="99" placeholder="-">
+          <button onclick="saveMatch(4)" class="save-btn">💾</button>
+        </div>
+      </div>
+
+      <div class="match-card">
+        <div class="match-teams">
+          <span class="team-name">🇮🇶 Irak</span>
+          <span class="vs">vs</span>
+          <span class="team-name">🇳🇴 Norge</span>
+        </div>
+        <div class="match-result">
+          <input type="number" id="match5-home" min="0" max="99" placeholder="-">
+          <span class="score-sep">–</span>
+          <input type="number" id="match5-away" min="0" max="99" placeholder="-">
+          <button onclick="saveMatch(5)" class="save-btn">💾</button>
+        </div>
+      </div>
+
+      <div class="match-card">
+        <div class="match-teams">
+          <span class="team-name">🇸🇳 Senegal</span>
+          <span class="vs">vs</span>
+          <span class="team-name">🇫🇷 Frankrike</span>
+        </div>
+        <div class="match-result">
+          <input type="number" id="match6-home" min="0" max="99" placeholder="-">
+          <span class="score-sep">–</span>
+          <input type="number" id="match6-away" min="0" max="99" placeholder="-">
+          <button onclick="saveMatch(6)" class="save-btn">💾</button>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="highlight-box">
+      <p>🏆 <strong>Poengskala:</strong><br><br>
+      1. plass = 9p<br>
+      2. plass = 7p<br>
+      3. plass = 4p<br>
+      4. plass = 1p</p>
+    </div>
+
+    <hr>
+
+    <a href="scores.html" class="action-box" style="display: block; text-decoration: none; color: inherit;">
+      <p>🏆 Til Scoreboard →</p>
+    </a>
+
+  </div>
+</main>
+
+<script>
+const MATCHES_KEY = 'fp26_fc26_matches'
+
+function getMatches() {
+  const stored = localStorage.getItem(MATCHES_KEY)
+  return stored ? JSON.parse(stored) : {}
+}
+
+function saveMatch(matchNum) {
+  const homeScore = document.getElementById(`match${matchNum}-home`).value
+  const awayScore = document.getElementById(`match${matchNum}-away`).value
+  
+  const matches = getMatches()
+  matches[matchNum] = { home: homeScore, away: awayScore }
+  localStorage.setItem(MATCHES_KEY, JSON.stringify(matches))
+  
+  // Visual feedback
+  const btn = event.target
+  btn.classList.add('saved')
+  btn.textContent = '✓'
+  setTimeout(() => {
+    btn.classList.remove('saved')
+    btn.textContent = '💾'
+  }, 1500)
+  
+  console.log(`Match ${matchNum} saved:`, homeScore, '-', awayScore)
+}
+
+function loadMatches() {
+  const matches = getMatches()
+  for (const [num, result] of Object.entries(matches)) {
+    const homeInput = document.getElementById(`match${num}-home`)
+    const awayInput = document.getElementById(`match${num}-away`)
+    if (homeInput && result.home !== '') homeInput.value = result.home
+    if (awayInput && result.away !== '') awayInput.value = result.away
+  }
+}
+
+// Load saved matches on page load
+loadMatches()
+</script>
+
+</body>
+</html>
