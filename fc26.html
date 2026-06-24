@@ -247,7 +247,7 @@
         <!-- Filled by JS -->
       </div>
 
-      <p class="refresh-note">Oppdateres automatisk hvert 10. sekund</p>
+
 
     </div>
   </div>
@@ -316,9 +316,6 @@ async function init() {
   }
 
   await loadMatches()
-  
-  // Auto-refresh every 10 seconds
-  setInterval(loadMatches, 10000)
 }
 
 async function loadMatches() {
