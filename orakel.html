@@ -264,13 +264,6 @@
         </div>
       </div>
 
-      <!-- Hvilken spiller scorer først -->
-      <div class="question-card">
-        <div class="question-title">👤 Hvilken spiller scorer første mål?</div>
-        <div class="question-points">3 poeng</div>
-        <input type="text" id="first-scorer" class="text-input" placeholder="Skriv spillerens navn...">
-      </div>
-
       <!-- Flest gule kort -->
       <div class="question-card">
         <div class="question-title">🟨 Hvilket lag får flest gule kort?</div>
@@ -428,7 +421,6 @@ async function submitPrediction() {
   
   const scoreNorge = document.getElementById('score-norge').value
   const scoreFrankrike = document.getElementById('score-frankrike').value
-  const firstScorer = document.getElementById('first-scorer').value
   
   if (scoreNorge === '' || scoreFrankrike === '') {
     alert('Fyll inn sluttresultatet!')
@@ -448,7 +440,6 @@ async function submitPrediction() {
     score_norge: parseInt(scoreNorge),
     score_frankrike: parseInt(scoreFrankrike),
     first_goal: answers['first-goal'] || null,
-    first_scorer: firstScorer || null,
     yellow_cards: answers['yellow-cards'] || null,
     clean_sheet: answers['clean-sheet'] || null,
     haaland_scores: answers['haaland-scores'] || null,
