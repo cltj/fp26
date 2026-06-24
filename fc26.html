@@ -21,11 +21,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
-  .fc26-header span:last-child { color: rgba(255,255,255,0.6); font-size: 11px; }
   .fc26-row {
     display: flex;
     align-items: center;
@@ -46,16 +42,15 @@
   .fc26-flag { font-size: 18px; }
   .fc26-name { font-size: 14px; font-weight: 500; flex: 1; }
   .fc26-stats { 
-    font-size: 12px; 
-    color: rgba(255,255,255,0.6);
-    min-width: 80px;
+    font-size: 11px; 
+    color: rgba(255,255,255,0.5);
     text-align: right;
   }
   .fc26-pts {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     color: #c8f45a;
-    min-width: 30px;
+    min-width: 35px;
     text-align: right;
   }
   .info-box {
@@ -250,12 +245,11 @@
     </div>
 
     <div id="main-content">
-      <h1>🏆 Standings</h1>
+      <h1>🏆 Tabell</h1>
       
       <div class="fc26-table">
         <div class="fc26-header">
-          <span>Gruppe A</span>
-          <span>K V U T +/-</span>
+          <span>FC26 Gruppespill</span>
         </div>
         <div id="standings-body">
           <!-- Filled by JS -->
@@ -496,18 +490,19 @@ function calculateStandings() {
     const gd = s.goalsFor - s.goalsAgainst
     const gdStr = gd > 0 ? `+${gd}` : gd.toString()
     
-    const tr = document.createElement('tr')
-    tr.innerHTML = `
-      <td class="pos">${idx + 1}</td>
-      <td><div class="team-cell"><span class="team-flag">${s.team.flag}</span> ${s.team.team_name}</div></td>
-      <td class="stats">${s.played}</td>
-      <td class="stats">${s.won}</td>
-      <td class="stats">${s.drawn}</td>
-      <td class="stats">${s.lost}</td>
-      <td class="stats">${gdStr}</td>
-      <td class="points">${s.points}</td>
+    const posClass = idx === 0 ? 'first' : idx === 1 ? 'second' : idx === 2 ? 'third' : ''
+    
+    const row = document.createElement('div')
+    row.className = 'fc26-row' + (posClass ? ' ' + posClass : '')
+    const gdDisplay = gd > 0 ? `+${gd}` : gd === 0 ? '0' : gd.toString()
+    row.innerHTML = `
+      <span class="fc26-pos">${idx + 1}</span>
+      <span class="fc26-flag">${s.team.flag}</span>
+      <span class="fc26-name">${s.team.team_name}</span>
+      <span class="fc26-stats">${s.played}k ${gdDisplay}</span>
+      <span class="fc26-pts">${s.points}p</span>
     `
-    tbody.appendChild(tr)
+    tbody.appendChild(row)
   })
   
   // Show final points if all matches played
@@ -519,14 +514,17 @@ function calculateStandings() {
     finalPointsDiv.style.display = 'block'
     finalPointsList.innerHTML = ''
     
+    const medals = ['🥇', '🥈', '🥉', '']
+    
     sorted.forEach((s, idx) => {
       const placement = idx + 1
       const pts = PLACEMENT_POINTS[placement]
+      const medal = medals[idx] || ''
       
       const row = document.createElement('div')
       row.className = 'final-points-row'
       row.innerHTML = `
-        <span>${placement}. ${s.team.flag} ${s.team.team_name}</span>
+        <span>${medal} ${s.team.flag} ${s.team.team_name}</span>
         <strong>${pts}p</strong>
       `
       finalPointsList.appendChild(row)
