@@ -74,28 +74,52 @@
   }
   .logout-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
 
-  /* Mini Scoreboard */
+  /* Mini Scoreboard - Group Stage Style */
   .mini-scoreboard {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-  }
-  .mini-score-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
     background: var(--surface);
     border: 0.5px solid var(--border);
-    border-radius: 99px;
-    padding: 6px 12px;
-    font-size: 13px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
   }
-  .mini-score-item.first { border-color: rgba(255,215,0,0.4); }
-  .mini-score-flag { font-size: 16px; }
-  .mini-score-name { color: var(--text); font-weight: 500; }
-  .mini-score-pts { color: var(--accent); font-weight: 700; }
+  .mini-sb-header {
+    background: #1a5f2a;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mini-sb-header span:last-child { color: var(--muted); font-size: 11px; }
+  .mini-sb-row {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 0.5px solid var(--border);
+    gap: 10px;
+  }
+  .mini-sb-row:last-child { border-bottom: none; }
+  .mini-sb-row.qualified { background: rgba(34,197,94,0.12); }
+  .mini-sb-row.playoff { background: rgba(234,179,8,0.12); }
+  .mini-sb-row.eliminated { background: rgba(239,68,68,0.08); }
+  .mini-sb-pos {
+    width: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .mini-sb-flag { font-size: 18px; }
+  .mini-sb-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .mini-sb-pts {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 24px;
+    text-align: right;
+  }
 
   main {
     max-width: 600px;
@@ -814,14 +838,28 @@ async function loadMiniScoreboard() {
     pts: scoreMap[t.id] || 0
   })).sort((a, b) => b.pts - a.pts)
   
+  // Determine position classes
+  const getRowClass = (i) => {
+    if (i < 2) return 'qualified'
+    if (i === 2) return 'playoff'
+    return 'eliminated'
+  }
+  
   // Render
-  document.getElementById('mini-scoreboard').innerHTML = ranked.map((t, i) => `
-    <div class="mini-score-item ${i === 0 ? 'first' : ''}">
-      <span class="mini-score-flag">${t.flag}</span>
-      <span class="mini-score-name">${t.name}</span>
-      <span class="mini-score-pts">${t.pts}</span>
+  document.getElementById('mini-scoreboard').innerHTML = `
+    <div class="mini-sb-header">
+      <span>🏆 Gruppe I</span>
+      <span>Pts</span>
     </div>
-  `).join('')
+    ${ranked.map((t, i) => `
+      <div class="mini-sb-row ${getRowClass(i)}">
+        <span class="mini-sb-pos">${i + 1}</span>
+        <span class="mini-sb-flag">${t.flag}</span>
+        <span class="mini-sb-name">${t.name}</span>
+        <span class="mini-sb-pts">${t.pts}</span>
+      </div>
+    `).join('')}
+  `
 }
 loadMiniScoreboard()
 
