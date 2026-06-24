@@ -74,6 +74,29 @@
   }
   .logout-btn:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
 
+  /* Mini Scoreboard */
+  .mini-scoreboard {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .mini-score-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 99px;
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  .mini-score-item.first { border-color: rgba(255,215,0,0.4); }
+  .mini-score-flag { font-size: 16px; }
+  .mini-score-name { color: var(--text); font-weight: 500; }
+  .mini-score-pts { color: var(--accent); font-weight: 700; }
+
   main {
     max-width: 600px;
     margin: 0 auto;
@@ -521,6 +544,10 @@
       </div>
     </div>
     <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
+    
+    <div class="mini-scoreboard" id="mini-scoreboard">
+      <!-- Loaded by JS -->
+    </div>
   </section>
 
   <section class="admin-section" id="admin-section" style="display: none;">
@@ -760,6 +787,43 @@ async function loadUserTeam() {
   }
 }
 loadUserTeam()
+
+// Mini Scoreboard
+async function loadMiniScoreboard() {
+  // Load teams
+  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag').order('id')
+  if (!teamsData) return
+  
+  // Load scores
+  const { data: scoresData } = await sb.from('scores').select('team_id, scores')
+  
+  // Calculate totals
+  const scoreMap = {}
+  if (scoresData) {
+    scoresData.forEach(row => {
+      if (row.scores) {
+        scoreMap[row.team_id] = row.scores.reduce((a, b) => a + (b ?? 0), 0)
+      }
+    })
+  }
+  
+  // Merge and sort
+  const ranked = teamsData.map(t => ({
+    flag: t.flag || '🏳️',
+    name: t.team_name,
+    pts: scoreMap[t.id] || 0
+  })).sort((a, b) => b.pts - a.pts)
+  
+  // Render
+  document.getElementById('mini-scoreboard').innerHTML = ranked.map((t, i) => `
+    <div class="mini-score-item ${i === 0 ? 'first' : ''}">
+      <span class="mini-score-flag">${t.flag}</span>
+      <span class="mini-score-name">${t.name}</span>
+      <span class="mini-score-pts">${t.pts}</span>
+    </div>
+  `).join('')
+}
+loadMiniScoreboard()
 
 // Avatar colors
 const AVATAR_COLORS = ['#c8f45a','#60c8ff','#ff6b9d','#ffb347','#a78bfa','#34d399','#f472b6','#38bdf8']
