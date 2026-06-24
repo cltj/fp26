@@ -112,34 +112,34 @@
     color: var(--muted);
   }
   .mini-sb-flag { font-size: 18px; }
-  .mini-sb-info { flex: 1; }
-  .mini-sb-name { font-size: 14px; font-weight: 500; }
-  .mini-sb-members {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 6px;
-  }
-  .mini-sb-member {
-    width: 28px;
-    height: 37px;
-    border-radius: 4px;
-    object-fit: cover;
-    border: 1px solid var(--border);
-  }
-  .mini-sb-placeholder {
-    width: 28px;
-    height: 37px;
-    border-radius: 4px;
-    background: var(--surface2);
-    border: 1px dashed var(--border);
-  }
+  .mini-sb-name { font-size: 14px; font-weight: 500; min-width: 70px; }
   .mini-sb-pts {
     font-size: 16px;
     font-weight: 700;
     color: var(--accent);
-    min-width: 24px;
-    text-align: right;
+    min-width: 30px;
+    text-align: center;
+  }
+  .mini-sb-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+  .mini-sb-member {
+    width: 36px;
+    height: 48px;
+    border-radius: 4px;
+    object-fit: cover;
+    border: 1.5px solid var(--border);
+  }
+  .mini-sb-placeholder {
+    width: 36px;
+    height: 48px;
+    border-radius: 4px;
+    background: var(--surface2);
+    border: 1.5px dashed var(--border);
   }
 
   main {
@@ -785,11 +785,9 @@ async function loadMiniScoreboard() {
       <div class="mini-sb-row ${getRowClass(i)}">
         <span class="mini-sb-pos">${i + 1}</span>
         <span class="mini-sb-flag">${t.flag}</span>
-        <div class="mini-sb-info">
-          <div class="mini-sb-name">${t.name}</div>
-          <div class="mini-sb-members">${renderMembers(t.members)}</div>
-        </div>
+        <span class="mini-sb-name">${t.name}</span>
         <span class="mini-sb-pts">${t.pts}</span>
+        <div class="mini-sb-members">${renderMembers(t.members)}</div>
       </div>
     `).join('')}
   `
