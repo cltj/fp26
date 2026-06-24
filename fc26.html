@@ -6,49 +6,87 @@
 <title>🎮 FC26 Turnering</title>
 <link rel="stylesheet" href="story/story.css">
 <style>
-  .standings-table {
-    width: 100%;
-    border-collapse: collapse;
+  /* Same style as home.html mini-scoreboard */
+  .fc26-table {
+    background: rgba(30,30,30,0.8);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
     margin: 1rem 0;
-    font-size: 14px;
   }
-  .standings-table th {
-    background: rgba(200,244,90,0.15);
-    padding: 10px 8px;
-    text-align: left;
+  .fc26-header {
+    background: #1a5f2a;
+    padding: 10px 14px;
+    font-size: 12px;
     font-weight: 600;
-    border-bottom: 2px solid rgba(200,244,90,0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .standings-table td {
-    padding: 12px 8px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .standings-table tr:nth-child(1) td {
-    background: rgba(255,215,0,0.1);
-  }
-  .standings-table .pos {
-    width: 30px;
-    text-align: center;
-    font-weight: 700;
-  }
-  .standings-table .team-cell {
+  .fc26-header span:last-child { color: rgba(255,255,255,0.6); font-size: 11px; }
+  .fc26-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    gap: 10px;
   }
-  .standings-table .team-flag {
-    font-size: 20px;
+  .fc26-row:last-child { border-bottom: none; }
+  .fc26-row.first { background: rgba(255,215,0,0.12); }
+  .fc26-row.second { background: rgba(192,192,192,0.08); }
+  .fc26-row.third { background: rgba(205,127,50,0.08); }
+  .fc26-pos {
+    width: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
   }
-  .standings-table .stats {
-    text-align: center;
-    width: 40px;
+  .fc26-flag { font-size: 18px; }
+  .fc26-name { font-size: 14px; font-weight: 500; flex: 1; }
+  .fc26-stats { 
+    font-size: 12px; 
+    color: rgba(255,255,255,0.6);
+    min-width: 80px;
+    text-align: right;
   }
-  .standings-table .points {
-    text-align: center;
+  .fc26-pts {
+    font-size: 15px;
     font-weight: 700;
     color: #c8f45a;
-    width: 50px;
+    min-width: 30px;
+    text-align: right;
   }
+  .info-box {
+    background: rgba(200,244,90,0.1);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 1rem 0;
+  }
+  .info-box h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #c8f45a;
+  }
+  .info-box p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .points-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 20px;
+    margin-top: 10px;
+  }
+  .points-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  .points-row .place { color: rgba(255,255,255,0.7); }
+  .points-row .pts { font-weight: 700; color: #c8f45a; }
   .match-schedule {
     display: flex;
     flex-direction: column;
@@ -214,26 +252,29 @@
     <div id="main-content">
       <h1>🏆 Standings</h1>
       
-      <table class="standings-table">
-        <thead>
-          <tr>
-            <th class="pos">#</th>
-            <th>Lag</th>
-            <th class="stats">K</th>
-            <th class="stats">V</th>
-            <th class="stats">U</th>
-            <th class="stats">T</th>
-            <th class="stats">+/-</th>
-            <th class="points">Poeng</th>
-          </tr>
-        </thead>
-        <tbody id="standings-body">
+      <div class="fc26-table">
+        <div class="fc26-header">
+          <span>Gruppe A</span>
+          <span>K V U T +/-</span>
+        </div>
+        <div id="standings-body">
           <!-- Filled by JS -->
-        </tbody>
-      </table>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>🎯 Poeng til hovedkonkurransen</h3>
+        <p>Etter turneringen får lagene poeng basert på plassering:</p>
+        <div class="points-grid">
+          <div class="points-row"><span class="place">🥇 1. plass</span><span class="pts">9p</span></div>
+          <div class="points-row"><span class="place">🥈 2. plass</span><span class="pts">7p</span></div>
+          <div class="points-row"><span class="place">🥉 3. plass</span><span class="pts">4p</span></div>
+          <div class="points-row"><span class="place">4. plass</span><span class="pts">1p</span></div>
+        </div>
+      </div>
 
       <div class="final-points" id="final-points" style="display: none;">
-        <h3>🎯 Poeng til hovedkonkurransen</h3>
+        <h3>✅ Turneringen er ferdig!</h3>
         <div class="final-points-list" id="final-points-list">
           <!-- Filled by JS -->
         </div>
