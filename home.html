@@ -212,6 +212,148 @@
   }
   .photo-overlay-close:hover { background: rgba(255,255,255,0.2); }
 
+  /* Football Pitch - 4-4-2 Formation */
+  .pitch-section {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .pitch-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-width: 380px;
+    margin: 0 auto;
+    background: 
+      repeating-linear-gradient(
+        180deg,
+        #1e6b35 0px,
+        #1e6b35 40px,
+        #237a3d 40px,
+        #237a3d 80px
+      );
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  }
+  /* Pitch markings */
+  .pitch-markings {
+    position: absolute;
+    inset: 8px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  .pitch-center-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.6);
+  }
+  .pitch-center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(255,255,255,0.6);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .pitch-center-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .pitch-box {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 55%;
+    height: 15%;
+    border: 2px solid rgba(255,255,255,0.6);
+  }
+  .pitch-box.top { top: 8px; border-top: none; }
+  .pitch-box.bottom { bottom: 8px; border-bottom: none; }
+  .pitch-goal-box {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 25%;
+    height: 6%;
+    border: 2px solid rgba(255,255,255,0.6);
+  }
+  .pitch-goal-box.top { top: 8px; border-top: none; }
+  .pitch-goal-box.bottom { bottom: 8px; border-bottom: none; }
+  .pitch-formation {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8% 6%;
+    z-index: 2;
+  }
+  .pitch-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .pitch-row.gk { justify-content: center; }
+  .pitch-row.fwd { padding: 0 15%; }
+  .pitch-player {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .pitch-player-photo {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2.5px solid rgba(255,255,255,0.9);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .pitch-player-photo:hover {
+    transform: scale(1.2);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+  }
+  .pitch-player-photo.placeholder {
+    border-style: dashed;
+    border-color: rgba(255,255,255,0.35);
+    opacity: 0.6;
+    cursor: default;
+  }
+  .pitch-player-photo.placeholder:hover {
+    transform: none;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  }
+  .pitch-player-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    max-width: 65px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pitch-player-name.placeholder {
+    opacity: 0.35;
+  }
+
   main {
     max-width: 600px;
     margin: 0 auto;
@@ -708,6 +850,25 @@
       </div>
     </div>
   </section>
+
+  <section class="pitch-section">
+    <div class="section-title">⚽ Troppen</div>
+    <div class="pitch-container">
+      <!-- Pitch markings -->
+      <div class="pitch-markings"></div>
+      <div class="pitch-center-line"></div>
+      <div class="pitch-center-circle"></div>
+      <div class="pitch-center-dot"></div>
+      <div class="pitch-box top"></div>
+      <div class="pitch-box bottom"></div>
+      <div class="pitch-goal-box top"></div>
+      <div class="pitch-goal-box bottom"></div>
+      <!-- Players -->
+      <div class="pitch-formation" id="pitch-formation">
+        <!-- Loaded by JS -->
+      </div>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -891,6 +1052,57 @@ function closePhotoOverlay() {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closePhotoOverlay()
 })
+
+// Load pitch formation
+async function loadPitchFormation() {
+  const { data: participants } = await sb
+    .from('participants')
+    .select('id, participant, photo_url')
+    .order('id')
+  
+  // 4-4-2 formation: 4 DEF, 4 MID, 2 FWD = 10 players
+  const formation = [
+    { row: 'fwd', count: 2 },
+    { row: 'mid', count: 4 },
+    { row: 'def', count: 4 }
+  ]
+  
+  let playerIndex = 0
+  const players = participants || []
+  
+  const renderPlayer = (p) => {
+    if (p) {
+      return `
+        <div class="pitch-player">
+          <img src="${p.photo_url || 'placeholder.png'}" 
+               class="pitch-player-photo" 
+               onclick="showPhotoOverlay('${p.photo_url || ''}', '${p.participant}')"
+               onerror="this.src='placeholder.png'">
+          <span class="pitch-player-name">${p.participant.split(' ')[0]}</span>
+        </div>
+      `
+    } else {
+      return `
+        <div class="pitch-player">
+          <div class="pitch-player-photo placeholder"></div>
+          <span class="pitch-player-name placeholder">?</span>
+        </div>
+      `
+    }
+  }
+  
+  const html = formation.map(({ row, count }) => {
+    const rowPlayers = []
+    for (let i = 0; i < count; i++) {
+      rowPlayers.push(renderPlayer(players[playerIndex]))
+      playerIndex++
+    }
+    return `<div class="pitch-row ${row}">${rowPlayers.join('')}</div>`
+  }).join('')
+  
+  document.getElementById('pitch-formation').innerHTML = html
+}
+loadPitchFormation()
 </script>
 
 <div id="photo-overlay" class="photo-overlay" onclick="closePhotoOverlay()">
