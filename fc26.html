@@ -6,6 +6,49 @@
 <title>🎮 FC26 Turnering</title>
 <link rel="stylesheet" href="story/story.css">
 <style>
+  .standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 14px;
+  }
+  .standings-table th {
+    background: rgba(200,244,90,0.15);
+    padding: 10px 8px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid rgba(200,244,90,0.3);
+  }
+  .standings-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .standings-table tr:nth-child(1) td {
+    background: rgba(255,215,0,0.1);
+  }
+  .standings-table .pos {
+    width: 30px;
+    text-align: center;
+    font-weight: 700;
+  }
+  .standings-table .team-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .standings-table .team-flag {
+    font-size: 20px;
+  }
+  .standings-table .stats {
+    text-align: center;
+    width: 40px;
+  }
+  .standings-table .points {
+    text-align: center;
+    font-weight: 700;
+    color: #c8f45a;
+    width: 50px;
+  }
   .match-schedule {
     display: flex;
     flex-direction: column;
@@ -18,6 +61,9 @@
     border-radius: 12px;
     padding: 12px 16px;
   }
+  .match-card.played {
+    border-color: rgba(200,244,90,0.3);
+  }
   .match-teams {
     display: flex;
     justify-content: space-between;
@@ -27,6 +73,9 @@
   .team-name {
     font-weight: 600;
     font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .vs {
     color: rgba(255,255,255,0.5);
@@ -58,6 +107,15 @@
   .match-result input:focus {
     outline: none;
     border-color: #c8f45a;
+  }
+  .match-result input:disabled {
+    opacity: 0.8;
+  }
+  .match-score-display {
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px;
   }
   .score-sep {
     font-size: 18px;
@@ -92,6 +150,48 @@
   .reset-btn:hover {
     background: rgba(255,100,100,0.25);
   }
+  .admin-controls {
+    display: none;
+  }
+  .is-admin .admin-controls {
+    display: flex;
+    gap: 8px;
+  }
+  .final-points {
+    margin-top: 1rem;
+    padding: 12px;
+    background: rgba(200,244,90,0.1);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: 12px;
+  }
+  .final-points h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #c8f45a;
+  }
+  .final-points-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+  }
+  .final-points-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  .activity-closed {
+    text-align: center;
+    padding: 2rem;
+    background: rgba(255,100,100,0.1);
+    border: 1px solid rgba(255,100,100,0.3);
+    border-radius: 12px;
+  }
+  .refresh-note {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    margin-top: 1rem;
+  }
 </style>
 </head>
 <body>
@@ -105,121 +205,51 @@
 
 <main>
   <div class="story-content">
-    <h1>Gruppespill</h1>
-    <p>Alle lag møter alle. Hver kamp teller!</p>
-
-    <hr>
-
-    <h2>🎮 Kampoppsett</h2>
-
-    <div class="match-schedule">
-      <div class="match-card">
-        <div class="match-teams">
-          <span class="team-name">🇮🇶 Irak</span>
-          <span class="vs">vs</span>
-          <span class="team-name">🇸🇳 Senegal</span>
-        </div>
-        <div class="match-result">
-          <input type="number" id="match1-home" min="0" max="99" placeholder="-">
-          <span class="score-sep">–</span>
-          <input type="number" id="match1-away" min="0" max="99" placeholder="-">
-          <button onclick="saveMatch(1)" class="save-btn">💾</button>
-          <button onclick="resetMatch(1)" class="reset-btn">↺</button>
-        </div>
-      </div>
-
-      <div class="match-card">
-        <div class="match-teams">
-          <span class="team-name">🇫🇷 Frankrike</span>
-          <span class="vs">vs</span>
-          <span class="team-name">🇳🇴 Norge</span>
-        </div>
-        <div class="match-result">
-          <input type="number" id="match2-home" min="0" max="99" placeholder="-">
-          <span class="score-sep">–</span>
-          <input type="number" id="match2-away" min="0" max="99" placeholder="-">
-          <button onclick="saveMatch(2)" class="save-btn">💾</button>
-          <button onclick="resetMatch(2)" class="reset-btn">↺</button>
-        </div>
-      </div>
-
-      <div class="match-card">
-        <div class="match-teams">
-          <span class="team-name">🇮🇶 Irak</span>
-          <span class="vs">vs</span>
-          <span class="team-name">🇫🇷 Frankrike</span>
-        </div>
-        <div class="match-result">
-          <input type="number" id="match3-home" min="0" max="99" placeholder="-">
-          <span class="score-sep">–</span>
-          <input type="number" id="match3-away" min="0" max="99" placeholder="-">
-          <button onclick="saveMatch(3)" class="save-btn">💾</button>
-          <button onclick="resetMatch(3)" class="reset-btn">↺</button>
-        </div>
-      </div>
-
-      <div class="match-card">
-        <div class="match-teams">
-          <span class="team-name">🇸🇳 Senegal</span>
-          <span class="vs">vs</span>
-          <span class="team-name">🇳🇴 Norge</span>
-        </div>
-        <div class="match-result">
-          <input type="number" id="match4-home" min="0" max="99" placeholder="-">
-          <span class="score-sep">–</span>
-          <input type="number" id="match4-away" min="0" max="99" placeholder="-">
-          <button onclick="saveMatch(4)" class="save-btn">💾</button>
-          <button onclick="resetMatch(4)" class="reset-btn">↺</button>
-        </div>
-      </div>
-
-      <div class="match-card">
-        <div class="match-teams">
-          <span class="team-name">🇮🇶 Irak</span>
-          <span class="vs">vs</span>
-          <span class="team-name">🇳🇴 Norge</span>
-        </div>
-        <div class="match-result">
-          <input type="number" id="match5-home" min="0" max="99" placeholder="-">
-          <span class="score-sep">–</span>
-          <input type="number" id="match5-away" min="0" max="99" placeholder="-">
-          <button onclick="saveMatch(5)" class="save-btn">💾</button>
-          <button onclick="resetMatch(5)" class="reset-btn">↺</button>
-        </div>
-      </div>
-
-      <div class="match-card">
-        <div class="match-teams">
-          <span class="team-name">🇸🇳 Senegal</span>
-          <span class="vs">vs</span>
-          <span class="team-name">🇫🇷 Frankrike</span>
-        </div>
-        <div class="match-result">
-          <input type="number" id="match6-home" min="0" max="99" placeholder="-">
-          <span class="score-sep">–</span>
-          <input type="number" id="match6-away" min="0" max="99" placeholder="-">
-          <button onclick="saveMatch(6)" class="save-btn">💾</button>
-          <button onclick="resetMatch(6)" class="reset-btn">↺</button>
-        </div>
-      </div>
+    
+    <div id="activity-closed" class="activity-closed" style="display: none;">
+      <p>⏳ <strong>FC26-turneringen er ikke startet ennå.</strong><br>
+      Vent til ledelsen aktiverer øvelsen.</p>
     </div>
 
-    <hr>
+    <div id="main-content">
+      <h1>🏆 Live Tabell</h1>
+      
+      <table class="standings-table">
+        <thead>
+          <tr>
+            <th class="pos">#</th>
+            <th>Lag</th>
+            <th class="stats">K</th>
+            <th class="stats">V</th>
+            <th class="stats">U</th>
+            <th class="stats">T</th>
+            <th class="stats">+/-</th>
+            <th class="points">Poeng</th>
+          </tr>
+        </thead>
+        <tbody id="standings-body">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
 
-    <div class="highlight-box">
-      <p>🏆 <strong>Poengskala:</strong><br><br>
-      1. plass = 9p<br>
-      2. plass = 7p<br>
-      3. plass = 4p<br>
-      4. plass = 1p</p>
+      <div class="final-points" id="final-points" style="display: none;">
+        <h3>🎯 Poeng til hovedkonkurransen</h3>
+        <div class="final-points-list" id="final-points-list">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <hr>
+
+      <h2>🎮 Kamper</h2>
+
+      <div class="match-schedule" id="match-schedule">
+        <!-- Filled by JS -->
+      </div>
+
+      <p class="refresh-note">Oppdateres automatisk hvert 10. sekund</p>
+
     </div>
-
-    <hr>
-
-    <a href="scores.html" class="action-box" style="display: block; text-decoration: none; color: inherit;">
-      <p>🏆 Til Scoreboard →</p>
-    </a>
-
   </div>
 </main>
 
@@ -229,6 +259,9 @@ const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+// Competition points for final placement
+const PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
+
 // Check if admin
 let isAdmin = false
 const stored = localStorage.getItem('fp26_session')
@@ -237,48 +270,246 @@ if (stored) {
   isAdmin = session.is_admin === true
 }
 
+if (isAdmin) {
+  document.body.classList.add('is-admin')
+}
+
+let teams = {}
+let matches = []
+
+// Match fixtures (home_team_id vs away_team_id)
+// Will be populated after loading teams
+const FIXTURES = [
+  { match_num: 1, home: 'Irak', away: 'Senegal' },
+  { match_num: 2, home: 'Frankrike', away: 'Norge' },
+  { match_num: 3, home: 'Irak', away: 'Frankrike' },
+  { match_num: 4, home: 'Senegal', away: 'Norge' },
+  { match_num: 5, home: 'Irak', away: 'Norge' },
+  { match_num: 6, home: 'Senegal', away: 'Frankrike' }
+]
+
+async function init() {
+  // Check if activity is active (skip for admin)
+  if (!isAdmin) {
+    const { data: activity, error } = await sb
+      .from('activities')
+      .select('is_active')
+      .eq('id', 'fc26')
+      .single()
+    
+    if (!error && activity && activity.is_active === false) {
+      document.getElementById('activity-closed').style.display = 'block'
+      document.getElementById('main-content').style.display = 'none'
+      return
+    }
+  }
+
+  // Load teams
+  const { data: teamsData } = await sb
+    .from('teams')
+    .select('id, team_name, flag')
+  
+  if (teamsData) {
+    teamsData.forEach(t => {
+      teams[t.team_name] = t
+    })
+  }
+
+  await loadMatches()
+  
+  // Auto-refresh every 10 seconds
+  setInterval(loadMatches, 10000)
+}
+
 async function loadMatches() {
-  const { data: matches, error } = await sb
+  const { data: matchData, error } = await sb
     .from('fc26_matches')
     .select('*')
   
   if (error) {
     console.error('Error loading matches:', error)
-    return
   }
   
-  for (const match of matches) {
-    const homeInput = document.getElementById(`match${match.match_num}-home`)
-    const awayInput = document.getElementById(`match${match.match_num}-away`)
-    if (homeInput && match.home_score !== null) homeInput.value = match.home_score
-    if (awayInput && match.away_score !== null) awayInput.value = match.away_score
-  }
+  matches = matchData || []
   
-  // Disable inputs if not admin
-  if (!isAdmin) {
-    document.querySelectorAll('.match-result input').forEach(input => {
-      input.disabled = true
-      input.style.opacity = '0.7'
+  renderMatches()
+  calculateStandings()
+}
+
+function renderMatches() {
+  const container = document.getElementById('match-schedule')
+  container.innerHTML = ''
+  
+  FIXTURES.forEach(fixture => {
+    const homeTeam = teams[fixture.home] || { flag: '🏳️', team_name: fixture.home }
+    const awayTeam = teams[fixture.away] || { flag: '🏳️', team_name: fixture.away }
+    
+    const matchResult = matches.find(m => m.match_num === fixture.match_num)
+    const hasScore = matchResult && matchResult.home_score !== null && matchResult.away_score !== null
+    
+    const card = document.createElement('div')
+    card.className = 'match-card' + (hasScore ? ' played' : '')
+    
+    if (isAdmin) {
+      card.innerHTML = `
+        <div class="match-teams">
+          <span class="team-name">${homeTeam.flag} ${homeTeam.team_name}</span>
+          <span class="vs">vs</span>
+          <span class="team-name">${awayTeam.flag} ${awayTeam.team_name}</span>
+        </div>
+        <div class="match-result">
+          <input type="number" id="match${fixture.match_num}-home" min="0" max="99" 
+                 value="${hasScore ? matchResult.home_score : ''}" placeholder="-">
+          <span class="score-sep">–</span>
+          <input type="number" id="match${fixture.match_num}-away" min="0" max="99" 
+                 value="${hasScore ? matchResult.away_score : ''}" placeholder="-">
+          <div class="admin-controls">
+            <button onclick="saveMatch(${fixture.match_num}, '${fixture.home}', '${fixture.away}')" class="save-btn">💾</button>
+            <button onclick="resetMatch(${fixture.match_num})" class="reset-btn">↺</button>
+          </div>
+        </div>
+      `
+    } else {
+      card.innerHTML = `
+        <div class="match-teams">
+          <span class="team-name">${homeTeam.flag} ${homeTeam.team_name}</span>
+          <span class="vs">vs</span>
+          <span class="team-name">${awayTeam.flag} ${awayTeam.team_name}</span>
+        </div>
+        <div class="match-score-display">
+          ${hasScore ? `${matchResult.home_score} – ${matchResult.away_score}` : '– vs –'}
+        </div>
+      `
+    }
+    
+    container.appendChild(card)
+  })
+}
+
+function calculateStandings() {
+  // Initialize standings for each team
+  const standings = {}
+  
+  Object.values(teams).forEach(team => {
+    standings[team.team_name] = {
+      team: team,
+      played: 0,
+      won: 0,
+      drawn: 0,
+      lost: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      points: 0
+    }
+  })
+  
+  // Process each match
+  matches.forEach(match => {
+    if (match.home_score === null || match.away_score === null) return
+    
+    const fixture = FIXTURES.find(f => f.match_num === match.match_num)
+    if (!fixture) return
+    
+    const home = standings[fixture.home]
+    const away = standings[fixture.away]
+    
+    if (!home || !away) return
+    
+    home.played++
+    away.played++
+    home.goalsFor += match.home_score
+    home.goalsAgainst += match.away_score
+    away.goalsFor += match.away_score
+    away.goalsAgainst += match.home_score
+    
+    if (match.home_score > match.away_score) {
+      home.won++
+      home.points += 3
+      away.lost++
+    } else if (match.home_score < match.away_score) {
+      away.won++
+      away.points += 3
+      home.lost++
+    } else {
+      home.drawn++
+      away.drawn++
+      home.points += 1
+      away.points += 1
+    }
+  })
+  
+  // Sort standings
+  const sorted = Object.values(standings).sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points
+    const gdA = a.goalsFor - a.goalsAgainst
+    const gdB = b.goalsFor - b.goalsAgainst
+    if (gdB !== gdA) return gdB - gdA
+    return b.goalsFor - a.goalsFor
+  })
+  
+  // Render standings
+  const tbody = document.getElementById('standings-body')
+  tbody.innerHTML = ''
+  
+  sorted.forEach((s, idx) => {
+    const gd = s.goalsFor - s.goalsAgainst
+    const gdStr = gd > 0 ? `+${gd}` : gd.toString()
+    
+    const tr = document.createElement('tr')
+    tr.innerHTML = `
+      <td class="pos">${idx + 1}</td>
+      <td><div class="team-cell"><span class="team-flag">${s.team.flag}</span> ${s.team.team_name}</div></td>
+      <td class="stats">${s.played}</td>
+      <td class="stats">${s.won}</td>
+      <td class="stats">${s.drawn}</td>
+      <td class="stats">${s.lost}</td>
+      <td class="stats">${gdStr}</td>
+      <td class="points">${s.points}</td>
+    `
+    tbody.appendChild(tr)
+  })
+  
+  // Show final points if all matches played
+  const allPlayed = matches.filter(m => m.home_score !== null).length === 6
+  const finalPointsDiv = document.getElementById('final-points')
+  const finalPointsList = document.getElementById('final-points-list')
+  
+  if (allPlayed) {
+    finalPointsDiv.style.display = 'block'
+    finalPointsList.innerHTML = ''
+    
+    sorted.forEach((s, idx) => {
+      const placement = idx + 1
+      const pts = PLACEMENT_POINTS[placement]
+      
+      const row = document.createElement('div')
+      row.className = 'final-points-row'
+      row.innerHTML = `
+        <span>${placement}. ${s.team.flag} ${s.team.team_name}</span>
+        <strong>${pts}p</strong>
+      `
+      finalPointsList.appendChild(row)
     })
-    document.querySelectorAll('.save-btn, .reset-btn').forEach(btn => {
-      btn.style.display = 'none'
-    })
+  } else {
+    finalPointsDiv.style.display = 'none'
   }
 }
 
-async function saveMatch(matchNum) {
-  if (!isAdmin) {
-    alert('Kun admin kan oppdatere resultater')
-    return
-  }
+async function saveMatch(matchNum, homeTeamName, awayTeamName) {
+  if (!isAdmin) return
   
   const homeScore = document.getElementById(`match${matchNum}-home`).value
   const awayScore = document.getElementById(`match${matchNum}-away`).value
+  
+  const homeTeam = teams[homeTeamName]
+  const awayTeam = teams[awayTeamName]
   
   const { error } = await sb
     .from('fc26_matches')
     .upsert({
       match_num: matchNum,
+      home_team_id: homeTeam?.id || null,
+      away_team_id: awayTeam?.id || null,
       home_score: homeScore !== '' ? parseInt(homeScore) : null,
       away_score: awayScore !== '' ? parseInt(awayScore) : null
     }, { onConflict: 'match_num' })
@@ -289,29 +520,13 @@ async function saveMatch(matchNum) {
     return
   }
   
-  // Visual feedback
-  const btn = event.target
-  btn.classList.add('saved')
-  btn.textContent = '✓'
-  setTimeout(() => {
-    btn.classList.remove('saved')
-    btn.textContent = '💾'
-  }, 1500)
-  
-  console.log(`Match ${matchNum} saved:`, homeScore, '-', awayScore)
+  // Reload to update standings
+  await loadMatches()
 }
 
 async function resetMatch(matchNum) {
-  if (!isAdmin) {
-    alert('Kun admin kan oppdatere resultater')
-    return
-  }
+  if (!isAdmin) return
   
-  // Clear inputs
-  document.getElementById(`match${matchNum}-home`).value = ''
-  document.getElementById(`match${matchNum}-away`).value = ''
-  
-  // Remove from database
   const { error } = await sb
     .from('fc26_matches')
     .delete()
@@ -319,13 +534,14 @@ async function resetMatch(matchNum) {
   
   if (error) {
     console.error('Error resetting match:', error)
+    return
   }
   
-  console.log(`Match ${matchNum} reset`)
+  await loadMatches()
 }
 
-// Load matches on page load
-loadMatches()
+// Initialize
+init()
 </script>
 
 </body>

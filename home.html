@@ -937,6 +937,14 @@
           <a href="orakel.html" class="action-btn">Gå til tipping →</a>
         </div>
       </div>
+
+      <div class="action-card" id="fc26-card" style="display: none; background: linear-gradient(135deg, rgba(100,200,255,0.15), rgba(200,244,90,0.15));">
+        <div class="action-content" style="text-align: center; padding: 1.5rem;">
+          <div class="action-title">🎮 FC26 Live!</div>
+          <div class="action-desc">Følg turneringen live</div>
+          <a href="fc26.html" class="action-btn">Se tabell →</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1262,6 +1270,9 @@ async function checkActiveActivities() {
   activities?.forEach(activity => {
     if (activity.id === 'orakel') {
       document.getElementById('orakel-card').style.display = 'block'
+    }
+    if (activity.id === 'fc26') {
+      document.getElementById('fc26-card').style.display = 'block'
     }
   })
 }
