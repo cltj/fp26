@@ -396,6 +396,7 @@ function getSortedTeams() {
 }
 
 function render() {
+  console.log('render() called. TEAMS:', TEAMS.length, 'allParticipants:', allParticipants.length)
   const sorted = getSortedTeams()
   document.getElementById('scoreboard').innerHTML = sorted.map((team, i) => {
     const rank = i + 1
@@ -524,7 +525,9 @@ function setStatus(msg) { document.getElementById('status').textContent = msg }
 async function loadTeams() {
   const { data, error } = await sb.from('teams').select('*').order('id')
   if (error) { setStatus('⚠️ Could not load teams'); return }
+  console.log('Raw teams data:', JSON.stringify(data, null, 2))
   TEAMS = data.map(t => ({ id: t.id, name: t.team_name, flag: t.flag || '🏳️' }))
+  console.log('TEAMS array:', TEAMS)
   TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })
 }
 
@@ -532,7 +535,8 @@ async function loadParticipants() {
   const { data, error } = await sb.from('participants').select('id, participant, photo_url, team_id').order('participant')
   if (error) { console.error('Could not load participants:', error); return }
   allParticipants = data || []
-  console.log('Loaded participants:', allParticipants.map(p => ({ id: p.id, name: p.participant, team_id: p.team_id })))
+  console.log('Raw participants data:', JSON.stringify(data, null, 2))
+  console.log('Participants with teams:', allParticipants.filter(p => p.team_id !== null).map(p => ({ id: p.id, name: p.participant, team_id: p.team_id, type: typeof p.team_id })))
 }
 
 function getUnassignedParticipants() {
@@ -540,9 +544,16 @@ function getUnassignedParticipants() {
 }
 
 function getTeamMembers(teamId) {
-  teamId = parseInt(teamId) // Ensure integer comparison
-  const members = allParticipants.filter(p => p.team_id === teamId)
-  console.log(`Team ${teamId} members:`, members.map(m => m.participant))
+  console.log(`getTeamMembers called with teamId: ${teamId} (type: ${typeof teamId})`)
+  const teamIdNum = parseInt(teamId)
+  const members = allParticipants.filter(p => {
+    const match = p.team_id === teamIdNum
+    if (p.team_id !== null) {
+      console.log(`  Checking participant ${p.participant}: team_id=${p.team_id} (type: ${typeof p.team_id}), match=${match}`)
+    }
+    return match
+  })
+  console.log(`Team ${teamIdNum} has ${members.length} members:`, members.map(m => m.participant))
   return members
 }
 
