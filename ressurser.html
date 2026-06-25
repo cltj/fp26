@@ -137,9 +137,9 @@
 </main>
 
 <div class="access-denied" id="access-denied" style="display: none;">
-  <div class="icon">🔒</div>
-  <h2>Kun for admin</h2>
-  <p style="color: rgba(255,255,255,0.5); margin-top: 0.5rem;">Denne siden er kun tilgjengelig for admin.</p>
+  <div class="icon">🎴</div>
+  <h2>Ressurser ikke tilgjengelig</h2>
+  <p style="color: rgba(255,255,255,0.5); margin-top: 0.5rem;">Vent til admin aktiverer ressurssiden.</p>
   <a href="home.html" style="color: #c8f45a; margin-top: 1rem;">← Tilbake</a>
 </div>
 
@@ -156,12 +156,29 @@ if (stored) {
   isAdmin = session.isAdmin === true || session.name === 'Tj'
 }
 
-if (isAdmin) {
-  document.getElementById('main-content').style.display = 'block'
-  init()
-} else {
-  document.getElementById('access-denied').style.display = 'flex'
+// Check if activity is active for non-admin users
+async function checkAccess() {
+  if (isAdmin) {
+    document.getElementById('main-content').style.display = 'block'
+    init()
+    return
+  }
+  
+  // For non-admin, check if ressurser activity is active
+  const { data: activity, error } = await sb
+    .from('activities')
+    .select('is_active')
+    .eq('id', 'ressurser')
+    .single()
+  
+  if (!error && activity && activity.is_active) {
+    document.getElementById('main-content').style.display = 'block'
+    init()
+  } else {
+    document.getElementById('access-denied').style.display = 'flex'
+  }
 }
+checkAccess()
 
 let teams = {}
 let activities = {}
