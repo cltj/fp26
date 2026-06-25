@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>🎴 Ressurser</title>
 <link rel="stylesheet" href="story/story.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   .access-denied {
     display: flex;
@@ -31,6 +32,10 @@
   .resource-card:hover {
     border-color: rgba(200,244,90,0.3);
   }
+  .resource-card.assigned {
+    border-color: rgba(200,244,90,0.5);
+    background: rgba(200,244,90,0.08);
+  }
   .resource-header {
     display: flex;
     align-items: center;
@@ -50,6 +55,14 @@
     color: rgba(255,255,255,0.5);
     background: rgba(255,255,255,0.1);
     padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .resource-owner {
+    margin-left: auto;
+    font-size: 12px;
+    color: #c8f45a;
+    background: rgba(200,244,90,0.15);
+    padding: 4px 10px;
     border-radius: 10px;
   }
   .resource-effects {
@@ -88,6 +101,12 @@
     letter-spacing: 1px;
     margin-bottom: 1rem;
   }
+  
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: rgba(255,255,255,0.5);
+  }
 </style>
 </head>
 <body>
@@ -104,295 +123,15 @@
     <h1>🎴 Ressurser</h1>
     <p style="color: rgba(255,255,255,0.6); margin-bottom: 1.5rem;">Kort som deles ut under quiz-delen av programmet.</p>
     
-    <div class="resource-list">
-      
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🧤</span>
-          <span class="resource-name">Keeperhanske</span>
-          <span class="resource-count">x2</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Lov å bruke hånda (i spill 3v3 så blir en keeper innenfor lovlig område)</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Må spille med hansker på PS5</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🔽</span>
-          <span class="resource-name">Krymp</span>
-          <span class="resource-count">x3</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Fungerer på hanske, sko, målstørrelse, avstand på øvelse</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Forkort tiden fra 5 til 3 min</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label general">Generelt:</span>
-            <span class="effect-text">Fungerer også på Hydration break kortet</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🔼</span>
-          <span class="resource-name">Forstørr</span>
-          <span class="resource-count">x3</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Fungerer på hanske, sko, målstørrelse, avstand på øvelse</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Forleng tiden fra 5 til 8 min</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label general">Generelt:</span>
-            <span class="effect-text">Fungerer også på Hydration break kortet</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🟨</span>
-          <span class="resource-name">Gult kort</span>
-          <span class="resource-count">x2</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Må bruke andre/svak fot i 1 minutt</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Valgt deltaker kan ikke bruke sprint i neste omgang</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🟥</span>
-          <span class="resource-name">Rødt kort</span>
-          <span class="resource-count">x2</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Mister ett forsøk, eller blir sendt ut av banen (3v3)</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Valgt deltager kan ikke røre kontrolleren i neste omgang (kan gi til sin egen lagkamerat - fordel å spille alene)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🍺</span>
-          <span class="resource-name">Hydration break</span>
-          <span class="resource-count">x2</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label general">Effekt:</span>
-            <span class="effect-text">Drikke 0.33 øl på 3 minutter (Kan forstørres til 0.5 eller forminskes til 0.18)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">📺</span>
-          <span class="resource-name">VAR</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Du får et nytt forsøk</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Annuller et kort som nettopp ble spilt</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label general">Generelt:</span>
-            <span class="effect-text">Nøytraliserer Filming kortet</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🔄</span>
-          <span class="resource-name">Innbytter</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Bytt ut en spiller med en annen tilgjengelig deltaker</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Motstanderen må bytte ut 3 spillere på banen ved neste stopp i spillet</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">©️</span>
-          <span class="resource-name">Kaptein</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">+2p dersom laget vinner øvelsen</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">+2p dersom laget vinner øvelsen</span>
-          </div>
-        </div>
-      </div>
-
-      <hr class="section-divider">
-      <div class="section-title">Spesialkort</div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🏟️</span>
-          <span class="resource-name">Hjemme publikum</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label general">Effekt:</span>
-            <span class="effect-text">Tving et annet lag til å heie (varer kun en omgang hvor benyttet i FC26)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">👎</span>
-          <span class="resource-name">Borte publikum</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label general">Effekt:</span>
-            <span class="effect-text">Tving et annet lag til å buu (varer kun en omgang hvor benyttet i FC26)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🇳🇴</span>
-          <span class="resource-name">Nasjonal stolthet</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label general">Effekt:</span>
-            <span class="effect-text">Tving lag til å synge nasjonalsang (norsk eller fransk) under øvelsen</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🎤</span>
-          <span class="resource-name">Pressekonferanse</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Motstanderne stiller tre spørsmål. Svar må gis før deltakelse</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Må gi intervju i pausen</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🤝</span>
-          <span class="resource-name">Fair play</span>
-          <span class="resource-count">x2</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Fjern siste effekt for hvilket som helst lag</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Fjern siste effekt for hvilket som helst lag</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🎭</span>
-          <span class="resource-name">Filming</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label general">Effekt:</span>
-            <span class="effect-text">Juks deg en fordel (et tilfeldig kort fra et annet lag)</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label general">Mottiltak:</span>
-            <span class="effect-text">VAR kortet nøytraliserer filming (30 sek på seg)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="resource-card">
-        <div class="resource-header">
-          <span class="resource-icon">🎙️</span>
-          <span class="resource-name">Kommentator/eksperten</span>
-          <span class="resource-count">x1</span>
-        </div>
-        <div class="resource-effects">
-          <div class="effect-row">
-            <span class="effect-label ballbinge">Ballbinge:</span>
-            <span class="effect-text">Du må kommentere øvelsen i 3 minutter</span>
-          </div>
-          <div class="effect-row">
-            <span class="effect-label fc26">FC26:</span>
-            <span class="effect-text">Vær kommentator i en omgang</span>
-          </div>
-        </div>
-      </div>
-
+    <div class="resource-list" id="standard-cards">
+      <div class="loading">Laster kort...</div>
+    </div>
+    
+    <hr class="section-divider">
+    <div class="section-title">Spesialkort</div>
+    
+    <div class="resource-list" id="special-cards">
+      <div class="loading">Laster kort...</div>
     </div>
   </div>
 </main>
@@ -405,6 +144,10 @@
 </div>
 
 <script>
+const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
 const stored = localStorage.getItem('fp26_session')
 let isAdmin = false
 
@@ -415,10 +158,124 @@ if (stored) {
 
 if (isAdmin) {
   document.getElementById('main-content').style.display = 'block'
+  init()
 } else {
   document.getElementById('access-denied').style.display = 'flex'
 }
+
+let teams = {}
+let activities = {}
+
+async function init() {
+  // Load teams for displaying ownership
+  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag')
+  if (teamsData) {
+    teamsData.forEach(t => teams[t.id] = t)
+  }
+  
+  // Load activity states
+  const { data: activitiesData } = await sb.from('activities').select('id, is_active')
+  if (activitiesData) {
+    activitiesData.forEach(a => activities[a.id] = a.is_active)
+  }
+  
+  // Load and render resources
+  await loadResources()
+}
+
+async function loadResources() {
+  const { data: resources, error } = await sb
+    .from('resources')
+    .select('*')
+    .order('id')
+  
+  if (error) {
+    console.error('Error loading resources:', error)
+    document.getElementById('standard-cards').innerHTML = '<p>Kunne ikke laste kort</p>'
+    document.getElementById('special-cards').innerHTML = ''
+    return
+  }
+  
+  const standardCards = resources.filter(r => r.category === 'standard')
+  const specialCards = resources.filter(r => r.category === 'special')
+  
+  document.getElementById('standard-cards').innerHTML = standardCards.map(renderCard).join('')
+  document.getElementById('special-cards').innerHTML = specialCards.map(renderCard).join('')
+}
+
+function renderCard(card) {
+  const owner = card.team_id ? teams[card.team_id] : null
+  const ownerHtml = owner ? `<span class="resource-owner">${owner.flag} ${owner.team_name}</span>` : ''
+  
+  let effectsHtml = ''
+  
+  // Show Ballbinge (ex1) only if ballbinge activity is active
+  if (card.ex1 && activities['ballbinge']) {
+    effectsHtml += `
+      <div class="effect-row">
+        <span class="effect-label ballbinge">Ballbinge:</span>
+        <span class="effect-text">${card.ex1}</span>
+      </div>
+    `
+  }
+  
+  // Show FC26 (ex2) only if fc26 activity is active
+  if (card.ex2 && activities['fc26']) {
+    effectsHtml += `
+      <div class="effect-row">
+        <span class="effect-label fc26">FC26:</span>
+        <span class="effect-text">${card.ex2}</span>
+      </div>
+    `
+  }
+  
+  // Always show general effect
+  if (card.effect) {
+    effectsHtml += `
+      <div class="effect-row">
+        <span class="effect-label general">Effekt:</span>
+        <span class="effect-text">${card.effect}</span>
+      </div>
+    `
+  }
+  
+  // Always show notes
+  if (card.notes) {
+    effectsHtml += `
+      <div class="effect-row">
+        <span class="effect-label general">Generelt:</span>
+        <span class="effect-text">${card.notes}</span>
+      </div>
+    `
+  }
+  
+  // If no effects visible yet (activities not started), show placeholder
+  if (!effectsHtml) {
+    effectsHtml = `
+      <div class="effect-row">
+        <span class="effect-text" style="color: rgba(255,255,255,0.4); font-style: italic;">Effekter vises når øvelser aktiveres</span>
+      </div>
+    `
+  }
+  
+  return `
+    <div class="resource-card ${owner ? 'assigned' : ''}">
+      <div class="resource-header">
+        <span class="resource-icon">${card.icon || '🎴'}</span>
+        <span class="resource-name">${card.title}</span>
+        <span class="resource-count">x${card.qty}</span>
+        ${ownerHtml}
+      </div>
+      <div class="resource-effects">
+        ${effectsHtml}
+      </div>
+    </div>
+  `
+}
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
