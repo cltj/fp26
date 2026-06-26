@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orakel Resultater - FP26</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #fff;
+      padding: 20px;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 10px; }
+    .subtitle { text-align: center; color: #888; margin-bottom: 30px; }
+    
+    .facts {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    .facts h3 { margin-bottom: 15px; color: #ffd700; }
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .fact { 
+      background: rgba(0,0,0,0.2); 
+      padding: 8px 12px; 
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .fact .label { color: #aaa; }
+    .fact .value { font-weight: bold; color: #4ade80; }
+    
+    .results-section { margin-bottom: 30px; }
+    .results-section h2 { margin-bottom: 15px; border-bottom: 2px solid #ffd700; padding-bottom: 10px; }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    th { background: rgba(255,215,0,0.2); color: #ffd700; }
+    tr:hover { background: rgba(255,255,255,0.05); }
+    .points { 
+      font-weight: bold; 
+      color: #4ade80;
+      text-align: center;
+    }
+    .correct { color: #4ade80; }
+    .wrong { color: #f87171; }
+    
+    .team-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .team-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    .team-card h3 { margin-bottom: 10px; }
+    .team-points { font-size: 48px; font-weight: bold; color: #ffd700; }
+    
+    .loading { text-align: center; padding: 50px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔮 Orakel Resultater</h1>
+    <p class="subtitle">Frankrike vs Norge - 26. juni 2026</p>
+    
+    <div class="facts">
+      <h3>📋 Fasit</h3>
+      <div class="facts-grid">
+        <div class="fact"><span class="label">Resultat:</span> <span class="value">🇫🇷 Frankrike 4-1 Norge 🇳🇴</span></div>
+        <div class="fact"><span class="label">Scorer først:</span> <span class="value">Frankrike</span></div>
+        <div class="fact"><span class="label">Gule kort:</span> <span class="value">Uavgjort (1-1)</span></div>
+        <div class="fact"><span class="label">Norge holder nullen:</span> <span class="value">Nei</span></div>
+        <div class="fact"><span class="label">Haaland scorer:</span> <span class="value">Nei</span></div>
+        <div class="fact"><span class="label">Mbappé scorer:</span> <span class="value">Nei</span></div>
+        <div class="fact"><span class="label">Straffescoring:</span> <span class="value">Nei</span></div>
+      </div>
+    </div>
+    
+    <div id="results" class="loading">Laster resultater...</div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+    // FASIT - de faktiske resultatene
+    const FASIT = {
+      score_frankrike: 4,
+      score_norge: 1,
+      first_goal: 'frankrike',
+      yellow_cards: 'uavgjort',
+      clean_sheet: 'nei',
+      haaland_scores: 'nei',
+      mbappe_scores: 'nei',
+      penalty: 'nei'
+    }
+
+    // Poengberegning
+    function calculatePoints(prediction) {
+      let points = 0
+      let details = []
+
+      // Eksakt resultat: 5 poeng
+      if (prediction.score_frankrike === FASIT.score_frankrike && 
+          prediction.score_norge === FASIT.score_norge) {
+        points += 5
+        details.push({ q: 'Eksakt resultat', correct: true, pts: 5 })
+      } else {
+        // Riktig vinner: 2 poeng
+        const predWinner = prediction.score_frankrike > prediction.score_norge ? 'frankrike' : 
+                          prediction.score_frankrike < prediction.score_norge ? 'norge' : 'uavgjort'
+        const actualWinner = 'frankrike' // 4-1
+        if (predWinner === actualWinner) {
+          points += 2
+          details.push({ q: 'Riktig vinner', correct: true, pts: 2 })
+        } else {
+          details.push({ q: 'Resultat', correct: false, pts: 0 })
+        }
+      }
+
+      // Scorer først: 1 poeng
+      if (prediction.first_goal === FASIT.first_goal) {
+        points += 1
+        details.push({ q: 'Scorer først', correct: true, pts: 1 })
+      } else {
+        details.push({ q: 'Scorer først', correct: false, pts: 0 })
+      }
+
+      // Gule kort: 1 poeng
+      if (prediction.yellow_cards === FASIT.yellow_cards) {
+        points += 1
+        details.push({ q: 'Gule kort', correct: true, pts: 1 })
+      } else {
+        details.push({ q: 'Gule kort', correct: false, pts: 0 })
+      }
+
+      // Clean sheet: 1 poeng
+      if (prediction.clean_sheet === FASIT.clean_sheet) {
+        points += 1
+        details.push({ q: 'Norge holder nullen', correct: true, pts: 1 })
+      } else {
+        details.push({ q: 'Norge holder nullen', correct: false, pts: 0 })
+      }
+
+      // Haaland scorer: 1 poeng
+      if (prediction.haaland_scores === FASIT.haaland_scores) {
+        points += 1
+        details.push({ q: 'Haaland scorer', correct: true, pts: 1 })
+      } else {
+        details.push({ q: 'Haaland scorer', correct: false, pts: 0 })
+      }
+
+      // Mbappe scorer: 1 poeng
+      if (prediction.mbappe_scores === FASIT.mbappe_scores) {
+        points += 1
+        details.push({ q: 'Mbappé scorer', correct: true, pts: 1 })
+      } else {
+        details.push({ q: 'Mbappé scorer', correct: false, pts: 0 })
+      }
+
+      // Straffe: 1 poeng
+      if (prediction.penalty === FASIT.penalty) {
+        points += 1
+        details.push({ q: 'Straffescoring', correct: true, pts: 1 })
+      } else {
+        details.push({ q: 'Straffescoring', correct: false, pts: 0 })
+      }
+
+      return { points, details }
+    }
+
+    async function loadResults() {
+      // Hent predictions med participant og team info
+      const { data: predictions, error } = await sb
+        .from('predictions')
+        .select(`
+          *,
+          participants(name, team_id),
+          teams(name, flag)
+        `)
+
+      if (error) {
+        document.getElementById('results').innerHTML = `<p>Feil: ${error.message}</p>`
+        return
+      }
+
+      if (!predictions || predictions.length === 0) {
+        document.getElementById('results').innerHTML = '<p>Ingen prediksjoner funnet.</p>'
+        return
+      }
+
+      // Beregn poeng for hver deltaker
+      const results = predictions.map(p => {
+        const { points, details } = calculatePoints(p)
+        return {
+          name: p.participants?.name || 'Ukjent',
+          team: p.teams?.name || 'Ukjent lag',
+          team_id: p.team_id,
+          flag: p.teams?.flag || '🏳️',
+          prediction: `${p.score_norge}-${p.score_frankrike}`,
+          points,
+          details
+        }
+      })
+
+      // Sorter etter poeng
+      results.sort((a, b) => b.points - a.points)
+
+      // Beregn lagpoeng
+      const teamPoints = {}
+      results.forEach(r => {
+        if (!teamPoints[r.team_id]) {
+          teamPoints[r.team_id] = { name: r.team, flag: r.flag, points: 0, count: 0 }
+        }
+        teamPoints[r.team_id].points += r.points
+        teamPoints[r.team_id].count++
+      })
+
+      // Generer HTML
+      let html = `
+        <div class="results-section">
+          <h2>🏆 Individuelle resultater</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Deltaker</th>
+                <th>Lag</th>
+                <th>Tipp</th>
+                <th>Detaljer</th>
+                <th class="points">Poeng</th>
+              </tr>
+            </thead>
+            <tbody>
+      `
+
+      results.forEach((r, i) => {
+        const detailsStr = r.details.map(d => 
+          `<span class="${d.correct ? 'correct' : 'wrong'}">${d.correct ? '✓' : '✗'} ${d.q}</span>`
+        ).join(', ')
+        
+        html += `
+          <tr>
+            <td>${i + 1}</td>
+            <td><strong>${r.name}</strong></td>
+            <td>${r.flag} ${r.team}</td>
+            <td>🇳🇴 ${r.prediction.split('-')[0]} - ${r.prediction.split('-')[1]} 🇫🇷</td>
+            <td style="font-size: 12px;">${detailsStr}</td>
+            <td class="points">${r.points}</td>
+          </tr>
+        `
+      })
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="results-section">
+          <h2>👥 Lagresultater</h2>
+          <div class="team-summary">
+      `
+
+      Object.values(teamPoints)
+        .sort((a, b) => b.points - a.points)
+        .forEach(team => {
+          html += `
+            <div class="team-card">
+              <h3>${team.flag} ${team.name}</h3>
+              <div class="team-points">${team.points}</div>
+              <p style="color: #888;">${team.count} deltakere</p>
+            </div>
+          `
+        })
+
+      html += `
+          </div>
+        </div>
+      `
+
+      document.getElementById('results').innerHTML = html
+    }
+
+    loadResults()
+  </script>
+</body>
+</html>
