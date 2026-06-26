@@ -113,7 +113,7 @@
       score_frankrike: 4,
       score_norge: 1,
       first_goal: 'frankrike',
-      yellow_cards: 'uavgjort',
+      yellow_cards: 'likt',
       clean_sheet: 'nei',
       haaland_scores: 'nei',
       mbappe_scores: 'nei',
@@ -200,8 +200,8 @@
         .from('predictions')
         .select(`
           *,
-          participants(name, team_id),
-          teams(name, flag)
+          participants(participant, team_id),
+          teams(team_name, flag)
         `)
 
       if (error) {
@@ -218,8 +218,8 @@
       const results = predictions.map(p => {
         const { points, details } = calculatePoints(p)
         return {
-          name: p.participants?.name || 'Ukjent',
-          team: p.teams?.name || 'Ukjent lag',
+          name: p.participants?.participant || 'Ukjent',
+          team: p.teams?.team_name || 'Ukjent lag',
           team_id: p.team_id,
           flag: p.teams?.flag || '🏳️',
           prediction: `${p.score_norge}-${p.score_frankrike}`,
