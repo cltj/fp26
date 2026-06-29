@@ -2749,10 +2749,12 @@ async function resetFasit() {
 }
 
 async function loadPredictions() {
-  const { data: predictions } = await sb
+  const { data: predictions, error } = await sb
     .from('activity_predictions')
-    .select('*, participants(name, team_id, teams(flag, team_name))')
+    .select('*, participants(participant, team_id, teams(flag, team_name))')
     .order('created_at', { ascending: true })
+  
+  console.log('Loaded predictions:', predictions?.length || 0, error || 'no error')
   
   document.getElementById('prediction-count').textContent = predictions?.length || 0
   
@@ -2784,10 +2786,10 @@ async function loadPredictions() {
     for (const p of predictions) {
       const row = document.createElement('tr')
       const teamFlag = p.participants?.teams?.flag || ''
-      const teamName = p.participants?.teams?.team_name || ''
+      const participantName = p.participants?.participant || '?'
       
       row.innerHTML = `
-        <td>${p.participants?.name || '?'}</td>
+        <td>${participantName}</td>
         <td>${teamFlag}</td>
         <td style="text-align: center; font-weight: 600;">${p.home_goals} – ${p.away_goals}</td>
         <td style="text-align: center;">${formatChoice(p.first_goal)}</td>
