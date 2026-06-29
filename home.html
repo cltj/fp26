@@ -724,7 +724,10 @@
       <span id="user-name"></span>
     </div>
   </div>
-  <button class="logout-btn" onclick="logout()">Logg ut</button>
+  <div style="display: flex; gap: 8px;">
+    <a href="admin.html" class="logout-btn" id="admin-link" style="display: none; text-decoration: none;">👑 Admin</a>
+    <button class="logout-btn" onclick="logout()">Logg ut</button>
+  </div>
 </header>
 
 <main>
@@ -1050,6 +1053,7 @@ if (session.isAdmin || session.name === 'Tj') {
   document.getElementById('user-badge').classList.add('admin-badge')
   document.getElementById('user-badge').innerHTML = '🔒 Admin'
   document.getElementById('admin-section').style.display = 'block'
+  document.getElementById('admin-link').style.display = 'block'
   loadActivityStates()
 }
 
