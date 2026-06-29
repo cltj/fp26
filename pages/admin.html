@@ -1076,6 +1076,7 @@ function renderRegisteredParticipants() {
     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; background: var(--surface); border-radius: var(--radius-sm); min-width: 100px;">
       <img src="${photoSrc}" alt="${p.participant}" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;" onerror="this.src='${DEFAULT_PHOTO}'">
       <span style="font-size: 12px; font-weight: 500;">${p.participant}</span>
+      <span style="font-size: 10px; color: var(--muted); font-family: monospace;">PIN: ${p.pin}</span>
       <select style="font-size: 11px; padding: 4px; width: 90px;" onchange="updateParticipantTeam(${p.id}, this.value)">
         <option value="">Ingen lag</option>
         ${activeTeams.map(t => `
