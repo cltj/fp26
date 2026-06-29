@@ -517,7 +517,6 @@
     <div class="tab" onclick="showPanel('scores')">📊 Poeng</div>
     <div class="tab" onclick="showPanel('quiz')">🧠 Quiz</div>
     <div class="tab" onclick="showPanel('timeline')">📅 Tidslinje</div>
-    <div class="tab" onclick="showPanel('reset')">🔄 Reset</div>
   </div>
   
   <!-- Match Panel (contains Kampoppsett, Gruppe, Deltakere) -->
@@ -603,6 +602,31 @@
       <div id="participants-status" class="status-msg"></div>
     </div>
     
+    <!-- Section 4: Reset -->
+    <div class="section-card" style="border: 1px solid rgba(255,107,107,0.3); background: rgba(255,107,107,0.05);">
+      <h3>🔄 Reset spill</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Nullstill all spilldata. <strong style="color: var(--danger);">Kan ikke angres!</strong>
+      </p>
+      <details style="margin-bottom: 1rem;">
+        <summary style="cursor: pointer; font-size: 12px; color: var(--muted);">Hva blir slettet?</summary>
+        <ul style="font-size: 11px; color: var(--muted); margin: 0.5rem 0 0 1rem; padding: 0;">
+          <li>Alle quiz-svar</li>
+          <li>Alle fotball-resultater</li>
+          <li>Alle orakel-tips</li>
+          <li>Alle FC26-kamper</li>
+          <li>Alle lagpoeng</li>
+          <li>Alle ressurs-tildelinger</li>
+        </ul>
+      </details>
+      <div class="form-row">
+        <label>Bekreft</label>
+        <input type="text" id="reset-confirm" placeholder="Skriv RESET">
+        <button class="btn btn-danger" onclick="resetGame()">Reset</button>
+      </div>
+      <div id="reset-status" class="status-msg"></div>
+    </div>
+    
   </div>
   
   <!-- Activities Panel -->
@@ -685,38 +709,6 @@
       <div class="timeline" id="timeline">
         <!-- Populated by JS -->
       </div>
-    </div>
-  </div>
-  
-  <!-- Reset Panel -->
-  <div id="panel-reset" class="panel">
-    <div class="reset-warning">
-      <h4>⚠️ Advarsel: Reset hele spillet</h4>
-      <p>Dette vil slette all spilldata og sette alt tilbake til start:</p>
-      <ul>
-        <li>Alle quiz-svar slettes</li>
-        <li>Alle fotball-resultater slettes</li>
-        <li>Alle orakel-tips slettes</li>
-        <li>Alle FC26-kamper slettes</li>
-        <li>Alle lagpoeng nullstilles</li>
-        <li>Alle ressurs-tildelinger fjernes</li>
-      </ul>
-      <p style="font-size: 12px; color: var(--danger); margin-top: 1rem;">
-        <strong>Denne handlingen kan ikke angres!</strong>
-      </p>
-    </div>
-    
-    <div class="section-card">
-      <h3>🔄 Bekreft reset</h3>
-      <div class="form-row">
-        <label>Skriv "RESET"</label>
-        <input type="text" id="reset-confirm" placeholder="Skriv RESET for å bekrefte">
-      </div>
-      <div class="form-row">
-        <label></label>
-        <button class="btn btn-danger" onclick="resetGame()">Reset hele spillet</button>
-      </div>
-      <div id="reset-status" class="status-msg"></div>
     </div>
   </div>
   
