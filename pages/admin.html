@@ -897,6 +897,19 @@
         </div>
         <button class="btn btn-primary" style="width: 100%;" onclick="saveFotballExercise(4)">💾 Lagre Øvelse 4</button>
       </div>
+      
+      <!-- Reset section -->
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,100,100,0.3);">
+        <h4 style="color: var(--danger); margin-bottom: 12px;">⚠️ Nullstill resultater</h4>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(1)">Nullstill Ø1</button>
+          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise('2a')">Nullstill Ø2a</button>
+          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise('2b')">Nullstill Ø2b</button>
+          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(3)">Nullstill Ø3</button>
+          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(4)">Nullstill Ø4</button>
+        </div>
+        <button class="btn" style="width: 100%; background: rgba(255,50,50,0.2); border: 1px solid rgba(255,50,50,0.4); color: #ff6b6b;" onclick="resetAllFotball()">🗑️ Nullstill ALLE fotball-resultater</button>
+      </div>
     </div>
   </div>
   
@@ -1934,6 +1947,51 @@ async function saveFotballExercise(exerciseNum) {
   }
   
   alert(`Øvelse ${exerciseNum} lagret!`)
+  await loadFotballData()
+  await loadScores()
+}
+
+async function resetFotballExercise(exerciseNum) {
+  const exerciseId = exerciseNum.toString()
+  
+  if (!confirm(`Er du sikker på at du vil nullstille Øvelse ${exerciseId}?`)) return
+  
+  // Delete from placements
+  await sb.from('ballbinge_placements').delete().eq('exercise', exerciseId)
+  
+  // Delete from scores
+  const exerciseKey = exerciseNum === 4 ? 'e4' : `e${exerciseId}`
+  await sb.from('activity_fotball').delete().eq('exercise', exerciseKey)
+  
+  // Clear the selects
+  if (exerciseNum === 4) {
+    document.getElementById('fb-e4-result').value = ''
+  } else {
+    for (let i = 1; i <= 4; i++) {
+      const select = document.getElementById(`fb-e${exerciseId}-place${i}`)
+      if (select) select.value = ''
+    }
+  }
+  
+  alert(`Øvelse ${exerciseId} nullstilt!`)
+  await loadFotballData()
+  await loadScores()
+}
+
+async function resetAllFotball() {
+  if (!confirm('⚠️ Er du HELT sikker på at du vil nullstille ALLE fotball-resultater?')) return
+  if (!confirm('Dette kan ikke angres. Fortsette?')) return
+  
+  // Delete all fotball data
+  await sb.from('ballbinge_placements').delete().neq('exercise', '')
+  await sb.from('activity_fotball').delete().neq('id', 0)
+  
+  // Clear all selects
+  document.querySelectorAll('select[id^="fb-"]').forEach(select => {
+    select.value = ''
+  })
+  
+  alert('Alle fotball-resultater nullstilt!')
   await loadFotballData()
   await loadScores()
 }
