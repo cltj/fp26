@@ -315,7 +315,7 @@
           <p><strong>1 forsøk for hver deltager – øvelsen består av to omganger</strong></p>
           
           <div class="pool-section">
-            <h4>Rekkefølge (minst til mest ressurser)</h4>
+            <h4>Rekkefølge</h4>
             <ol class="order-list" id="e2-order">
               <!-- Filled by JS based on quiz results -->
             </ol>
@@ -597,7 +597,6 @@ function renderExercise2Order() {
     <li>
       <span class="order-num">${idx + 1}</span>
       <span>${item.team.flag} ${item.team.team_name}</span>
-      <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 12px;">${item.resources} ressurser</span>
     </li>
   `).join('')
 }
