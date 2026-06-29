@@ -253,13 +253,17 @@
           <span style="width: 20px;"></span>
           <span style="width: 18px;"></span>
           <span class="title">Fotball</span>
-          <span class="col">Ø1</span>
-          <span class="col">Ø2</span>
-          <span class="col">Ø3</span>
-          <span class="col">Ø4</span>
-          <span class="col total">Tot</span>
+          <span class="col total">Poeng</span>
         </div>
         <div id="standings-body">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+      
+      <!-- Exercise breakdown -->
+      <div id="exercise-breakdown" style="margin-top: 1rem; padding: 12px; background: rgba(30,30,30,0.8); border: 0.5px solid rgba(255,255,255,0.1); border-radius: 12px;">
+        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.7);">📊 Øvelser gjennomført</h4>
+        <div id="exercise-badges" style="display: flex; flex-wrap: wrap; gap: 6px;">
           <!-- Filled by JS -->
         </div>
       </div>
@@ -489,18 +493,38 @@ async function loadScores() {
     .from('activity_fotball')
     .select('*')
   
+  // Sum all points per team
   scores = {}
+  const exerciseCounts = {}
+  
   if (scoresData) {
     scoresData.forEach(s => {
-      if (!scores[s.team_id]) {
-        scores[s.team_id] = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-      }
-      scores[s.team_id][s.exercise_id] = s.points
+      scores[s.team_id] = (scores[s.team_id] || 0) + s.points
+      exerciseCounts[s.exercise_name] = (exerciseCounts[s.exercise_name] || 0) + 1
     })
   }
   
+  // Divide exercise counts by 4 (each exercise has 4 team entries)
+  Object.keys(exerciseCounts).forEach(name => {
+    exerciseCounts[name] = Math.floor(exerciseCounts[name] / 4)
+  })
+  
   renderStandings()
+  renderExerciseBadges(exerciseCounts)
   renderExercise4Teams()
+}
+
+function renderExerciseBadges(counts) {
+  const container = document.getElementById('exercise-badges')
+  if (!container) return
+  
+  const badges = Object.entries(counts).map(([name, count]) => 
+    `<span style="background: rgba(200,244,90,0.15); border: 1px solid rgba(200,244,90,0.3); border-radius: 99px; padding: 4px 10px; font-size: 12px; color: #c8f45a;">
+      ${name} <strong style="margin-left: 4px;">×${count}</strong>
+    </span>`
+  ).join('')
+  
+  container.innerHTML = badges || '<span style="color: rgba(255,255,255,0.5); font-size: 12px;">Ingen øvelser ennå</span>'
 }
 
 function renderStandings() {
@@ -508,10 +532,8 @@ function renderStandings() {
   tbody.innerHTML = ''
   
   const standings = Object.values(teams).map(team => {
-    const s = scores[team.id] || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    const e2Total = (s[2] || 0) + (s[3] || 0)  // Presisjon R1 + R2
-    const total = (s[1] || 0) + e2Total + (s[4] || 0) + (s[5] || 0)
-    return { team, e1: s[1] || 0, e2: e2Total, e3: s[4] || 0, e4: s[5] || 0, total }
+    const total = scores[team.id] || 0
+    return { team, total }
   })
   
   standings.sort((a, b) => b.total - a.total)
@@ -524,10 +546,6 @@ function renderStandings() {
       <span class="bb-pos">${idx + 1}</span>
       <span class="bb-flag">${s.team.flag}</span>
       <span class="bb-name">${s.team.team_name}</span>
-      <span class="bb-score">${s.e1 || '-'}</span>
-      <span class="bb-score">${s.e2 || '-'}</span>
-      <span class="bb-score">${s.e3 || '-'}</span>
-      <span class="bb-score">${s.e4 || '-'}</span>
       <span class="bb-total">${s.total}p</span>
     `
     tbody.appendChild(row)
@@ -585,16 +603,14 @@ function renderExercise2Order() {
 }
 
 function renderExercise4Teams() {
-  // Get standings without e5 (3v3) scores
+  // Get standings based on total scores
   const standings = Object.values(teams).map(team => {
-    const s = scores[team.id] || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    const e2Total = (s[2] || 0) + (s[3] || 0)  // Presisjon R1 + R2
-    const total = (s[1] || 0) + e2Total + (s[4] || 0) // Exclude e5
-    return { team, total, hasScores: (s[1] || 0) + e2Total + (s[4] || 0) > 0 }
+    const total = scores[team.id] || 0
+    return { team, total }
   })
   
-  // Check if we have any scores from exercises 1-4
-  const hasAnyScores = standings.some(s => s.hasScores)
+  // Check if we have any scores
+  const hasAnyScores = standings.some(s => s.total > 0)
   
   if (!hasAnyScores || standings.length < 4) {
     // No scores yet - show placeholder

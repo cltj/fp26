@@ -761,142 +761,73 @@
   
   <!-- Fotball Panel -->
   <div id="panel-fotball" class="panel">
+    <!-- Add new exercise -->
     <div class="section-card">
-      <h3>⚽ Registrer fotball-resultater</h3>
+      <h3>➕ Legg til øvelse</h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
-        Registrer plasseringer for hver øvelse. Poeng beregnes automatisk.
+        Velg øvelse og registrer plasseringer. Du kan legge til samme øvelse flere ganger!
       </p>
       
-      <!-- Exercise 1 -->
-      <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">Øvelse 1 – Tverrlegger (4/3/2/1p)</h4>
+      <div class="form-row" style="margin-bottom: 12px;">
+        <label style="width: 80px; font-size: 12px;">Øvelse:</label>
+        <select id="fb-exercise-type" style="flex: 1;">
+          <option value="">Velg øvelse</option>
+          <option value="Tverrlegger">Tverrlegger</option>
+          <option value="Presisjon">Presisjon</option>
+          <option value="Straffespark">Straffespark</option>
+          <option value="3v3">3v3</option>
+          <option value="Annet">Annet (egendefinert)</option>
+        </select>
+      </div>
+      <div id="fb-custom-name-row" class="form-row" style="margin-bottom: 12px; display: none;">
+        <label style="width: 80px; font-size: 12px;">Navn:</label>
+        <input type="text" id="fb-custom-name" placeholder="Navn på øvelse" style="flex: 1;">
+      </div>
+      
+      <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+        <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Plasseringer (4/3/2/1 poeng)</p>
         <div class="form-row" style="margin-bottom: 8px;">
           <label style="width: 80px; font-size: 12px;">1. plass:</label>
-          <select id="fb-e1-place1" style="flex: 1;"><option value="">Velg lag</option></select>
+          <select id="fb-add-place1" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
         <div class="form-row" style="margin-bottom: 8px;">
           <label style="width: 80px; font-size: 12px;">2. plass:</label>
-          <select id="fb-e1-place2" style="flex: 1;"><option value="">Velg lag</option></select>
+          <select id="fb-add-place2" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
         <div class="form-row" style="margin-bottom: 8px;">
           <label style="width: 80px; font-size: 12px;">3. plass:</label>
-          <select id="fb-e1-place3" style="flex: 1;"><option value="">Velg lag</option></select>
+          <select id="fb-add-place3" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
         <div class="form-row" style="margin-bottom: 8px;">
           <label style="width: 80px; font-size: 12px;">4. plass:</label>
-          <select id="fb-e1-place4" style="flex: 1;"><option value="">Velg lag</option></select>
+          <select id="fb-add-place4" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
-        <button class="btn btn-primary" style="width: 100%;" onclick="saveFotballExercise(1)">💾 Lagre Øvelse 1</button>
       </div>
-
-      <!-- Exercise 2 - Presisjon Runde 1 -->
-      <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">Øvelse 2 – Presisjon Runde 1 (4/3/2/1p)</h4>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">1. plass:</label>
-          <select id="fb-e2-place1" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">2. plass:</label>
-          <select id="fb-e2-place2" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">3. plass:</label>
-          <select id="fb-e2-place3" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">4. plass:</label>
-          <select id="fb-e2-place4" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <button class="btn btn-primary" style="width: 100%;" onclick="saveFotballExercise(2)">💾 Lagre Runde 1</button>
+      
+      <button class="btn btn-primary" style="width: 100%;" onclick="addFotballExercise()">➕ Legg til øvelse</button>
+    </div>
+    
+    <!-- Exercise summary -->
+    <div class="section-card">
+      <h3>📊 Øvelseoversikt</h3>
+      <div id="fb-exercise-summary" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+        <!-- Badges showing count per exercise type -->
       </div>
-
-      <!-- Exercise 3 - Presisjon Runde 2 -->
-      <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">Øvelse 3 – Presisjon Runde 2 (4/3/2/1p)</h4>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">1. plass:</label>
-          <select id="fb-e3-place1" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">2. plass:</label>
-          <select id="fb-e3-place2" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">3. plass:</label>
-          <select id="fb-e3-place3" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">4. plass:</label>
-          <select id="fb-e3-place4" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <button class="btn btn-primary" style="width: 100%;" onclick="saveFotballExercise(3)">💾 Lagre Runde 2</button>
+      <div id="fb-team-totals">
+        <!-- Team totals -->
       </div>
-
-      <!-- Exercise 4 - Straffespark -->
-      <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">Øvelse 4 – Straffespark (4/3/2/1p)</h4>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">1. plass:</label>
-          <select id="fb-e4-place1" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">2. plass:</label>
-          <select id="fb-e4-place2" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">3. plass:</label>
-          <select id="fb-e4-place3" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">4. plass:</label>
-          <select id="fb-e4-place4" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <button class="btn btn-primary" style="width: 100%;" onclick="saveFotballExercise(4)">💾 Lagre Øvelse 4</button>
-      </div>
-
-      <!-- Exercise 5 - 3v3 -->
-      <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
-        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">Øvelse 5 – 3v3 (2 mot 2 lag)</h4>
-        <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Velg lag for Lag A (spiller sammen) og Lag B (spiller sammen), deretter resultat</p>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag A - 1:</label>
-          <select id="fb-e5-place1" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag A - 2:</label>
-          <select id="fb-e5-place2" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag B - 1:</label>
-          <select id="fb-e5-place3" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag B - 2:</label>
-          <select id="fb-e5-place4" style="flex: 1;"><option value="">Velg lag</option></select>
-        </div>
-        <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Resultat:</label>
-          <select id="fb-e5-result" style="flex: 1;">
-            <option value="">Velg resultat</option>
-            <option value="teamA">Lag A vinner (6p hver)</option>
-            <option value="draw">Uavgjort (3p alle)</option>
-            <option value="teamB">Lag B vinner (6p hver)</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" style="width: 100%;" onclick="saveFotballExercise(5)">💾 Lagre Øvelse 5</button>
+    </div>
+    
+    <!-- Exercise log -->
+    <div class="section-card">
+      <h3>📝 Registrerte øvelser</h3>
+      <div id="fb-exercise-log" style="max-height: 400px; overflow-y: auto;">
+        <!-- Exercise entries -->
+        <p style="color: var(--muted); font-size: 12px;">Ingen øvelser registrert ennå</p>
       </div>
       
       <!-- Reset section -->
       <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,100,100,0.3);">
-        <h4 style="color: var(--danger); margin-bottom: 12px;">⚠️ Nullstill resultater</h4>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(1)">Nullstill Ø1</button>
-          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(2)">Nullstill Ø2</button>
-          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(3)">Nullstill Ø3</button>
-          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(4)">Nullstill Ø4</button>
-          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFotballExercise(5)">Nullstill Ø5</button>
-        </div>
         <button class="btn" style="width: 100%; background: rgba(255,50,50,0.2); border: 1px solid rgba(255,50,50,0.4); color: #ff6b6b;" onclick="resetAllFotball()">🗑️ Nullstill ALLE fotball-resultater</button>
       </div>
     </div>
@@ -1860,24 +1791,15 @@ function logout() {
 // ============ FOTBALL ADMIN FUNCTIONS ============
 
 const FB_PLACEMENT_POINTS = { 1: 4, 2: 3, 3: 2, 4: 1 }
-const FB_EXERCISES = {
-  1: 'Tverrlegger',
-  2: 'Presisjon Runde 1',
-  3: 'Presisjon Runde 2',
-  4: 'Straffespark',
-  5: '3v3'
-}
 const FOTBALL_ACTIVITY_ID = 2  // Hardcoded fotball activity ID
-let fotballScores = {}
+let fotballEntries = []
 
 async function loadFotballData() {
   // Load active teams into fotball selects
   const activeTeams = teams.filter(t => t.is_active)
-  const selects = document.querySelectorAll('select[id^="fb-"]')
+  const selects = document.querySelectorAll('select[id^="fb-add-"]')
   
   selects.forEach(select => {
-    if (select.id.includes('result')) return
-    
     const currentVal = select.value
     select.innerHTML = '<option value="">Velg lag</option>'
     activeTeams.forEach(t => {
@@ -1889,164 +1811,200 @@ async function loadFotballData() {
     select.value = currentVal
   })
   
-  // Load scores
-  const { data: scoresData } = await sb.from('activity_fotball').select('*')
-  fotballScores = {}
-  if (scoresData) {
-    scoresData.forEach(s => {
-      if (!fotballScores[s.team_id]) {
-        fotballScores[s.team_id] = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-      }
-      fotballScores[s.team_id][s.exercise_id] = s.points
-    })
+  // Setup exercise type dropdown handler
+  const exerciseSelect = document.getElementById('fb-exercise-type')
+  if (exerciseSelect) {
+    exerciseSelect.onchange = function() {
+      const customRow = document.getElementById('fb-custom-name-row')
+      customRow.style.display = this.value === 'Annet' ? 'flex' : 'none'
+    }
   }
   
-  // Load existing placements from points (4p=1st, 3p=2nd, 2p=3rd, 1p=4th)
-  const pointsToPlacement = { 4: 1, 3: 2, 2: 3, 1: 4 }
-  if (scoresData) {
-    scoresData.forEach(p => {
-      if (p.exercise_id === 5) return // Handle e5 (3v3) separately
-      const placement = pointsToPlacement[p.points]
-      if (placement) {
-        const select = document.getElementById(`fb-e${p.exercise_id}-place${placement}`)
-        if (select) select.value = p.team_id
-      }
-    })
-  }
+  // Load all entries from database
+  const { data: scoresData } = await sb.from('activity_fotball').select('*').order('created_at', { ascending: false })
+  fotballEntries = scoresData || []
   
-  // Load e5 (3v3) saved data
-  const e5data = scoresData ? scoresData.filter(s => s.exercise_id === 5) : []
-  if (e5data.length > 0) {
-    // Sort by points descending (winners first)
-    const teamA = e5data.filter(d => d.points >= 3).sort((a, b) => b.points - a.points)
-    const teamB = e5data.filter(d => d.points <= 3 && !teamA.includes(d))
-    
-    if (teamA.length >= 2) {
-      document.getElementById('fb-e5-place1').value = teamA[0].team_id
-      document.getElementById('fb-e5-place2').value = teamA[1].team_id
-    }
-    if (teamB.length >= 2) {
-      document.getElementById('fb-e5-place3').value = teamB[0].team_id
-      document.getElementById('fb-e5-place4').value = teamB[1].team_id
-    }
-    
-    const winner = e5data.find(d => d.points === 6)
-    const loser = e5data.find(d => d.points === 0)
-    if (winner && loser) {
-      document.getElementById('fb-e5-result').value = teamA.includes(winner) ? 'teamA' : 'teamB'
-    } else if (e5data.every(d => d.points === 3)) {
-      document.getElementById('fb-e5-result').value = 'draw'
-    }
-  }
+  renderFotballLog()
+  renderFotballSummary()
 }
 
-async function saveFotballExercise(exerciseNum) {
-  const exerciseId = exerciseNum
+function renderFotballLog() {
+  const container = document.getElementById('fb-exercise-log')
+  if (!container) return
   
-  if (exerciseNum === 5) {
-    // Exercise 5 is 3v3 - special handling
-    const teamA1Id = document.getElementById('fb-e5-place1').value
-    const teamA2Id = document.getElementById('fb-e5-place2').value
-    const teamB1Id = document.getElementById('fb-e5-place3').value
-    const teamB2Id = document.getElementById('fb-e5-place4').value
-    const result = document.getElementById('fb-e5-result').value
+  if (fotballEntries.length === 0) {
+    container.innerHTML = '<p style="color: var(--muted); font-size: 12px;">Ingen øvelser registrert ennå</p>'
+    return
+  }
+  
+  // Group entries by created_at (within 5 seconds = same batch)
+  const batches = []
+  let currentBatch = null
+  
+  fotballEntries.forEach(entry => {
+    const entryTime = new Date(entry.created_at).getTime()
+    if (!currentBatch || Math.abs(entryTime - currentBatch.time) > 5000) {
+      currentBatch = { time: entryTime, entries: [], exercise_name: entry.exercise_name }
+      batches.push(currentBatch)
+    }
+    currentBatch.entries.push(entry)
+  })
+  
+  const html = batches.map((batch, batchIdx) => {
+    const date = new Date(batch.time)
+    const timeStr = date.toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })
+    const dateStr = date.toLocaleDateString('no-NO', { day: 'numeric', month: 'short' })
     
-    if (!teamA1Id || !teamA2Id || !teamB1Id || !teamB2Id || !result) {
-      alert('Velg alle 4 lag og resultat')
+    // Sort entries by points descending for display
+    const sorted = [...batch.entries].sort((a, b) => b.points - a.points)
+    const teamsList = sorted.map(e => {
+      const team = teams.find(t => t.id === e.team_id)
+      return `${team?.flag || ''} ${team?.team_name || 'Ukjent'}: ${e.points}p`
+    }).join(', ')
+    
+    const entryIds = batch.entries.map(e => e.id).join(',')
+    
+    return `
+      <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-weight: 600; font-size: 13px;">${batch.exercise_name}</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; color: var(--muted);">${dateStr} ${timeStr}</span>
+            <button onclick="deleteFotballBatch('${entryIds}')" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 14px; padding: 2px 6px;">🗑️</button>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: var(--muted);">${teamsList}</div>
+      </div>
+    `
+  }).join('')
+  
+  container.innerHTML = html
+}
+
+function renderFotballSummary() {
+  const summaryContainer = document.getElementById('fb-exercise-summary')
+  const totalsContainer = document.getElementById('fb-team-totals')
+  if (!summaryContainer || !totalsContainer) return
+  
+  // Count exercises by name
+  const exerciseCounts = {}
+  fotballEntries.forEach(e => {
+    exerciseCounts[e.exercise_name] = (exerciseCounts[e.exercise_name] || 0) + 1
+  })
+  // Divide by 4 since each exercise has 4 team entries
+  Object.keys(exerciseCounts).forEach(name => {
+    exerciseCounts[name] = Math.floor(exerciseCounts[name] / 4)
+  })
+  
+  // Render exercise badges
+  const badges = Object.entries(exerciseCounts).map(([name, count]) => 
+    `<span style="background: rgba(200,244,90,0.15); border: 1px solid rgba(200,244,90,0.3); border-radius: 99px; padding: 4px 10px; font-size: 12px; color: var(--accent);">
+      ${name} <strong style="margin-left: 4px;">×${count}</strong>
+    </span>`
+  ).join('')
+  
+  summaryContainer.innerHTML = badges || '<span style="color: var(--muted); font-size: 12px;">Ingen øvelser ennå</span>'
+  
+  // Calculate team totals
+  const teamTotals = {}
+  fotballEntries.forEach(e => {
+    teamTotals[e.team_id] = (teamTotals[e.team_id] || 0) + e.points
+  })
+  
+  // Render team totals sorted by points
+  const activeTeams = teams.filter(t => t.is_active)
+  const sortedTeams = activeTeams.sort((a, b) => (teamTotals[b.id] || 0) - (teamTotals[a.id] || 0))
+  
+  const totalsHtml = sortedTeams.map(t => {
+    const points = teamTotals[t.id] || 0
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
+        <span>${t.flag || ''} ${t.team_name}</span>
+        <strong style="color: var(--accent);">${points}p</strong>
+      </div>
+    `
+  }).join('')
+  
+  totalsContainer.innerHTML = totalsHtml || '<p style="color: var(--muted); font-size: 12px;">Ingen lag</p>'
+}
+
+async function addFotballExercise() {
+  const exerciseType = document.getElementById('fb-exercise-type').value
+  const customName = document.getElementById('fb-custom-name').value.trim()
+  
+  let exerciseName = exerciseType
+  if (exerciseType === 'Annet') {
+    if (!customName) {
+      alert('Skriv inn et navn for øvelsen')
+      return
+    }
+    exerciseName = customName
+  }
+  
+  if (!exerciseName) {
+    alert('Velg en øvelse')
+    return
+  }
+  
+  // Get placements
+  const entries = []
+  const teamIds = []
+  
+  for (let place = 1; place <= 4; place++) {
+    const teamId = document.getElementById(`fb-add-place${place}`).value
+    if (!teamId) {
+      alert(`Velg lag for ${place}. plass`)
       return
     }
     
-    const teamIds = [teamA1Id, teamA2Id, teamB1Id, teamB2Id]
-    if (new Set(teamIds).size !== 4) {
-      alert('Hvert lag kan bare velges én gang')
-      return
-    }
-    
-    let teamAPoints = 0, teamBPoints = 0
-    if (result === 'teamA') { teamAPoints = 6; teamBPoints = 0 }
-    else if (result === 'teamB') { teamAPoints = 0; teamBPoints = 6 }
-    else { teamAPoints = 3; teamBPoints = 3 }
-    
-    // Delete old e5 data first, then insert new
-    await sb.from('activity_fotball').delete().eq('exercise_id', 5)
-    const { error } = await sb.from('activity_fotball').insert([
-      { team_id: parseInt(teamA1Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: 5, exercise_name: FB_EXERCISES[5], points: teamAPoints },
-      { team_id: parseInt(teamA2Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: 5, exercise_name: FB_EXERCISES[5], points: teamAPoints },
-      { team_id: parseInt(teamB1Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: 5, exercise_name: FB_EXERCISES[5], points: teamBPoints },
-      { team_id: parseInt(teamB2Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: 5, exercise_name: FB_EXERCISES[5], points: teamBPoints }
-    ])
-    
-    if (error) {
-      alert('Kunne ikke lagre: ' + error.message)
-      return
-    }
-    
-  } else {
-    const scoreUpdates = []
-    
-    for (let place = 1; place <= 4; place++) {
-      const teamId = document.getElementById(`fb-e${exerciseId}-place${place}`).value
-      if (!teamId) {
-        alert(`Velg lag for ${place}. plass`)
-        return
-      }
-      
-      const points = FB_PLACEMENT_POINTS[place]
-      scoreUpdates.push({ 
-        team_id: parseInt(teamId), 
-        activity_id: FOTBALL_ACTIVITY_ID,
-        exercise_id: exerciseId, 
-        exercise_name: FB_EXERCISES[exerciseId],
-        points 
-      })
-    }
-    
-    const teamIds = scoreUpdates.map(p => p.team_id)
-    if (new Set(teamIds).size !== teamIds.length) {
+    if (teamIds.includes(teamId)) {
       alert('Hvert lag kan bare ha én plassering')
       return
     }
+    teamIds.push(teamId)
     
-    // Delete old exercise data first, then insert new
-    await sb.from('activity_fotball').delete().eq('exercise_id', exerciseId)
-    const { error } = await sb.from('activity_fotball').insert(scoreUpdates)
-    
-    if (error) {
-      alert('Kunne ikke lagre: ' + error.message)
-      return
-    }
+    entries.push({
+      team_id: parseInt(teamId),
+      activity_id: FOTBALL_ACTIVITY_ID,
+      exercise_id: Date.now(), // Use timestamp as unique exercise_id for each batch
+      exercise_name: exerciseName,
+      points: FB_PLACEMENT_POINTS[place]
+    })
   }
   
-  alert(`Øvelse ${exerciseNum} lagret!`)
+  // Insert all entries
+  const { error } = await sb.from('activity_fotball').insert(entries)
+  
+  if (error) {
+    alert('Kunne ikke lagre: ' + error.message)
+    return
+  }
+  
+  // Clear form
+  document.getElementById('fb-exercise-type').value = ''
+  document.getElementById('fb-custom-name').value = ''
+  document.getElementById('fb-custom-name-row').style.display = 'none'
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById(`fb-add-place${i}`).value = ''
+  }
+  
+  alert(`${exerciseName} lagt til!`)
   await loadFotballData()
   await loadScores()
 }
 
-async function resetFotballExercise(exerciseNum) {
-  const exerciseId = exerciseNum
+async function deleteFotballBatch(idsString) {
+  const ids = idsString.split(',').map(id => parseInt(id))
   
-  if (!confirm(`Er du sikker på at du vil nullstille Øvelse ${exerciseId}?`)) return
+  if (!confirm('Slette denne øvelsen?')) return
   
-  // Delete from activity_fotball
-  const { error } = await sb.from('activity_fotball').delete().eq('exercise_id', exerciseId)
+  const { error } = await sb.from('activity_fotball').delete().in('id', ids)
   
   if (error) {
-    alert('Kunne ikke nullstille: ' + error.message)
+    alert('Kunne ikke slette: ' + error.message)
     return
   }
   
-  // Clear the selects
-  for (let i = 1; i <= 4; i++) {
-    const select = document.getElementById(`fb-e${exerciseId}-place${i}`)
-    if (select) select.value = ''
-  }
-  
-  // Clear e5 result dropdown (3v3)
-  if (exerciseNum === 5) {
-    document.getElementById('fb-e5-result').value = ''
-  }
-  
-  alert(`Øvelse ${exerciseId} nullstilt!`)
   await loadFotballData()
   await loadScores()
 }
@@ -2056,7 +2014,7 @@ async function resetAllFotball() {
   if (!confirm('Dette kan ikke angres. Fortsette?')) return
   
   // Delete all fotball results
-  const { error } = await sb.from('activity_fotball').delete().gt('exercise_id', 0)
+  const { error } = await sb.from('activity_fotball').delete().gt('id', 0)
   
   if (error) {
     alert('Kunne ikke nullstille: ' + error.message)
