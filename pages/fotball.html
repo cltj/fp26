@@ -554,35 +554,35 @@ function renderStandings() {
 
 function renderPoolMatchups() {
   // Fixed pool matchups
-  // Exercise 1: Senegal vs Frankrike, Norge vs Irak
-  // Exercise 3: Irak vs Senegal, Norge vs Frankrike
+  // Exercise 1: Senegal vs France, Norway vs Iraq
+  // Exercise 3: Iraq vs Senegal, Norway vs France
   
   const teamNames = {}
   teamsArray.forEach(t => teamNames[t.team_name.toLowerCase()] = t)
   
   const senegal = teamNames['senegal']
-  const frankrike = teamNames['frankrike']
-  const norge = teamNames['norge']
-  const irak = teamNames['irak']
+  const france = teamNames['france']
+  const norway = teamNames['norway']
+  const iraq = teamNames['iraq']
   
   // Exercise 1 pools
-  if (senegal && frankrike) {
+  if (senegal && france) {
     document.getElementById('e1-pool1').innerHTML = 
-      `Pulje 1: ${senegal.flag} ${senegal.team_name} <span class="vs">vs</span> ${frankrike.flag} ${frankrike.team_name}`
+      `Pulje 1: ${senegal.flag} ${senegal.team_name} <span class="vs">vs</span> ${france.flag} ${france.team_name}`
   }
-  if (norge && irak) {
+  if (norway && iraq) {
     document.getElementById('e1-pool2').innerHTML = 
-      `Pulje 2: ${norge.flag} ${norge.team_name} <span class="vs">vs</span> ${irak.flag} ${irak.team_name}`
+      `Pulje 2: ${norway.flag} ${norway.team_name} <span class="vs">vs</span> ${iraq.flag} ${iraq.team_name}`
   }
   
   // Exercise 3 pools (different pairing)
-  if (irak && senegal) {
+  if (iraq && senegal) {
     document.getElementById('e3-pool1').innerHTML = 
-      `Pulje 1: ${irak.flag} ${irak.team_name} <span class="vs">vs</span> ${senegal.flag} ${senegal.team_name}`
+      `Pulje 1: ${iraq.flag} ${iraq.team_name} <span class="vs">vs</span> ${senegal.flag} ${senegal.team_name}`
   }
-  if (norge && frankrike) {
+  if (norway && france) {
     document.getElementById('e3-pool2').innerHTML = 
-      `Pulje 2: ${norge.flag} ${norge.team_name} <span class="vs">vs</span> ${frankrike.flag} ${frankrike.team_name}`
+      `Pulje 2: ${norway.flag} ${norway.team_name} <span class="vs">vs</span> ${france.flag} ${france.team_name}`
   }
 }
 

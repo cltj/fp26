@@ -1443,7 +1443,7 @@ function searchOpponent() {
   
   // Filter out Norway
   const matches = teams.filter(t => 
-    t.team_name !== 'Norge' && t.team_name.toLowerCase().includes(query)
+    t.team_name !== 'Norway' && t.team_name.toLowerCase().includes(query)
   ).slice(0, 10)
   
   if (matches.length === 0) {
@@ -1484,9 +1484,9 @@ function searchGroupTeam() {
     return
   }
   
-  // Only show inactive teams (exclude Norge - it's always in the group)
+  // Only show inactive teams (exclude Norway - it's always in the group)
   const matches = teams.filter(t => 
-    !t.is_active && t.team_name !== 'Norge' && t.team_name.toLowerCase().includes(query)
+    !t.is_active && t.team_name !== 'Norway' && t.team_name.toLowerCase().includes(query)
   ).slice(0, 10)
   
   if (matches.length === 0) {
@@ -1536,17 +1536,17 @@ function renderActiveTeams() {
     return
   }
   
-  // Sort so Norge is always first
+  // Sort so Norway is always first
   activeTeams.sort((a, b) => {
-    if (a.team_name === 'Norge') return -1
-    if (b.team_name === 'Norge') return 1
+    if (a.team_name === 'Norway') return -1
+    if (b.team_name === 'Norway') return 1
     return a.team_name.localeCompare(b.team_name)
   })
   
   container.innerHTML = activeTeams.map(t => `
     <span class="team-chip" style="display: flex; align-items: center; gap: 4px;">
       ${t.flag} ${t.team_name}
-      ${t.team_name !== 'Norge' ? `<span onclick="removeGroupTeam(${t.id})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>` : ''}
+      ${t.team_name !== 'Norway' ? `<span onclick="removeGroupTeam(${t.id})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>` : ''}
     </span>
   `).join('')
   
@@ -1590,9 +1590,9 @@ async function addGroupTeamFromSearch(teamId, teamName) {
 async function removeGroupTeam(teamId) {
   const team = teams.find(t => t.id === teamId)
   
-  // Norge cannot be removed from the group
-  if (team.team_name === 'Norge') {
-    showStatus('teams', 'error', 'Norge kan ikke fjernes fra gruppen')
+  // Norway cannot be removed from the group
+  if (team.team_name === 'Norway') {
+    showStatus('teams', 'error', 'Norway kan ikke fjernes fra gruppen')
     return
   }
   
@@ -1739,7 +1739,7 @@ async function loadMatchup() {
     const away = data.find(m => m.position === 'away')
     
     // Determine Norway's position
-    const norwayIsHome = home?.team_name === 'Norge'
+    const norwayIsHome = home?.team_name === 'Norway'
     document.querySelector(`input[name="norway-position"][value="${norwayIsHome ? 'home' : 'away'}"]`).checked = true
     
     // Set opponent
@@ -1782,11 +1782,11 @@ async function saveMatchup() {
     return
   }
   
-  const norway = teams.find(t => t.team_name === 'Norge')
+  const norway = teams.find(t => t.team_name === 'Norway')
   
-  const homeTeam = norwayPosition === 'home' ? 'Norge' : opponentTeam.team_name
+  const homeTeam = norwayPosition === 'home' ? 'Norway' : opponentTeam.team_name
   const homeIcon = norwayPosition === 'home' ? norway?.flag || '🇳🇴' : opponentTeam.flag
-  const awayTeam = norwayPosition === 'away' ? 'Norge' : opponentTeam.team_name
+  const awayTeam = norwayPosition === 'away' ? 'Norway' : opponentTeam.team_name
   const awayIcon = norwayPosition === 'away' ? norway?.flag || '🇳🇴' : opponentTeam.flag
   
   const { error } = await sb.from('matchup').upsert([
