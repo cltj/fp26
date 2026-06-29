@@ -1948,12 +1948,17 @@ async function saveFotballExercise(exerciseNum) {
     
     // Delete old e4 data first, then insert new
     await sb.from('activity_fotball').delete().eq('exercise', 'e4')
-    await sb.from('activity_fotball').insert([
+    const { error } = await sb.from('activity_fotball').insert([
       { team_id: parseInt(teamA1Id), exercise: 'e4', placement: 1, points: teamAPoints },
       { team_id: parseInt(teamA2Id), exercise: 'e4', placement: 2, points: teamAPoints },
       { team_id: parseInt(teamB1Id), exercise: 'e4', placement: 3, points: teamBPoints },
       { team_id: parseInt(teamB2Id), exercise: 'e4', placement: 4, points: teamBPoints }
     ])
+    
+    if (error) {
+      alert('Kunne ikke lagre: ' + error.message)
+      return
+    }
     
   } else {
     const placements = []
@@ -1977,9 +1982,15 @@ async function saveFotballExercise(exerciseNum) {
       return
     }
     
-    // Save to activity_fotball with placement
+    // Delete old exercise data first, then insert new
+    await sb.from('activity_fotball').delete().eq('exercise', `e${exerciseId}`)
     const scoreUpdatesWithPlacement = scoreUpdates.map((s, idx) => ({ ...s, placement: idx + 1 }))
-    await sb.from('activity_fotball').upsert(scoreUpdatesWithPlacement, { onConflict: 'team_id,exercise' })
+    const { error } = await sb.from('activity_fotball').insert(scoreUpdatesWithPlacement)
+    
+    if (error) {
+      alert('Kunne ikke lagre: ' + error.message)
+      return
+    }
   }
   
   alert(`Øvelse ${exerciseNum} lagret!`)
