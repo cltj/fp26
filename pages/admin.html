@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>👑 Admin – Foppalfæst</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   
@@ -404,13 +403,6 @@
     position: relative;
   }
   
-  /* Chart container */
-  .chart-container {
-    position: relative;
-    height: 300px;
-    margin-top: 1rem;
-  }
-  
   /* Reset warning */
   .reset-warning {
     background: var(--danger-bg);
@@ -758,27 +750,12 @@
   
   <!-- Quiz Panel -->
   <div id="panel-quiz" class="panel">
-    <div class="section-card">
-      <h3>🎴 Ressurser per lag</h3>
-      <div class="chart-container">
-        <canvas id="quiz-chart"></canvas>
-      </div>
-    </div>
-    <div class="section-card">
-      <h3>📝 Individuelle quiz-svar</h3>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Deltaker</th>
-            <th>Lag</th>
-            <th>Riktige</th>
-            <th>Poeng</th>
-          </tr>
-        </thead>
-        <tbody id="quiz-results-body">
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
+    <div class="section-card" style="text-align: center; padding: 3rem;">
+      <h3 style="margin-bottom: 1.5rem;">🧠 Quiz</h3>
+      <p style="color: var(--muted); margin-bottom: 2rem;">Se alle spørsmål, svar og vinnere på quiz-resultatsiden.</p>
+      <a href="../quiz_score.html" style="display: inline-block; background: var(--accent); color: #000; font-weight: 600; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-size: 15px;">
+        📝 Se quiz-resultater
+      </a>
     </div>
   </div>
   
@@ -1093,7 +1070,6 @@ let teams = []
 let participants = []
 let activities = []
 let resources = []
-let quizChart = null
 
 // Check admin access
 const session = JSON.parse(localStorage.getItem('fp26_session') || '{}')
@@ -1117,7 +1093,6 @@ async function init() {
     loadResources(),
     loadMatchup(),
     loadScores(),
-    loadQuizResults(),
     loadTimeline()
   ])
 }
@@ -1127,15 +1102,6 @@ function showPanel(panel) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
   document.querySelector(`[onclick="showPanel('${panel}')"]`).classList.add('active')
   document.getElementById(`panel-${panel}`).classList.add('active')
-  
-  // Render chart when quiz panel is shown (always re-render to reflect resource changes)
-  if (panel === 'quiz') {
-    if (quizChart) {
-      quizChart.destroy()
-      quizChart = null
-    }
-    renderQuizChart()
-  }
   
   // Load fotball data when fotball panel is shown
   if (panel === 'fotball') {
@@ -1803,108 +1769,6 @@ async function loadScores() {
       </tr>
     `
   }).join('')
-}
-
-let quizResults = []
-async function loadQuizResults() {
-  const { data } = await sb.from('activity_quiz').select('*')
-  quizResults = data || []
-  renderQuizResults()
-}
-
-function renderQuizResults() {
-  const tbody = document.getElementById('quiz-results-body')
-  
-  // Group by participant
-  const byParticipant = {}
-  quizResults.forEach(q => {
-    if (!byParticipant[q.participant_id]) {
-      byParticipant[q.participant_id] = { correct: 0, total: 0, points: 0 }
-    }
-    byParticipant[q.participant_id].total++
-    if (q.is_correct) {
-      byParticipant[q.participant_id].correct++
-      byParticipant[q.participant_id].points += q.points || 0
-    }
-  })
-  
-  tbody.innerHTML = participants.map(p => {
-    const stats = byParticipant[p.id] || { correct: 0, total: 0, points: 0 }
-    const team = teams.find(t => t.id == p.team_id)
-    return `
-      <tr>
-        <td>${p.participant}</td>
-        <td>${team ? `${team.flag} ${team.team_name}` : '-'}</td>
-        <td>${stats.correct}/${stats.total}</td>
-        <td>${stats.points}</td>
-      </tr>
-    `
-  }).join('')
-}
-
-function renderQuizChart() {
-  const ctx = document.getElementById('quiz-chart').getContext('2d')
-  const activeTeams = teams.filter(t => t.is_active)
-  
-  if (activeTeams.length === 0) {
-    ctx.canvas.parentElement.innerHTML = '<p style="color: var(--muted); font-size: 12px; text-align: center; padding: 2rem;">Legg til lag i gruppen først (under Kampoppsett)</p>'
-    return
-  }
-  
-  // Count resources per team
-  const teamResources = {}
-  activeTeams.forEach(t => { teamResources[t.id] = 0 })
-  
-  resources.forEach(r => {
-    const teamIds = r.team_ids || []
-    teamIds.forEach(teamId => {
-      if (teamResources[teamId] !== undefined) {
-        teamResources[teamId]++
-      }
-    })
-  })
-  
-  quizChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: activeTeams.map(t => `${t.flag} ${t.team_name}`),
-      datasets: [{
-        label: 'Ressurser',
-        data: activeTeams.map(t => teamResources[t.id] || 0),
-        backgroundColor: [
-          'rgba(200, 244, 90, 0.6)',
-          'rgba(96, 200, 255, 0.6)',
-          'rgba(250, 87, 193, 0.6)',
-          'rgba(251, 191, 36, 0.6)'
-        ],
-        borderColor: [
-          'rgba(200, 244, 90, 1)',
-          'rgba(96, 200, 255, 1)',
-          'rgba(250, 87, 193, 1)',
-          'rgba(251, 191, 36, 1)'
-        ],
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(255,255,255,0.1)' },
-          ticks: { color: 'rgba(255,255,255,0.6)', stepSize: 1 }
-        },
-        x: {
-          grid: { display: false },
-          ticks: { color: 'rgba(255,255,255,0.8)' }
-        }
-      },
-      plugins: {
-        legend: { display: false }
-      }
-    }
-  })
 }
 
 async function loadTimeline() {
