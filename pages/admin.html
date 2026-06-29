@@ -371,6 +371,39 @@
     margin-bottom: 6px;
   }
   
+  /* Team search dropdown */
+  .team-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 100px;
+    right: 60px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .team-dropdown-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    transition: background 0.15s;
+  }
+  .team-dropdown-item:hover {
+    background: rgba(200,244,90,0.1);
+  }
+  .team-dropdown-item .flag {
+    font-size: 18px;
+  }
+  .form-row {
+    position: relative;
+  }
+  
   /* Chart container */
   .chart-container {
     position: relative;
@@ -478,8 +511,9 @@
 <main id="main-content" style="display: none;">
   
   <div class="tabs">
-    <div class="tab active" onclick="showPanel('match')">⚽ Kamp</div>
+    <div class="tab active" onclick="showPanel('match')">⚽ Kampoppsett</div>
     <div class="tab" onclick="showPanel('teams')">👥 Lag</div>
+    <div class="tab" onclick="showPanel('participants')">👤 Deltakere</div>
     <div class="tab" onclick="showPanel('activities')">📋 Aktiviteter</div>
     <div class="tab" onclick="showPanel('resources')">🎴 Ressurser</div>
     <div class="tab" onclick="showPanel('scores')">📊 Poeng</div>
@@ -493,21 +527,25 @@
     <div class="section-card">
       <h3>⚽ Kampoppsett</h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
-        Velg lagene som spiller i kampen. Norge kan være hjemme- eller bortelag.
+        Sett opp kampen Norge skal spille.
       </p>
       <div class="form-row">
-        <label>Hjemmelag</label>
-        <select id="home-team-select" onchange="onTeamSelect('home')">
-          <option value="">Velg lag...</option>
-        </select>
-        <input type="text" id="home-icon" placeholder="🇳🇴" style="max-width: 60px;" readonly>
+        <label>Norge er</label>
+        <div style="display: flex; gap: 1rem;">
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="radio" name="norway-position" value="home" checked> 🏠 Hjemmelag
+          </label>
+          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <input type="radio" name="norway-position" value="away"> ✈️ Bortelag
+          </label>
+        </div>
       </div>
       <div class="form-row">
-        <label>Bortelag</label>
-        <select id="away-team-select" onchange="onTeamSelect('away')">
-          <option value="">Velg lag...</option>
+        <label>Norge spiller mot</label>
+        <select id="opponent-select" style="flex: 1;">
+          <option value="">Velg motstander...</option>
         </select>
-        <input type="text" id="away-icon" placeholder="🇫🇷" style="max-width: 60px;" readonly>
+        <span id="opponent-flag" style="font-size: 24px; min-width: 40px; text-align: center;"></span>
       </div>
       <div class="form-row">
         <label>Avspark</label>
@@ -519,31 +557,62 @@
       </div>
       <div id="match-status" class="status-msg"></div>
     </div>
-    
-    <div class="section-card">
-      <h3>🌍 Tilgjengelige lag</h3>
-      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
-        Legg til eller fjern nasjonale lag som kan delta i kamper.
-      </p>
-      <div id="national-teams-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
-        <!-- Populated by JS -->
-      </div>
-      <div class="form-row">
-        <input type="text" id="new-team-name" placeholder="Nytt lag (f.eks. Sverige)">
-        <input type="text" id="new-team-flag" placeholder="🇸🇪" style="max-width: 60px;">
-        <button class="btn btn-primary btn-sm" onclick="addNationalTeam()">+ Legg til</button>
-      </div>
-    </div>
   </div>
   
   <!-- Teams Panel -->
   <div id="panel-teams" class="panel">
     <div class="section-card">
+      <h3>🏆 Lag i gruppe</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Velg hvilke lag som deltar i turneringen.
+      </p>
+      <div id="active-teams-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+        <!-- Populated by JS -->
+      </div>
+      <div class="form-row">
+        <label>Legg til lag</label>
+        <select id="add-group-team-select" style="flex: 1;">
+          <option value="">Velg land...</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="addGroupTeam()">+ Legg til</button>
+      </div>
+      <div id="teams-status" class="status-msg"></div>
+    </div>
+    
+    <div class="section-card">
       <h3>👥 Tildel deltakere til lag</h3>
       <div id="participants-list">
         <!-- Populated by JS -->
       </div>
-      <div id="teams-status" class="status-msg"></div>
+    </div>
+  </div>
+  
+  <!-- Participants Panel -->
+  <div id="panel-participants" class="panel">
+    <div class="section-card">
+      <h3>👤 Deltakere</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Registrer deltakere som skal delta i turneringen.
+      </p>
+      <div id="registered-participants" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem;">
+        <!-- Populated by JS -->
+      </div>
+      <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+        <h4 style="margin-bottom: 0.75rem;">Legg til ny deltaker</h4>
+        <div class="form-row">
+          <label>Navn</label>
+          <input type="text" id="new-participant-name" placeholder="Fornavn Etternavn">
+        </div>
+        <div class="form-row">
+          <label>Bilde URL</label>
+          <input type="text" id="new-participant-photo" placeholder="images/participants/navn.jpeg">
+        </div>
+        <div class="form-row">
+          <label></label>
+          <button class="btn btn-primary" onclick="addParticipant()">+ Legg til deltaker</button>
+        </div>
+      </div>
+      <div id="participants-status" class="status-msg"></div>
     </div>
   </div>
   
@@ -693,8 +762,11 @@ if (!isAdmin) {
 }
 
 async function init() {
+  // First load teams (needed by other functions)
+  await loadTeams()
+  
+  // Then load everything else in parallel
   await Promise.all([
-    loadTeams(),
     loadParticipants(),
     loadActivities(),
     loadResources(),
@@ -718,7 +790,7 @@ function showPanel(panel) {
 }
 
 async function loadTeams() {
-  const { data } = await sb.from('teams').select('*').order('id')
+  const { data } = await sb.from('teams').select('*').order('team_name')
   teams = data || []
 }
 
@@ -726,17 +798,20 @@ async function loadParticipants() {
   const { data } = await sb.from('participants').select('*').order('participant')
   participants = data || []
   renderParticipants()
+  renderRegisteredParticipants()
 }
 
 function renderParticipants() {
   const container = document.getElementById('participants-list')
+  const activeTeams = teams.filter(t => t.is_active)
+  
   container.innerHTML = participants.map(p => `
     <div class="participant-row">
       <img src="${p.photo_url}" alt="${p.participant}" class="participant-avatar">
       <span class="participant-name">${p.participant}</span>
       <select onchange="updateParticipantTeam(${p.id}, this.value)">
         <option value="">Ingen lag</option>
-        ${teams.map(t => `
+        ${activeTeams.map(t => `
           <option value="${t.id}" ${p.team_id == t.id ? 'selected' : ''}>
             ${t.flag} ${t.team_name}
           </option>
@@ -873,159 +948,202 @@ async function updateResourceTeams(resourceId, newTeamIds) {
   showStatus('resources', error ? 'error' : 'success', error ? error.message : 'Oppdatert!')
 }
 
-// Default national teams (can be extended by admin)
-const DEFAULT_NATIONAL_TEAMS = [
-  { name: 'Norge', flag: '🇳🇴' },
-  { name: 'Frankrike', flag: '🇫🇷' },
-  { name: 'Sverige', flag: '🇸🇪' },
-  { name: 'Danmark', flag: '🇩🇰' },
-  { name: 'Tyskland', flag: '🇩🇪' },
-  { name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
-  { name: 'Spania', flag: '🇪🇸' },
-  { name: 'Italia', flag: '🇮🇹' },
-  { name: 'Nederland', flag: '🇳🇱' },
-  { name: 'Portugal', flag: '🇵🇹' },
-  { name: 'Belgia', flag: '🇧🇪' },
-  { name: 'Kroatia', flag: '🇭🇷' },
-  { name: 'Polen', flag: '🇵🇱' },
-  { name: 'Østerrike', flag: '🇦🇹' },
-  { name: 'Sveits', flag: '🇨🇭' }
-]
-
-function getNationalTeams() {
-  const stored = localStorage.getItem('fp26_national_teams')
-  if (stored) {
-    return JSON.parse(stored)
-  }
-  // Initialize with defaults
-  localStorage.setItem('fp26_national_teams', JSON.stringify(DEFAULT_NATIONAL_TEAMS))
-  return DEFAULT_NATIONAL_TEAMS
-}
-
-function saveNationalTeams(teams) {
-  localStorage.setItem('fp26_national_teams', JSON.stringify(teams))
-}
-
-function renderNationalTeams() {
-  const nationalTeams = getNationalTeams()
-  const container = document.getElementById('national-teams-list')
+// Populate opponent dropdown with all countries except Norway
+function populateOpponentDropdown() {
+  const select = document.getElementById('opponent-select')
+  const norway = teams.find(t => t.team_name === 'Norge')
+  const otherTeams = teams.filter(t => t.team_name !== 'Norge')
   
-  container.innerHTML = nationalTeams.map((t, i) => `
+  select.innerHTML = '<option value="">Velg motstander...</option>' + 
+    otherTeams.map(t => `<option value="${t.id}" data-flag="${t.flag}">${t.team_name}</option>`).join('')
+  
+  // Update flag when selection changes
+  select.onchange = () => {
+    const opt = select.options[select.selectedIndex]
+    document.getElementById('opponent-flag').textContent = opt?.dataset?.flag || ''
+  }
+}
+
+// Populate group team dropdown
+function populateGroupTeamDropdown() {
+  const select = document.getElementById('add-group-team-select')
+  const inactiveTeams = teams.filter(t => !t.is_active)
+  
+  select.innerHTML = '<option value="">Velg land...</option>' + 
+    inactiveTeams.map(t => `<option value="${t.id}">${t.flag} ${t.team_name}</option>`).join('')
+}
+
+// Active teams (group) management
+function renderActiveTeams() {
+  const activeTeams = teams.filter(t => t.is_active)
+  const container = document.getElementById('active-teams-list')
+  
+  if (activeTeams.length === 0) {
+    container.innerHTML = '<span style="color: var(--muted); font-size: 12px;">Ingen lag i gruppen enda</span>'
+    return
+  }
+  
+  container.innerHTML = activeTeams.map(t => `
     <span class="team-chip" style="display: flex; align-items: center; gap: 4px;">
-      ${t.flag} ${t.name}
-      <span onclick="removeNationalTeam(${i})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>
+      ${t.flag} ${t.team_name}
+      <span onclick="removeGroupTeam(${t.id})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>
     </span>
   `).join('')
   
-  // Also update the dropdowns
-  populateTeamDropdowns()
+  populateGroupTeamDropdown()
 }
 
-function populateTeamDropdowns() {
-  const nationalTeams = getNationalTeams()
-  const homeSelect = document.getElementById('home-team-select')
-  const awaySelect = document.getElementById('away-team-select')
+async function addGroupTeam() {
+  const select = document.getElementById('add-group-team-select')
+  const teamId = parseInt(select.value)
   
-  const options = nationalTeams.map(t => `<option value="${t.name}" data-flag="${t.flag}">${t.flag} ${t.name}</option>`).join('')
-  
-  homeSelect.innerHTML = '<option value="">Velg lag...</option>' + options
-  awaySelect.innerHTML = '<option value="">Velg lag...</option>' + options
-}
-
-function onTeamSelect(position) {
-  const select = document.getElementById(`${position}-team-select`)
-  const iconInput = document.getElementById(`${position}-icon`)
-  const selectedOption = select.options[select.selectedIndex]
-  
-  if (selectedOption && selectedOption.dataset.flag) {
-    iconInput.value = selectedOption.dataset.flag
-  } else {
-    iconInput.value = ''
+  if (!teamId) {
+    showStatus('teams', 'error', 'Velg et land')
+    return
   }
+  
+  const team = teams.find(t => t.id === teamId)
+  const { error } = await sb.from('teams').update({ is_active: true }).eq('id', teamId)
+  
+  if (!error) {
+    team.is_active = true
+    select.value = ''
+    renderActiveTeams()
+    renderParticipants()
+  }
+  
+  showStatus('teams', error ? 'error' : 'success', error ? error.message : `${team.team_name} lagt til!`)
 }
 
-function addNationalTeam() {
-  const nameInput = document.getElementById('new-team-name')
-  const flagInput = document.getElementById('new-team-flag')
+async function removeGroupTeam(teamId) {
+  const team = teams.find(t => t.id === teamId)
+  
+  const { error } = await sb.from('teams').update({ is_active: false }).eq('id', teamId)
+  
+  if (!error) {
+    team.is_active = false
+    renderActiveTeams()
+    renderParticipants()
+  }
+  
+  showStatus('teams', error ? 'error' : 'success', error ? error.message : `${team.team_name} fjernet`)
+}
+
+// Participant management
+function renderRegisteredParticipants() {
+  const container = document.getElementById('registered-participants')
+  
+  if (participants.length === 0) {
+    container.innerHTML = '<span style="color: var(--muted); font-size: 12px;">Ingen deltakere registrert</span>'
+    return
+  }
+  
+  container.innerHTML = participants.map(p => `
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; background: var(--surface); border-radius: var(--radius-sm); min-width: 80px;">
+      <img src="${p.photo_url}" alt="${p.participant}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+      <span style="font-size: 12px; font-weight: 500;">${p.participant}</span>
+      <span onclick="removeParticipant(${p.id})" style="cursor: pointer; font-size: 11px; color: var(--danger); opacity: 0.7;">fjern</span>
+    </div>
+  `).join('')
+}
+
+async function addParticipant() {
+  const nameInput = document.getElementById('new-participant-name')
+  const photoInput = document.getElementById('new-participant-photo')
   
   const name = nameInput.value.trim()
-  const flag = flagInput.value.trim()
+  const photo = photoInput.value.trim() || 'images/participants/default.jpeg'
   
   if (!name) {
-    showStatus('match', 'error', 'Skriv inn et lagnavn')
+    showStatus('participants', 'error', 'Skriv inn et navn')
     return
   }
   
-  const nationalTeams = getNationalTeams()
+  const { data, error } = await sb.from('participants')
+    .insert({ participant: name, photo_url: photo })
+    .select()
+    .single()
   
-  // Check if already exists
-  if (nationalTeams.some(t => t.name.toLowerCase() === name.toLowerCase())) {
-    showStatus('match', 'error', 'Laget finnes allerede')
-    return
+  if (!error && data) {
+    participants.push(data)
+    nameInput.value = ''
+    photoInput.value = ''
+    renderRegisteredParticipants()
+    renderParticipants()
   }
   
-  nationalTeams.push({ name, flag: flag || '🏳️' })
-  saveNationalTeams(nationalTeams)
-  
-  nameInput.value = ''
-  flagInput.value = ''
-  
-  renderNationalTeams()
-  showStatus('match', 'success', `${name} lagt til!`)
+  showStatus('participants', error ? 'error' : 'success', error ? error.message : `${name} lagt til!`)
 }
 
-function removeNationalTeam(index) {
-  const nationalTeams = getNationalTeams()
-  const removed = nationalTeams.splice(index, 1)[0]
-  saveNationalTeams(nationalTeams)
-  renderNationalTeams()
-  showStatus('match', 'success', `${removed.name} fjernet`)
+async function removeParticipant(participantId) {
+  const participant = participants.find(p => p.id === participantId)
+  
+  const { error } = await sb.from('participants').delete().eq('id', participantId)
+  
+  if (!error) {
+    participants = participants.filter(p => p.id !== participantId)
+    renderRegisteredParticipants()
+    renderParticipants()
+  }
+  
+  showStatus('participants', error ? 'error' : 'success', error ? error.message : `${participant.participant} fjernet`)
 }
 
 async function loadMatchup() {
-  // First render national teams UI
-  renderNationalTeams()
+  // Populate dropdowns
+  populateOpponentDropdown()
+  populateGroupTeamDropdown()
   
-  // Then load current matchup from DB
-  let { data, error } = await sb.from('matchup').select('*')
+  // Load current matchup from DB
+  const { data } = await sb.from('matchup').select('*')
   
-  if (!error && data && data.length > 0) {
+  if (data && data.length > 0) {
     const home = data.find(m => m.position === 'home')
     const away = data.find(m => m.position === 'away')
     
-    if (home) {
-      document.getElementById('home-team-select').value = home.team_name || ''
-      document.getElementById('home-icon').value = home.team_icon || ''
-      if (home.match_kickoff) {
-        document.getElementById('match-kickoff').value = 
-          new Date(home.match_kickoff).toISOString().slice(0, 16)
+    // Determine Norway's position
+    const norwayIsHome = home?.team_name === 'Norge'
+    document.querySelector(`input[name="norway-position"][value="${norwayIsHome ? 'home' : 'away'}"]`).checked = true
+    
+    // Set opponent
+    const opponent = norwayIsHome ? away : home
+    if (opponent) {
+      const opponentTeam = teams.find(t => t.team_name === opponent.team_name)
+      if (opponentTeam) {
+        document.getElementById('opponent-select').value = opponentTeam.id
+        document.getElementById('opponent-flag').textContent = opponentTeam.flag
       }
     }
-    if (away) {
-      document.getElementById('away-team-select').value = away.team_name || ''
-      document.getElementById('away-icon').value = away.team_icon || ''
+    
+    // Set kickoff
+    if (home?.match_kickoff) {
+      document.getElementById('match-kickoff').value = 
+        new Date(home.match_kickoff).toISOString().slice(0, 16)
     }
   }
+  
+  // Render active teams
+  renderActiveTeams()
 }
 
 async function saveMatchup() {
-  const homeSelect = document.getElementById('home-team-select')
-  const homeTeam = homeSelect.value
-  const homeIcon = document.getElementById('home-icon').value
-  const awaySelect = document.getElementById('away-team-select')
-  const awayTeam = awaySelect.value
-  const awayIcon = document.getElementById('away-icon').value
+  const norwayPosition = document.querySelector('input[name="norway-position"]:checked').value
+  const opponentSelect = document.getElementById('opponent-select')
+  const opponentId = opponentSelect.value
   const kickoff = document.getElementById('match-kickoff').value
   
-  if (!homeTeam || !awayTeam) {
-    showStatus('match', 'error', 'Velg begge lagene')
+  if (!opponentId) {
+    showStatus('match', 'error', 'Velg motstander')
     return
   }
   
-  if (homeTeam === awayTeam) {
-    showStatus('match', 'error', 'Hjemme- og bortelag kan ikke være samme lag')
-    return
-  }
+  const opponentTeam = teams.find(t => t.id === parseInt(opponentId))
+  const norway = teams.find(t => t.team_name === 'Norge')
+  
+  const homeTeam = norwayPosition === 'home' ? 'Norge' : opponentTeam.team_name
+  const homeIcon = norwayPosition === 'home' ? norway?.flag || '🇳🇴' : opponentTeam.flag
+  const awayTeam = norwayPosition === 'away' ? 'Norge' : opponentTeam.team_name
+  const awayIcon = norwayPosition === 'away' ? norway?.flag || '🇳🇴' : opponentTeam.flag
   
   const { error } = await sb.from('matchup').upsert([
     { position: 'home', team_name: homeTeam, team_icon: homeIcon, match_kickoff: kickoff || null },
@@ -1038,8 +1156,9 @@ async function saveMatchup() {
 async function loadScores() {
   const { data } = await sb.from('activity_scores').select('*')
   const tbody = document.getElementById('scores-body')
+  const activeTeams = teams.filter(t => t.is_active)
   
-  tbody.innerHTML = teams.map(t => {
+  tbody.innerHTML = activeTeams.map(t => {
     const score = (data || []).find(s => s.team_id === t.id) || {}
     return `
       <tr>
