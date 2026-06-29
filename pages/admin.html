@@ -493,6 +493,70 @@
     font-weight: 500;
     margin-top: 4px;
   }
+
+  /* Event timeline */
+  .event-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .event-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+  }
+  a.event-item:hover {
+    background: rgba(255,255,255,0.08);
+    transform: translateX(4px);
+  }
+  .event-num {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: #111;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .event-details { flex: 1; }
+  .event-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .event-desc {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* Story buttons */
+  .story-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .story-btn:hover {
+    background: var(--accent);
+    color: #111;
+  }
 </style>
 </head>
 <body>
@@ -708,9 +772,130 @@
   <!-- Timeline Panel -->
   <div id="panel-timeline" class="panel">
     <div class="section-card">
-      <h3>📅 Tidslinje / Rekkefølge</h3>
-      <div class="timeline" id="timeline">
-        <!-- Populated by JS -->
+      <h3>� Rekkefølge</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Klikk på punkter for å åpne kapitler og aktiviteter.
+      </p>
+      <div class="event-timeline">
+        <a href="../story/1.html" class="event-item">
+          <span class="event-num">1</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 1 – Intro</div>
+            <div class="event-desc">Sette scenen, kontekst, lagutdeling</div>
+          </div>
+        </a>
+        <a href="../story/2.html" class="event-item">
+          <span class="event-num">2</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 2 – Analyse</div>
+            <div class="event-desc">Intro til quiz og spilleregler</div>
+          </div>
+        </a>
+        <a href="quiz.html" class="event-item">
+          <span class="event-num">3</span>
+          <div class="event-details">
+            <div class="event-name">🧠 Quiz</div>
+            <div class="event-desc">30 min, ressurser utdeles</div>
+          </div>
+        </a>
+        <a href="../story/3.html" class="event-item">
+          <span class="event-num">4</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 3 – Avreise</div>
+            <div class="event-desc">Klargjør for reise til ballbinge</div>
+          </div>
+        </a>
+        <div class="event-item">
+          <span class="event-num">5</span>
+          <div class="event-details">
+            <div class="event-name">🚶 Reise til ballbinge</div>
+            <div class="event-desc">Transport/gange</div>
+          </div>
+        </div>
+        <a href="../story/4.html" class="event-item">
+          <span class="event-num">6</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 4 – Landslagssamling</div>
+            <div class="event-desc">Gå gjennom øvelser, minn om kort</div>
+          </div>
+        </a>
+        <a href="ballbinge.html" class="event-item">
+          <span class="event-num">7</span>
+          <div class="event-details">
+            <div class="event-name">⚽ Ballbinge-øvelser</div>
+            <div class="event-desc">Tverrlegger, presisjon, straffe, 3v3</div>
+          </div>
+        </a>
+        <a href="../story/5.html" class="event-item">
+          <span class="event-num">8</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 5 – Uttak + Lagbilde</div>
+            <div class="event-desc">Avreise til "USA" (hjem)</div>
+          </div>
+        </a>
+        <a href="../story/6.html" class="event-item">
+          <span class="event-num">9</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 6 – Gruppespill</div>
+            <div class="event-desc">FC26 turnering intro, kort fortsatt aktive</div>
+          </div>
+        </a>
+        <a href="fc26.html" class="event-item">
+          <span class="event-num">10</span>
+          <div class="event-details">
+            <div class="event-name">🎮 FC26 Turnering</div>
+            <div class="event-desc">6 kamper, 2×4 min</div>
+          </div>
+        </a>
+        <a href="../story/7.html" class="event-item">
+          <span class="event-num">11</span>
+          <div class="event-details">
+            <div class="event-name">📖 Kapittel 7 – Forberedelser</div>
+            <div class="event-desc">Intro til orakelet</div>
+          </div>
+        </a>
+        <a href="orakel.html" class="event-item">
+          <span class="event-num">12</span>
+          <div class="event-details">
+            <div class="event-name">🔮 Orakelet (Kamptipping)</div>
+            <div class="event-desc">20 min</div>
+          </div>
+        </a>
+        <div class="event-item">
+          <span class="event-num">13</span>
+          <div class="event-details">
+            <div class="event-name">📺 Se kampen (NRK)</div>
+            <div class="event-desc">Frankrike vs Norge, 120 min</div>
+          </div>
+        </div>
+        <a href="../story/8.html" class="event-item">
+          <span class="event-num">14</span>
+          <div class="event-details">
+            <div class="event-name">🏆 Premieutdeling</div>
+            <div class="event-desc">Kåring av vinnere, pokal</div>
+          </div>
+        </a>
+        <div class="event-item">
+          <span class="event-num">15</span>
+          <div class="event-details">
+            <div class="event-name">🎉 Fest!</div>
+            <div class="event-desc">Festing utover natta</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="section-card">
+      <h3>📖 Kapitler (Hurtigtilgang)</h3>
+      <div style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;">
+        <a href="../story/1.html" class="story-btn">1</a>
+        <a href="../story/2.html" class="story-btn">2</a>
+        <a href="../story/3.html" class="story-btn">3</a>
+        <a href="../story/4.html" class="story-btn">4</a>
+        <a href="../story/5.html" class="story-btn">5</a>
+        <a href="../story/6.html" class="story-btn">6</a>
+        <a href="../story/7.html" class="story-btn">7</a>
+        <a href="../story/8.html" class="story-btn">8</a>
       </div>
     </div>
   </div>
