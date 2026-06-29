@@ -2749,19 +2749,14 @@ async function resetFasit() {
 }
 
 async function loadPredictions() {
+  // Simple query first - no joins
   const { data: predictions, error } = await sb
     .from('activity_predictions')
-    .select(`
-      *,
-      participants (
-        name,
-        team_id,
-        teams (flag, team_name)
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: true })
   
   console.log('Loaded predictions:', predictions?.length || 0, error || 'no error')
+  if (error) console.error('Prediction error:', error)
   
   document.getElementById('prediction-count').textContent = predictions?.length || 0
   
@@ -2792,13 +2787,13 @@ async function loadPredictions() {
   if (predictions) {
     for (const p of predictions) {
       const row = document.createElement('tr')
-      const teamFlag = p.participants?.teams?.flag || ''
-      const participantName = p.participants?.name || '?'
+      const teamFlag = ''  // Will add back with proper join
+      const participantName = `#${p.participant_id}`  // Temporary - show ID
       
       row.innerHTML = `
         <td>${participantName}</td>
         <td>${teamFlag}</td>
-        <td style="text-align: center; font-weight: 600;">${p.home_goals} – ${p.away_goals}</td>
+        <td style="text-align: center; font-weight: 600;">${p.home_goals ?? '?'} – ${p.away_goals ?? '?'}</td>
         <td style="text-align: center;">${formatChoice(p.first_goal)}</td>
         <td style="text-align: center;">${formatChoice(p.yellow_cards)}</td>
         <td style="text-align: center;">${formatYesNo(p.clean_sheet)}</td>
