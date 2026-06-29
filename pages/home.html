@@ -1043,18 +1043,38 @@ async function loadPitchFormation() {
   let playerIndex = 0
   const players = participants || []
   
+  // Check if photo is a real uploaded photo (not the default SVG placeholder)
+  const isRealPhoto = (url) => {
+    if (!url) return false
+    if (url.includes('placeholder')) return false
+    if (url.startsWith('data:image/svg')) return false  // Default SVG placeholder
+    return true
+  }
+  
   const renderPlayer = (p) => {
     if (p) {
-      const photoUrl = p.photo_url && !p.photo_url.includes('placeholder') ? p.photo_url : 'images/participants/placeholder.png'
-      return `
-        <div class="pitch-player">
-          <img src="${photoUrl}" 
-               class="pitch-player-photo" 
-               onclick="showPhotoOverlay('${p.photo_url || ''}', '${p.participant}')"
-               onerror="this.src='images/participants/placeholder.png'">
-          <span class="pitch-player-name">${p.participant.split(' ')[0]}</span>
-        </div>
-      `
+      const hasPhoto = isRealPhoto(p.photo_url)
+      const photoUrl = hasPhoto ? p.photo_url : null
+      
+      if (hasPhoto) {
+        return `
+          <div class="pitch-player">
+            <img src="${photoUrl}" 
+                 class="pitch-player-photo" 
+                 onclick="showPhotoOverlay('${p.photo_url || ''}', '${p.participant}')"
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="pitch-player-photo placeholder" style="display:none;"></div>
+            <span class="pitch-player-name">${p.participant.split(' ')[0]}</span>
+          </div>
+        `
+      } else {
+        return `
+          <div class="pitch-player">
+            <div class="pitch-player-photo placeholder" style="display: flex; align-items: center; justify-content: center; font-size: 24px;">${p.participant.charAt(0).toUpperCase()}</div>
+            <span class="pitch-player-name">${p.participant.split(' ')[0]}</span>
+          </div>
+        `
+      }
     } else {
       return `
         <div class="pitch-player">
