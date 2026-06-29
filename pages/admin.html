@@ -1893,30 +1893,43 @@ async function loadFotballData() {
     })
   }
   
-  // Load existing placements from activity_fotball (which now has placement column)
-  const { data: scoresWithPlacement } = await sb.from('activity_fotball').select('*').not('placement', 'is', null)
-  if (scoresWithPlacement) {
-    scoresWithPlacement.forEach(p => {
-      // Convert exercise format (e1 -> 1, e2a -> 2a, etc.)
+  // Load existing placements from points (4p=1st, 3p=2nd, 2p=3rd, 1p=4th)
+  const pointsToPlacement = { 4: 1, 3: 2, 2: 3, 1: 4 }
+  if (scoresData) {
+    scoresData.forEach(p => {
+      if (p.exercise === 'e4') return // Handle e4 separately
       const exerciseId = p.exercise.replace('e', '')
-      const select = document.getElementById(`fb-e${exerciseId}-place${p.placement}`)
-      if (select) select.value = p.team_id
+      const placement = pointsToPlacement[p.points]
+      if (placement) {
+        const select = document.getElementById(`fb-e${exerciseId}-place${placement}`)
+        if (select) select.value = p.team_id
+      }
     })
   }
   
   // Load e4 saved data
-  const { data: e4data } = await sb.from('activity_fotball').select('*').eq('exercise', 'e4').not('placement', 'is', null)
-  if (e4data && e4data.length > 0) {
-    e4data.forEach(d => {
-      const select = document.getElementById(`fb-e4-place${d.placement}`)
-      if (select) select.value = d.team_id
-    })
+  const e4data = scoresData ? scoresData.filter(s => s.exercise === 'e4') : []
+  if (e4data.length > 0) {
+    // Sort by points descending (winners first)
+    const teamA = e4data.filter(d => d.points >= 3).sort((a, b) => b.points - a.points)
+    const teamB = e4data.filter(d => d.points <= 3 && !teamA.includes(d))
     
-    const teamA1 = e4data.find(d => d.placement === 1)
-    const teamB1 = e4data.find(d => d.placement === 3)
-    if (teamA1 && teamA1.points === 6) document.getElementById('fb-e4-result').value = 'teamA'
-    else if (teamB1 && teamB1.points === 6) document.getElementById('fb-e4-result').value = 'teamB'
-    else if (teamA1 && teamA1.points === 3) document.getElementById('fb-e4-result').value = 'draw'
+    if (teamA.length >= 2) {
+      document.getElementById('fb-e4-place1').value = teamA[0].team_id
+      document.getElementById('fb-e4-place2').value = teamA[1].team_id
+    }
+    if (teamB.length >= 2) {
+      document.getElementById('fb-e4-place3').value = teamB[0].team_id
+      document.getElementById('fb-e4-place4').value = teamB[1].team_id
+    }
+    
+    const winner = e4data.find(d => d.points === 6)
+    const loser = e4data.find(d => d.points === 0)
+    if (winner && loser) {
+      document.getElementById('fb-e4-result').value = teamA.includes(winner) ? 'teamA' : 'teamB'
+    } else if (e4data.every(d => d.points === 3)) {
+      document.getElementById('fb-e4-result').value = 'draw'
+    }
   }
 }
 
@@ -1949,10 +1962,10 @@ async function saveFotballExercise(exerciseNum) {
     // Delete old e4 data first, then insert new
     await sb.from('activity_fotball').delete().eq('exercise', 'e4')
     const { error } = await sb.from('activity_fotball').insert([
-      { team_id: parseInt(teamA1Id), exercise: 'e4', placement: 1, points: teamAPoints },
-      { team_id: parseInt(teamA2Id), exercise: 'e4', placement: 2, points: teamAPoints },
-      { team_id: parseInt(teamB1Id), exercise: 'e4', placement: 3, points: teamBPoints },
-      { team_id: parseInt(teamB2Id), exercise: 'e4', placement: 4, points: teamBPoints }
+      { team_id: parseInt(teamA1Id), exercise: 'e4', points: teamAPoints },
+      { team_id: parseInt(teamA2Id), exercise: 'e4', points: teamAPoints },
+      { team_id: parseInt(teamB1Id), exercise: 'e4', points: teamBPoints },
+      { team_id: parseInt(teamB2Id), exercise: 'e4', points: teamBPoints }
     ])
     
     if (error) {
@@ -1961,7 +1974,6 @@ async function saveFotballExercise(exerciseNum) {
     }
     
   } else {
-    const placements = []
     const scoreUpdates = []
     
     for (let place = 1; place <= 4; place++) {
@@ -1972,11 +1984,10 @@ async function saveFotballExercise(exerciseNum) {
       }
       
       const points = FB_PLACEMENT_POINTS[place]
-      placements.push({ exercise: exerciseId, placement: place, team_id: parseInt(teamId), points })
       scoreUpdates.push({ team_id: parseInt(teamId), exercise: `e${exerciseId}`, points })
     }
     
-    const teamIds = placements.map(p => p.team_id)
+    const teamIds = scoreUpdates.map(p => p.team_id)
     if (new Set(teamIds).size !== teamIds.length) {
       alert('Hvert lag kan bare ha én plassering')
       return
@@ -1984,8 +1995,7 @@ async function saveFotballExercise(exerciseNum) {
     
     // Delete old exercise data first, then insert new
     await sb.from('activity_fotball').delete().eq('exercise', `e${exerciseId}`)
-    const scoreUpdatesWithPlacement = scoreUpdates.map((s, idx) => ({ ...s, placement: idx + 1 }))
-    const { error } = await sb.from('activity_fotball').insert(scoreUpdatesWithPlacement)
+    const { error } = await sb.from('activity_fotball').insert(scoreUpdates)
     
     if (error) {
       alert('Kunne ikke lagre: ' + error.message)
