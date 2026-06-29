@@ -625,9 +625,9 @@
     
     <!-- Section 2: Gruppe -->
     <div class="section-card">
-      <h3>🏆 Gruppe</h3>
+      <h3>🏆 Gruppe <span id="team-counter" style="font-size: 14px; font-weight: 400; color: var(--muted);">0/4</span></h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
-        Velg 4 lag som deltar i turneringen. Norge er alltid med.
+        Velg lag som deltar i turneringen. Norge er alltid med.
       </p>
       <div id="active-teams-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
         <!-- Populated by JS -->
@@ -1366,6 +1366,11 @@ function renderActiveTeams() {
   const container = document.getElementById('active-teams-list')
   const addSection = document.getElementById('add-team-section')
   const fc26Btn = document.getElementById('generate-fc26-btn')
+  const counter = document.getElementById('team-counter')
+  
+  // Update counter
+  counter.textContent = `${activeTeams.length}/4`
+  counter.style.color = activeTeams.length === 4 ? 'var(--accent)' : 'var(--muted)'
   
   if (activeTeams.length === 0) {
     container.innerHTML = '<span style="color: var(--muted); font-size: 12px;">Ingen lag i gruppen enda</span>'
