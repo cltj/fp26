@@ -2751,7 +2751,14 @@ async function resetFasit() {
 async function loadPredictions() {
   const { data: predictions, error } = await sb
     .from('activity_predictions')
-    .select('*, participants!participant_id(participant, team_id, teams(flag, team_name))')
+    .select(`
+      *,
+      participants (
+        name,
+        team_id,
+        teams (flag, team_name)
+      )
+    `)
     .order('created_at', { ascending: true })
   
   console.log('Loaded predictions:', predictions?.length || 0, error || 'no error')
@@ -2786,7 +2793,7 @@ async function loadPredictions() {
     for (const p of predictions) {
       const row = document.createElement('tr')
       const teamFlag = p.participants?.teams?.flag || ''
-      const participantName = p.participants?.participant || '?'
+      const participantName = p.participants?.name || '?'
       
       row.innerHTML = `
         <td>${participantName}</td>

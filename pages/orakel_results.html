@@ -254,7 +254,11 @@
         .from('activity_predictions')
         .select(`
           *,
-          participants!participant_id(participant, team_id, teams(team_name, flag))
+          participants (
+            name,
+            team_id,
+            teams (team_name, flag)
+          )
         `)
 
       if (error) {
