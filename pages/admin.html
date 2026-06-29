@@ -1148,9 +1148,9 @@ function searchGroupTeam() {
     return
   }
   
-  // Only show inactive teams
+  // Only show inactive teams (exclude Norge - it's always in the group)
   const matches = teams.filter(t => 
-    !t.is_active && t.team_name.toLowerCase().includes(query)
+    !t.is_active && t.team_name !== 'Norge' && t.team_name.toLowerCase().includes(query)
   ).slice(0, 10)
   
   if (matches.length === 0) {
@@ -1190,10 +1190,17 @@ function renderActiveTeams() {
     return
   }
   
+  // Sort so Norge is always first
+  activeTeams.sort((a, b) => {
+    if (a.team_name === 'Norge') return -1
+    if (b.team_name === 'Norge') return 1
+    return a.team_name.localeCompare(b.team_name)
+  })
+  
   container.innerHTML = activeTeams.map(t => `
     <span class="team-chip" style="display: flex; align-items: center; gap: 4px;">
       ${t.flag} ${t.team_name}
-      <span onclick="removeGroupTeam(${t.id})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>
+      ${t.team_name !== 'Norge' ? `<span onclick="removeGroupTeam(${t.id})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>` : ''}
     </span>
   `).join('')
 }
@@ -1216,6 +1223,12 @@ async function addGroupTeamFromSearch(teamId, teamName) {
 
 async function removeGroupTeam(teamId) {
   const team = teams.find(t => t.id === teamId)
+  
+  // Norge cannot be removed from the group
+  if (team.team_name === 'Norge') {
+    showStatus('teams', 'error', 'Norge kan ikke fjernes fra gruppen')
+    return
+  }
   
   const { error } = await sb.from('teams').update({ is_active: false }).eq('id', teamId)
   
@@ -1590,8 +1603,11 @@ async function resetGame() {
     // Delete all participants
     await sb.from('participants').delete().neq('id', 0)
     
-    // Deactivate all teams (set is_active to false)
-    await sb.from('teams').update({ is_active: false }).neq('id', 0)
+    // Deactivate all teams except Norge (Norge is always in the group)
+    await sb.from('teams').update({ is_active: false }).neq('team_name', 'Norge')
+    
+    // Ensure Norge stays active
+    await sb.from('teams').update({ is_active: true }).eq('team_name', 'Norge')
     
     // Clear matchup
     await sb.from('matchup').delete().neq('position', '')
@@ -1601,7 +1617,9 @@ async function resetGame() {
     
     // Clear UI state
     participants = []
-    teams.forEach(t => t.is_active = false)
+    teams.forEach(t => {
+      t.is_active = t.team_name === 'Norge'
+    })
     
     // Reload all data
     await init()
