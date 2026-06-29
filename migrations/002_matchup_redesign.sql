@@ -2,11 +2,18 @@
 -- Run this in Supabase SQL Editor
 
 -- =============================================
--- PART 1: Rename matchups to matchup and restructure
+-- PART 1: Drop FK constraint, then table
 -- =============================================
 
--- Drop old table
+-- Drop the foreign key constraint first
+ALTER TABLE activity_predictions DROP CONSTRAINT IF EXISTS activity_predictions_matchup_id_fkey;
+
+-- Now we can drop the old table
 DROP TABLE IF EXISTS matchups;
+
+-- =============================================
+-- PART 2: Create new matchup table
+-- =============================================
 
 -- Create new matchup table with two rows (home/away)
 CREATE TABLE matchup (
@@ -42,6 +49,14 @@ VALUES
   ('away', 'Frankrike', '🇫🇷', '2026-06-29 18:00:00+02');
 
 -- =============================================
--- PART 2: Verify
+-- PART 3: Drop matchup_id from activity_predictions (no longer needed)
+-- =============================================
+
+-- The matchup is now always the same (single match), so we don't need matchup_id
+ALTER TABLE activity_predictions DROP COLUMN IF EXISTS matchup_id;
+
+-- =============================================
+-- PART 4: Verify
 -- =============================================
 SELECT * FROM matchup;
+SELECT column_name FROM information_schema.columns WHERE table_name = 'activity_predictions';
