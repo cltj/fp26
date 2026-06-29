@@ -403,7 +403,6 @@ function calculateStandings() {
     const row = document.createElement('div')
     row.className = 'fc26-row ' + posClass
     const gdDisplay = gd > 0 ? `+${gd}` : gd === 0 ? '0' : gd.toString()
-    const placementPts = PLACEMENT_POINTS[idx + 1] || 0
     row.innerHTML = `
       <span class="fc26-pos">${idx + 1}</span>
       <span class="fc26-flag">${s.team.flag}</span>
@@ -412,7 +411,7 @@ function calculateStandings() {
       <span class="fc26-stat">${s.goalsFor}</span>
       <span class="fc26-stat">${s.goalsAgainst}</span>
       <span class="fc26-stat gd">${gdDisplay}</span>
-      <span class="fc26-pts">${placementPts}p</span>
+      <span class="fc26-pts">${s.points}p</span>
     `
     tbody.appendChild(row)
   })
