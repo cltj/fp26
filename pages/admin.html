@@ -1200,10 +1200,10 @@ async function toggleActivity(id, isActive) {
 async function loadResources() {
   const { data } = await sb.from('resources').select('*').eq('type', 'card').order('title')
   resources = data || []
-  renderResources()
+  await renderResources()
 }
 
-function renderResources() {
+async function renderResources() {
   const container = document.getElementById('resources-grid')
   const summaryContainer = document.getElementById('team-resources-summary')
   const activeTeams = teams.filter(t => t.is_active)
@@ -1214,22 +1214,25 @@ function renderResources() {
     return
   }
   
-  // Calculate resources per team
-  const teamResources = {}
-  activeTeams.forEach(t => { teamResources[t.id] = 0 })
+  // Count quiz wins per team from activity_quiz winner_team_ids
+  const teamQuizWins = {}
+  activeTeams.forEach(t => { teamQuizWins[t.id] = 0 })
   
-  resources.forEach(r => {
-    const teamIds = r.team_ids || []
-    teamIds.forEach(teamId => {
-      if (teamResources[teamId] !== undefined) {
-        teamResources[teamId]++
-      }
+  const { data: quizData } = await sb.from('activity_quiz').select('winner_team_ids')
+  if (quizData) {
+    quizData.forEach(q => {
+      const winnerIds = q.winner_team_ids || []
+      winnerIds.forEach(teamId => {
+        if (teamQuizWins[teamId] !== undefined) {
+          teamQuizWins[teamId]++
+        }
+      })
     })
-  })
+  }
   
-  // Render team summary
+  // Render team summary (quiz wins)
   summaryContainer.innerHTML = activeTeams.map(t => {
-    const count = teamResources[t.id] || 0
+    const count = teamQuizWins[t.id] || 0
     return `
       <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 16px 20px; min-width: 120px; text-align: center;">
         <div style="font-size: 28px; margin-bottom: 4px;">${t.flag}</div>
@@ -1307,7 +1310,7 @@ async function updateResourceTeams(resourceId, newTeamIds) {
   if (!error) {
     const resource = resources.find(r => r.id === resourceId)
     resource.team_ids = newTeamIds
-    renderResources()
+    await renderResources()
   }
   
   showStatus('resources', error ? 'error' : 'success', error ? error.message : 'Oppdatert!')
@@ -1464,7 +1467,7 @@ async function addGroupTeamFromSearch(teamId, teamName) {
     document.getElementById('group-team-dropdown').style.display = 'none'
     renderActiveTeams()
     renderRegisteredParticipants()
-    renderResources()
+    await renderResources()
   }
   
   showStatus('teams', error ? 'error' : 'success', error ? error.message : `${teamName} lagt til!`)
@@ -1485,7 +1488,7 @@ async function removeGroupTeam(teamId) {
     team.is_active = false
     renderActiveTeams()
     renderRegisteredParticipants()
-    renderResources()
+    await renderResources()
   }
   
   showStatus('teams', error ? 'error' : 'success', error ? error.message : `${team.team_name} fjernet`)
