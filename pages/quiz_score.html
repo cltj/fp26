@@ -152,6 +152,13 @@
     <div id="main-content">
       <h1>🧠 Quiz</h1>
       
+      <div id="winner-summary" class="winner-summary" style="display: none;">
+        <h3>📦 Ressurser innhentet</h3>
+        <div id="summary-list">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
       <div class="info-box">
         <p>Hvem gjettet nærmest på hvert spørsmål? Ingen poeng - bare ressurser!</p>
       </div>
@@ -163,13 +170,6 @@
           <span>Vinner</span>
         </div>
         <div id="quiz-body">
-          <!-- Filled by JS -->
-        </div>
-      </div>
-
-      <div id="winner-summary" class="winner-summary" style="display: none;">
-        <h3>🏆 Oppsummering</h3>
-        <div id="summary-list">
           <!-- Filled by JS -->
         </div>
       </div>
@@ -257,10 +257,10 @@ function render() {
     let winnerHtml = '<span class="quiz-winner pending">—</span>'
     if (winners.length === 1) {
       const winner = winners[0]
-      winnerHtml = `<span class="quiz-winner"><span class="flag">${winner.flag}</span>${winner.team_name}</span>`
+      winnerHtml = `<span class="quiz-winner">${winner.team_name}</span>`
     } else if (winners.length > 1) {
-      // Multiple winners - show flags and names
-      winnerHtml = `<span class="quiz-winner">${winners.map(w => `<span class="flag">${w.flag}</span>`).join('')} ${winners.map(w => w.team_name).join(', ')}</span>`
+      // Multiple winners - show names
+      winnerHtml = `<span class="quiz-winner">${winners.map(w => w.team_name).join(', ')}</span>`
     }
     
     return `
@@ -301,8 +301,8 @@ function renderSummary() {
   document.getElementById('summary-list').innerHTML = sorted.map(item => {
     return `
       <div class="summary-row">
-        <span class="summary-name"><span class="flag">${item.team.flag}</span>${item.team.team_name}</span>
-        <span class="summary-count">${item.count} nærmest</span>
+        <span class="summary-name">${item.team.team_name}</span>
+        <span class="summary-count">${item.count}</span>
       </div>
     `
   }).join('')
