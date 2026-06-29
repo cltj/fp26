@@ -374,16 +374,19 @@ function startQuiz() {
 
 function renderTeamButtons() {
   const container = document.getElementById('teams-section')
-  const existingBtns = container.querySelectorAll('.team-btn')
+  // Only remove team buttons, not the clear button
+  const existingBtns = container.querySelectorAll('.team-btn:not(.clear-btn)')
   existingBtns.forEach(b => b.remove())
   
+  const clearBtn = document.getElementById('clear-winner-btn')
   teams.forEach(team => {
     const btn = document.createElement('button')
     btn.className = 'team-btn'
-    btn.textContent = team.team_name
+    btn.textContent = `${team.flag} ${team.team_name}`
     btn.dataset.teamId = team.id
     btn.onclick = () => selectWinner(team.id)
-    container.appendChild(btn)
+    // Insert before clear button
+    container.insertBefore(btn, clearBtn)
   })
 }
 
