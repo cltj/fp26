@@ -298,7 +298,7 @@ function renderCard(card) {
       <div class="resource-header">
         <span class="resource-icon">${card.icon || '🎴'}</span>
         <span class="resource-name">${card.title}</span>
-        <span class="resource-count">x${card.qty}</span>
+        ${card.type !== 'base' ? `<span class="resource-count">x${card.qty}</span>` : ''}
         ${ownerHtml}
       </div>
       <div class="resource-effects">
