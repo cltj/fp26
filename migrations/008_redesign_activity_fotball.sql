@@ -9,7 +9,7 @@ CREATE TABLE activity_fotball (
   id SERIAL PRIMARY KEY,
   team_id INTEGER NOT NULL REFERENCES teams(id),
   activity_id INTEGER REFERENCES activities(id),
-  exercise_id TEXT NOT NULL,  -- '1', '2a', '2b', '3', '4'
+  exercise_id INTEGER NOT NULL,  -- 1, 2, 3, 4, 5
   exercise_name TEXT NOT NULL, -- 'Tverrlegger', 'Presisjon Runde 1', etc.
   points INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
