@@ -637,7 +637,7 @@ let resources = []
 let quizChart = null
 
 // Check admin access
-const session = JSON.parse(localStorage.getItem('session') || '{}')
+const session = JSON.parse(localStorage.getItem('fp26_session') || '{}')
 const isAdmin = session.isAdmin === true || session.name === 'Tj'
 
 if (!isAdmin) {
