@@ -1829,7 +1829,7 @@ async function loadFotballData() {
   }
   
   // Load existing placements
-  const { data: placements } = await sb.from('ballbinge_placements').select('*')
+  const { data: placements } = await sb.from('activity_fotball_placements').select('*')
   if (placements) {
     placements.forEach(p => {
       const select = document.getElementById(`fb-e${p.exercise}-place${p.placement}`)
@@ -1838,7 +1838,7 @@ async function loadFotballData() {
   }
   
   // Load e4 saved data or auto-fill
-  const { data: e4data } = await sb.from('ballbinge_placements').select('*').eq('exercise', '4')
+  const { data: e4data } = await sb.from('activity_fotball_placements').select('*').eq('exercise', '4')
   if (e4data && e4data.length > 0) {
     const teamA1 = e4data.find(d => d.placement === 1)
     const teamA2 = e4data.find(d => d.placement === 2)
@@ -1906,7 +1906,7 @@ async function saveFotballExercise(exerciseNum) {
     else if (result === 'teamB') { teamAPoints = 0; teamBPoints = 6 }
     else { teamAPoints = 3; teamBPoints = 3 }
     
-    await sb.from('ballbinge_placements').upsert([
+    await sb.from('activity_fotball_placements').upsert([
       { exercise: '4', placement: 1, team_id: parseInt(teamA1Id), points: teamAPoints },
       { exercise: '4', placement: 2, team_id: parseInt(teamA2Id), points: teamAPoints },
       { exercise: '4', placement: 3, team_id: parseInt(teamB1Id), points: teamBPoints },
@@ -1942,7 +1942,7 @@ async function saveFotballExercise(exerciseNum) {
       return
     }
     
-    await sb.from('ballbinge_placements').upsert(placements, { onConflict: 'exercise,placement' })
+    await sb.from('activity_fotball_placements').upsert(placements, { onConflict: 'exercise,placement' })
     await sb.from('activity_fotball').upsert(scoreUpdates, { onConflict: 'team_id,exercise' })
   }
   
@@ -1957,7 +1957,7 @@ async function resetFotballExercise(exerciseNum) {
   if (!confirm(`Er du sikker på at du vil nullstille Øvelse ${exerciseId}?`)) return
   
   // Delete from placements
-  await sb.from('ballbinge_placements').delete().eq('exercise', exerciseId)
+  await sb.from('activity_fotball_placements').delete().eq('exercise', exerciseId)
   
   // Delete from scores
   const exerciseKey = exerciseNum === 4 ? 'e4' : `e${exerciseId}`
@@ -1983,7 +1983,7 @@ async function resetAllFotball() {
   if (!confirm('Dette kan ikke angres. Fortsette?')) return
   
   // Delete all fotball data
-  await sb.from('ballbinge_placements').delete().neq('exercise', '')
+  await sb.from('activity_fotball_placements').delete().neq('exercise', '')
   await sb.from('activity_fotball').delete().neq('id', 0)
   
   // Clear all selects
