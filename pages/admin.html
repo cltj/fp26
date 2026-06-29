@@ -581,6 +581,7 @@
     <div class="tab" onclick="showPanel('scores')">📊 Poeng</div>
     <div class="tab" onclick="showPanel('quiz')">🧠 Quiz</div>
     <div class="tab" onclick="showPanel('fotball')">⚽ Fotball</div>
+    <div class="tab" onclick="showPanel('fc26')">🎮 FC26</div>
     <div class="tab" onclick="showPanel('timeline')">📅 Tidslinje</div>
   </div>
   
@@ -912,6 +913,26 @@
     </div>
   </div>
   
+  <!-- FC26 Panel -->
+  <div id="panel-fc26" class="panel">
+    <div class="section-card">
+      <h3>🎮 Registrer FC26-resultater</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Registrer kampresultater. Poeng beregnes automatisk fra tabellplassering.
+      </p>
+      
+      <div id="fc26-matches">
+        <!-- Filled by JS -->
+      </div>
+      
+      <!-- Reset section -->
+      <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid rgba(255,100,100,0.3);">
+        <h4 style="color: var(--danger); margin-bottom: 12px;">⚠️ Nullstill resultater</h4>
+        <button class="btn" style="width: 100%; background: rgba(255,50,50,0.2); border: 1px solid rgba(255,50,50,0.4); color: #ff6b6b;" onclick="resetAllFC26()">🗑️ Nullstill ALLE FC26-resultater</button>
+      </div>
+    </div>
+  </div>
+  
   <!-- Timeline Panel -->
   <div id="panel-timeline" class="panel">
     <div class="section-card">
@@ -1103,6 +1124,11 @@ function showPanel(panel) {
   // Load fotball data when fotball panel is shown
   if (panel === 'fotball') {
     loadFotballData()
+  }
+  
+  // Load FC26 data when fc26 panel is shown
+  if (panel === 'fc26') {
+    loadFC26Data()
   }
 }
 
@@ -2088,6 +2114,123 @@ async function resetAllFotball() {
   
   alert('Alle fotball-resultater nullstilt!')
   await loadFotballData()
+  await loadScores()
+}
+
+// ============================================
+// FC26 Functions
+// ============================================
+
+const FC26_FIXTURES = [
+  { match_num: 1, home: 'Irak', away: 'Senegal' },
+  { match_num: 2, home: 'Frankrike', away: 'Norge' },
+  { match_num: 3, home: 'Irak', away: 'Frankrike' },
+  { match_num: 4, home: 'Senegal', away: 'Norge' },
+  { match_num: 5, home: 'Irak', away: 'Norge' },
+  { match_num: 6, home: 'Senegal', away: 'Frankrike' }
+]
+
+let fc26Matches = []
+let fc26Teams = {}
+
+async function loadFC26Data() {
+  // Load teams
+  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag')
+  if (teamsData) {
+    teamsData.forEach(t => fc26Teams[t.team_name] = t)
+  }
+  
+  // Load matches
+  const { data: matchData } = await sb.from('activity_fc26').select('*')
+  fc26Matches = matchData || []
+  
+  renderFC26Matches()
+}
+
+function renderFC26Matches() {
+  const container = document.getElementById('fc26-matches')
+  if (!container) return
+  
+  container.innerHTML = FC26_FIXTURES.map(fixture => {
+    const homeTeam = fc26Teams[fixture.home] || { flag: '🏳️', team_name: fixture.home }
+    const awayTeam = fc26Teams[fixture.away] || { flag: '🏳️', team_name: fixture.away }
+    const match = fc26Matches.find(m => m.match_num === fixture.match_num)
+    const hasScore = match && match.home_score !== null && match.away_score !== null
+    
+    return `
+      <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+        <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">
+          Kamp ${fixture.match_num}: ${homeTeam.flag} ${homeTeam.team_name} vs ${awayTeam.flag} ${awayTeam.team_name}
+        </h4>
+        <div class="form-row" style="margin-bottom: 8px; gap: 8px;">
+          <input type="number" id="fc26-match${fixture.match_num}-home" min="0" max="99" 
+                 value="${hasScore ? match.home_score : ''}" placeholder="-"
+                 style="width: 60px; text-align: center; font-size: 18px; font-weight: 700;">
+          <span style="font-size: 18px; color: rgba(255,255,255,0.5);">–</span>
+          <input type="number" id="fc26-match${fixture.match_num}-away" min="0" max="99" 
+                 value="${hasScore ? match.away_score : ''}" placeholder="-"
+                 style="width: 60px; text-align: center; font-size: 18px; font-weight: 700;">
+          <button class="btn btn-primary" onclick="saveFC26Match(${fixture.match_num}, '${fixture.home}', '${fixture.away}')">💾</button>
+          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFC26Match(${fixture.match_num})">↺</button>
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+async function saveFC26Match(matchNum, homeTeamName, awayTeamName) {
+  const homeScore = document.getElementById(`fc26-match${matchNum}-home`).value
+  const awayScore = document.getElementById(`fc26-match${matchNum}-away`).value
+  
+  if (homeScore === '' || awayScore === '') {
+    alert('Fyll inn begge resultatene')
+    return
+  }
+  
+  const homeTeam = fc26Teams[homeTeamName]
+  const awayTeam = fc26Teams[awayTeamName]
+  
+  const { error } = await sb
+    .from('activity_fc26')
+    .upsert({
+      match_num: matchNum,
+      home_team_id: homeTeam?.id || null,
+      away_team_id: awayTeam?.id || null,
+      home_score: parseInt(homeScore),
+      away_score: parseInt(awayScore)
+    }, { onConflict: 'match_num' })
+  
+  if (error) {
+    alert('Kunne ikke lagre: ' + error.message)
+    return
+  }
+  
+  alert(`Kamp ${matchNum} lagret!`)
+  await loadFC26Data()
+  await loadScores()
+}
+
+async function resetFC26Match(matchNum) {
+  if (!confirm(`Nullstille kamp ${matchNum}?`)) return
+  
+  await sb.from('activity_fc26').delete().eq('match_num', matchNum)
+  
+  document.getElementById(`fc26-match${matchNum}-home`).value = ''
+  document.getElementById(`fc26-match${matchNum}-away`).value = ''
+  
+  alert(`Kamp ${matchNum} nullstilt!`)
+  await loadFC26Data()
+  await loadScores()
+}
+
+async function resetAllFC26() {
+  if (!confirm('⚠️ Er du HELT sikker på at du vil nullstille ALLE FC26-resultater?')) return
+  if (!confirm('Dette kan ikke angres. Fortsette?')) return
+  
+  await sb.from('activity_fc26').delete().neq('id', 0)
+  
+  alert('Alle FC26-resultater nullstilt!')
+  await loadFC26Data()
   await loadScores()
 }
 </script>

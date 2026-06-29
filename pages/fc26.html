@@ -132,81 +132,11 @@
     color: rgba(255,255,255,0.5);
     font-size: 12px;
   }
-  .match-result {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .match-result input {
-    width: 48px;
-    height: 40px;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
-    color: #fff;
-    font-size: 18px;
-    font-weight: 700;
-    text-align: center;
-    -moz-appearance: textfield;
-  }
-  .match-result input::-webkit-outer-spin-button,
-  .match-result input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  .match-result input:focus {
-    outline: none;
-    border-color: #c8f45a;
-  }
-  .match-result input:disabled {
-    opacity: 0.8;
-  }
   .match-score-display {
     font-size: 24px;
     font-weight: 700;
     text-align: center;
     padding: 8px;
-  }
-  .score-sep {
-    font-size: 18px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.6);
-  }
-  .save-btn {
-    background: rgba(200,244,90,0.15);
-    border: 1px solid rgba(200,244,90,0.3);
-    border-radius: 8px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s;
-  }
-  .save-btn:hover {
-    background: rgba(200,244,90,0.25);
-  }
-  .save-btn.saved {
-    background: rgba(100,200,100,0.3);
-    border-color: rgba(100,200,100,0.5);
-  }
-  .reset-btn {
-    background: rgba(255,100,100,0.15);
-    border: 1px solid rgba(255,100,100,0.3);
-    border-radius: 8px;
-    padding: 8px 12px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s;
-  }
-  .reset-btn:hover {
-    background: rgba(255,100,100,0.25);
-  }
-  .admin-controls {
-    display: none;
-  }
-  .is-admin .admin-controls {
-    display: flex;
-    gap: 8px;
   }
   .final-points {
     margin-top: 1rem;
@@ -236,12 +166,6 @@
     background: rgba(255,100,100,0.1);
     border: 1px solid rgba(255,100,100,0.3);
     border-radius: 12px;
-  }
-  .refresh-note {
-    font-size: 12px;
-    color: rgba(255,255,255,0.5);
-    text-align: center;
-    margin-top: 1rem;
   }
 </style>
 </head>
@@ -322,26 +246,10 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // Competition points for final placement
 const PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
 
-// Check if admin (same logic as home.html)
-let isAdmin = false
-const stored = localStorage.getItem('fp26_session')
-if (stored) {
-  const session = JSON.parse(stored)
-  isAdmin = session.isAdmin === true || session.name === 'Tj'
-  console.log('FC26 Session:', session)
-  console.log('Is admin:', isAdmin)
-}
-
-if (isAdmin) {
-  document.body.classList.add('is-admin')
-  console.log('Admin mode enabled')
-}
-
 let teams = {}
 let matches = []
 
-// Match fixtures (home_team_id vs away_team_id)
-// Will be populated after loading teams
+// Match fixtures
 const FIXTURES = [
   { match_num: 1, home: 'Irak', away: 'Senegal' },
   { match_num: 2, home: 'Frankrike', away: 'Norge' },
@@ -352,19 +260,17 @@ const FIXTURES = [
 ]
 
 async function init() {
-  // Check if activity is active (skip for admin)
-  if (!isAdmin) {
-    const { data: activity, error } = await sb
-      .from('activities')
-      .select('is_active')
-      .eq('activity_name', 'fc26')
-      .single()
-    
-    if (!error && activity && activity.is_active === false) {
-      document.getElementById('activity-closed').style.display = 'block'
-      document.getElementById('main-content').style.display = 'none'
-      return
-    }
+  // Check if activity is active
+  const { data: activity, error } = await sb
+    .from('activities')
+    .select('is_active')
+    .eq('activity_name', 'fc26')
+    .single()
+  
+  if (!error && activity && activity.is_active === false) {
+    document.getElementById('activity-closed').style.display = 'block'
+    document.getElementById('main-content').style.display = 'none'
+    return
   }
 
   // Load teams (only active group teams)
@@ -411,37 +317,16 @@ function renderMatches() {
     const card = document.createElement('div')
     card.className = 'match-card' + (hasScore ? ' played' : '')
     
-    if (isAdmin) {
-      card.innerHTML = `
-        <div class="match-teams">
-          <span class="team-name">${homeTeam.flag} ${homeTeam.team_name}</span>
-          <span class="vs">vs</span>
-          <span class="team-name">${awayTeam.flag} ${awayTeam.team_name}</span>
-        </div>
-        <div class="match-result">
-          <input type="number" id="match${fixture.match_num}-home" min="0" max="99" 
-                 value="${hasScore ? matchResult.home_score : ''}" placeholder="-">
-          <span class="score-sep">–</span>
-          <input type="number" id="match${fixture.match_num}-away" min="0" max="99" 
-                 value="${hasScore ? matchResult.away_score : ''}" placeholder="-">
-          <div class="admin-controls">
-            <button onclick="saveMatch(${fixture.match_num}, '${fixture.home}', '${fixture.away}')" class="save-btn">💾</button>
-            <button onclick="resetMatch(${fixture.match_num})" class="reset-btn">↺</button>
-          </div>
-        </div>
-      `
-    } else {
-      card.innerHTML = `
-        <div class="match-teams">
-          <span class="team-name">${homeTeam.flag} ${homeTeam.team_name}</span>
-          <span class="vs">vs</span>
-          <span class="team-name">${awayTeam.flag} ${awayTeam.team_name}</span>
-        </div>
-        <div class="match-score-display">
-          ${hasScore ? `${matchResult.home_score} – ${matchResult.away_score}` : '– vs –'}
-        </div>
-      `
-    }
+    card.innerHTML = `
+      <div class="match-teams">
+        <span class="team-name">${homeTeam.flag} ${homeTeam.team_name}</span>
+        <span class="vs">vs</span>
+        <span class="team-name">${awayTeam.flag} ${awayTeam.team_name}</span>
+      </div>
+      <div class="match-score-display">
+        ${hasScore ? `${matchResult.home_score} – ${matchResult.away_score}` : '– vs –'}
+      </div>
+    `
     
     container.appendChild(card)
   })
@@ -562,51 +447,6 @@ function calculateStandings() {
   } else {
     finalPointsDiv.style.display = 'none'
   }
-}
-
-async function saveMatch(matchNum, homeTeamName, awayTeamName) {
-  if (!isAdmin) return
-  
-  const homeScore = document.getElementById(`match${matchNum}-home`).value
-  const awayScore = document.getElementById(`match${matchNum}-away`).value
-  
-  const homeTeam = teams[homeTeamName]
-  const awayTeam = teams[awayTeamName]
-  
-  const { error } = await sb
-    .from('activity_fc26')
-    .upsert({
-      match_num: matchNum,
-      home_team_id: homeTeam?.id || null,
-      away_team_id: awayTeam?.id || null,
-      home_score: homeScore !== '' ? parseInt(homeScore) : null,
-      away_score: awayScore !== '' ? parseInt(awayScore) : null
-    }, { onConflict: 'match_num' })
-  
-  if (error) {
-    console.error('Error saving match:', error)
-    alert('Kunne ikke lagre. Prøv igjen.')
-    return
-  }
-  
-  // Reload to update standings
-  await loadMatches()
-}
-
-async function resetMatch(matchNum) {
-  if (!isAdmin) return
-  
-  const { error } = await sb
-    .from('activity_fc26')
-    .delete()
-    .eq('match_num', matchNum)
-  
-  if (error) {
-    console.error('Error resetting match:', error)
-    return
-  }
-  
-  await loadMatches()
 }
 
 // Initialize
