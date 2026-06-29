@@ -2749,19 +2749,35 @@ async function resetFasit() {
 }
 
 async function loadPredictions() {
+  console.log('loadPredictions() called')
   // Simple query first - no joins
   const { data: predictions, error } = await sb
     .from('activity_predictions')
     .select('*')
     .order('created_at', { ascending: true })
   
-  console.log('Loaded predictions:', predictions?.length || 0, error || 'no error')
-  if (error) console.error('Prediction error:', error)
+  console.log('Loaded predictions:', predictions?.length || 0, 'error:', error)
+  if (error) {
+    console.error('Prediction error details:', JSON.stringify(error))
+  }
+  if (predictions) {
+    console.log('First prediction:', predictions[0])
+  }
   
   document.getElementById('prediction-count').textContent = predictions?.length || 0
   
   const tbody = document.querySelector('#predictions-table tbody')
   tbody.innerHTML = ''
+  
+  // Show error or empty state
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="9" style="color: red;">Feil: ${error.message || JSON.stringify(error)}</td></tr>`
+    return
+  }
+  if (!predictions || predictions.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="color: var(--muted);">Ingen spådommer ennå</td></tr>`
+    return
+  }
   
   const homeName = orakelMatchup.home?.team_name || 'Hjemme'
   const awayName = orakelMatchup.away?.team_name || 'Borte'
