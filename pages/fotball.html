@@ -591,19 +591,28 @@ function renderExercise4Teams() {
     const s = scores[team.id] || { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
     const e2Total = (s.e2a || 0) + (s.e2b || 0)
     const total = (s.e1 || 0) + e2Total + (s.e3 || 0) // Exclude e4
-    return { team, total }
+    return { team, total, hasScores: (s.e1 || 0) + e2Total + (s.e3 || 0) > 0 }
   })
   
+  // Check if we have any scores from exercises 1-3
+  const hasAnyScores = standings.some(s => s.hasScores)
+  
+  if (!hasAnyScores || standings.length < 4) {
+    // No scores yet - show placeholder
+    document.getElementById('e4-teamA').innerHTML = '<em style="color: rgba(255,255,255,0.4);">(kalkulert fra plassering)</em>'
+    document.getElementById('e4-teamB').innerHTML = '<em style="color: rgba(255,255,255,0.4);">(kalkulert fra plassering)</em>'
+    return
+  }
+  
+  // Sort by total score (highest first)
   standings.sort((a, b) => b.total - a.total)
   
-  if (standings.length >= 4) {
-    // Lag A: 1st + 4th place
-    document.getElementById('e4-teamA').innerHTML = 
-      `${standings[0].team.flag} ${standings[0].team.team_name} + ${standings[3].team.flag} ${standings[3].team.team_name}`
-    // Lag B: 2nd + 3rd place
-    document.getElementById('e4-teamB').innerHTML = 
-      `${standings[1].team.flag} ${standings[1].team.team_name} + ${standings[2].team.flag} ${standings[2].team.team_name}`
-  }
+  // Lag A: 1st + 4th place
+  document.getElementById('e4-teamA').innerHTML = 
+    `${standings[0].team.flag} ${standings[0].team.team_name} + ${standings[3].team.flag} ${standings[3].team.team_name}`
+  // Lag B: 2nd + 3rd place
+  document.getElementById('e4-teamB').innerHTML = 
+    `${standings[1].team.flag} ${standings[1].team.team_name} + ${standings[2].team.flag} ${standings[2].team.team_name}`
 }
 
 init()
