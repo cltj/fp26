@@ -2096,7 +2096,12 @@ async function resetAllFotball() {
   if (!confirm('Dette kan ikke angres. Fortsette?')) return
   
   // Delete all fotball data
-  await sb.from('activity_fotball').delete().neq('id', 0)
+  const { error } = await sb.from('activity_fotball').delete().gte('id', 0)
+  
+  if (error) {
+    alert('Kunne ikke nullstille: ' + error.message)
+    return
+  }
   
   // Clear all selects
   document.querySelectorAll('select[id^="fb-"]').forEach(select => {
