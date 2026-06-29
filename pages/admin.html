@@ -1104,8 +1104,21 @@ async function addParticipant() {
   // Use uploaded photo or default
   const photo = pendingPhotoData || DEFAULT_PHOTO
   
+  // Generate required fields
+  const nextNumber = participants.length > 0 ? Math.max(...participants.map(p => p.number || 0)) + 1 : 1
+  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9']
+  const color = colors[nextNumber % colors.length]
+  const pin = String(Math.floor(1000 + Math.random() * 9000)) // 4-digit pin
+  
   const { data, error } = await sb.from('participants')
-    .insert({ participant: name, photo_url: photo })
+    .insert({ 
+      participant: name, 
+      photo_url: photo,
+      number: nextNumber,
+      color: color,
+      pin: pin,
+      isAdmin: false
+    })
     .select()
     .single()
   
