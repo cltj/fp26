@@ -1867,14 +1867,10 @@ const FB_EXERCISES = {
   '3': 'Straffespark',
   '4': '3v3'
 }
+const FOTBALL_ACTIVITY_ID = 2  // Hardcoded fotball activity ID
 let fotballScores = {}
-let fotballActivityId = null
 
 async function loadFotballData() {
-  // Get fotball activity ID
-  const fotballActivity = activities.find(a => a.name && a.name.toLowerCase().includes('fotball'))
-  fotballActivityId = fotballActivity ? fotballActivity.id : null
-  
   // Load active teams into fotball selects
   const activeTeams = teams.filter(t => t.is_active)
   const selects = document.querySelectorAll('select[id^="fb-"]')
@@ -1973,10 +1969,10 @@ async function saveFotballExercise(exerciseNum) {
     // Delete old e4 data first, then insert new
     await sb.from('activity_fotball').delete().eq('exercise_id', '4')
     const { error } = await sb.from('activity_fotball').insert([
-      { team_id: parseInt(teamA1Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamAPoints },
-      { team_id: parseInt(teamA2Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamAPoints },
-      { team_id: parseInt(teamB1Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamBPoints },
-      { team_id: parseInt(teamB2Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamBPoints }
+      { team_id: parseInt(teamA1Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamAPoints },
+      { team_id: parseInt(teamA2Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamAPoints },
+      { team_id: parseInt(teamB1Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamBPoints },
+      { team_id: parseInt(teamB2Id), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamBPoints }
     ])
     
     if (error) {
@@ -1997,7 +1993,7 @@ async function saveFotballExercise(exerciseNum) {
       const points = FB_PLACEMENT_POINTS[place]
       scoreUpdates.push({ 
         team_id: parseInt(teamId), 
-        activity_id: fotballActivityId,
+        activity_id: FOTBALL_ACTIVITY_ID,
         exercise_id: exerciseId, 
         exercise_name: FB_EXERCISES[exerciseId],
         points 
