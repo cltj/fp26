@@ -1034,8 +1034,10 @@
         </div>
       </div>
       
-      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <button class="btn" onclick="startMatch()" id="start-match-btn" style="background: rgba(34,197,94,0.2); border-color: rgba(34,197,94,0.4); color: #22c55e;">▶️ Start kamp (0-0)</button>
         <button class="btn btn-primary" onclick="calculateAllOrakelPoints()">🧮 Beregn poeng</button>
+        <button class="btn btn-danger btn-sm" onclick="resetFasit()">🔄 Nullstill</button>
         <span id="fasit-status" style="margin-left: 12px; font-size: 12px;"></span>
       </div>
     </div>
@@ -2560,8 +2562,9 @@ async function resetAllFC26() {
 }
 
 // ===== ORAKEL =====
-let orakelMatchup = { home: null, away: null }
-let orakelFasit = { id: 1, home_goals: 0, away_goals: 0, home_cards: 0, away_cards: 0, first_goal: null, yellow_cards: null, clean_sheet: null, haaland_scores: null, penalty: null }
+let orakelMatchup = { home: null, away: null, kickoff: null }
+let orakelFasit = { id: 1, home_goals: null, away_goals: null, home_cards: null, away_cards: null, first_goal: null, yellow_cards: null, clean_sheet: null, haaland_scores: null, penalty: null }
+let matchStarted = false
 
 async function loadOrakel() {
   // Load matchup for labels
@@ -2569,6 +2572,13 @@ async function loadOrakel() {
   if (matchupData) {
     orakelMatchup.home = matchupData.find(m => m.position === 'home')
     orakelMatchup.away = matchupData.find(m => m.position === 'away')
+    orakelMatchup.kickoff = orakelMatchup.home?.match_kickoff || orakelMatchup.away?.match_kickoff
+    
+    // Check if match has started
+    if (orakelMatchup.kickoff) {
+      const kickoffTime = new Date(orakelMatchup.kickoff)
+      matchStarted = new Date() >= kickoffTime
+    }
     
     if (orakelMatchup.home && orakelMatchup.away) {
       document.getElementById('live-home-icon').textContent = orakelMatchup.home.team_icon
@@ -2594,24 +2604,30 @@ async function loadOrakel() {
 }
 
 function updateFasitUI() {
-  // Update score display
-  document.getElementById('live-home-goals').textContent = orakelFasit.home_goals ?? 0
-  document.getElementById('live-away-goals').textContent = orakelFasit.away_goals ?? 0
+  // Update score display - show "—" if not started, otherwise show actual value
+  const homeGoals = orakelFasit.home_goals
+  const awayGoals = orakelFasit.away_goals
+  document.getElementById('live-home-goals').textContent = homeGoals != null ? homeGoals : '—'
+  document.getElementById('live-away-goals').textContent = awayGoals != null ? awayGoals : '—'
   
   // Update card display
-  document.getElementById('live-home-cards').textContent = orakelFasit.home_cards ?? 0
-  document.getElementById('live-away-cards').textContent = orakelFasit.away_cards ?? 0
+  const homeCards = orakelFasit.home_cards
+  const awayCards = orakelFasit.away_cards
+  document.getElementById('live-home-cards').textContent = homeCards != null ? homeCards : '—'
+  document.getElementById('live-away-cards').textContent = awayCards != null ? awayCards : '—'
   
   // Update yellow cards status text
-  const homeCards = orakelFasit.home_cards ?? 0
-  const awayCards = orakelFasit.away_cards ?? 0
   const statusEl = document.getElementById('yellow-cards-status')
-  if (homeCards > awayCards) {
-    statusEl.textContent = `Flest gule: Hjemme (${homeCards} vs ${awayCards})`
-  } else if (awayCards > homeCards) {
-    statusEl.textContent = `Flest gule: Borte (${awayCards} vs ${homeCards})`
+  if (homeCards != null && awayCards != null) {
+    if (homeCards > awayCards) {
+      statusEl.textContent = `Flest gule: Hjemme (${homeCards} vs ${awayCards})`
+    } else if (awayCards > homeCards) {
+      statusEl.textContent = `Flest gule: Borte (${awayCards} vs ${homeCards})`
+    } else {
+      statusEl.textContent = `Likt (${homeCards} – ${awayCards})`
+    }
   } else {
-    statusEl.textContent = `Likt (${homeCards} – ${awayCards})`
+    statusEl.textContent = 'Ikke startet'
   }
   
   // Update toggle buttons
@@ -2695,6 +2711,32 @@ async function saveFasitToDB() {
     status.innerHTML = `<span style="color: var(--success);">✓ Lagret</span>`
     setTimeout(() => { status.innerHTML = '' }, 2000)
   }
+}
+
+async function startMatch() {
+  orakelFasit.home_goals = 0
+  orakelFasit.away_goals = 0
+  orakelFasit.home_cards = 0
+  orakelFasit.away_cards = 0
+  orakelFasit.yellow_cards = 'likt'
+  orakelFasit.clean_sheet = 'ja'
+  updateFasitUI()
+  await saveFasitToDB()
+}
+
+async function resetFasit() {
+  if (!confirm('Nullstill all fasit-data?')) return
+  orakelFasit.home_goals = null
+  orakelFasit.away_goals = null
+  orakelFasit.home_cards = null
+  orakelFasit.away_cards = null
+  orakelFasit.first_goal = null
+  orakelFasit.yellow_cards = null
+  orakelFasit.clean_sheet = null
+  orakelFasit.haaland_scores = null
+  orakelFasit.penalty = null
+  updateFasitUI()
+  await saveFasitToDB()
 }
 
 async function loadPredictions() {
