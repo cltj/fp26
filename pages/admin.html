@@ -830,6 +830,13 @@ async function loadResources() {
 
 function renderResources() {
   const container = document.getElementById('resources-grid')
+  const activeTeams = teams.filter(t => t.is_active)
+  
+  if (activeTeams.length === 0) {
+    container.innerHTML = '<p style="color: var(--muted); font-size: 12px;">Legg til lag i gruppen først (under Kampoppsett)</p>'
+    return
+  }
+  
   container.innerHTML = resources.map(r => {
     const teamIds = r.team_ids || []
     const assignedCount = teamIds.length
@@ -844,7 +851,7 @@ function renderResources() {
         <span class="resource-qty" style="font-size: 11px; color: ${atMax ? 'var(--danger)' : 'var(--muted)'};">${assignedCount}/${maxQty}</span>
       </div>
       <div class="resource-teams">
-        ${teams.map(t => {
+        ${activeTeams.map(t => {
           const count = teamIds.filter(id => id === t.id).length
           const canAdd = !atMax
           return `
@@ -1016,6 +1023,7 @@ async function addGroupTeamFromSearch(teamId, teamName) {
     document.getElementById('group-team-dropdown').style.display = 'none'
     renderActiveTeams()
     renderRegisteredParticipants()
+    renderResources()
   }
   
   showStatus('teams', error ? 'error' : 'success', error ? error.message : `${teamName} lagt til!`)
@@ -1030,6 +1038,7 @@ async function removeGroupTeam(teamId) {
     team.is_active = false
     renderActiveTeams()
     renderRegisteredParticipants()
+    renderResources()
   }
   
   showStatus('teams', error ? 'error' : 'success', error ? error.message : `${team.team_name} fjernet`)
@@ -1228,6 +1237,11 @@ async function loadScores() {
   const { data } = await sb.from('activity_scores').select('*')
   const tbody = document.getElementById('scores-body')
   const activeTeams = teams.filter(t => t.is_active)
+  
+  if (activeTeams.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color: var(--muted); text-align: center;">Legg til lag i gruppen først (under Kampoppsett)</td></tr>'
+    return
+  }
   
   tbody.innerHTML = activeTeams.map(t => {
     const score = (data || []).find(s => s.team_id === t.id) || {}
