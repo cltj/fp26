@@ -2794,9 +2794,11 @@ async function loadPredictions() {
 }
 
 async function calculateAllOrakelPoints() {
+  const status = document.getElementById('fasit-status')
+  
   // Make sure we have fasit (0 is valid, so check for null/undefined)
   if (orakelFasit.home_goals == null || orakelFasit.away_goals == null) {
-    alert('Du må sette fasit (sluttresultat) først!')
+    status.innerHTML = `<span style="color: var(--warning);">⚠️ Start kamp først</span>`
     return
   }
   
@@ -2804,7 +2806,7 @@ async function calculateAllOrakelPoints() {
   const { data: predictions } = await sb.from('activity_predictions').select('*')
   
   if (!predictions || predictions.length === 0) {
-    alert('Ingen spådommer funnet!')
+    status.innerHTML = `<span style="color: var(--muted);">Ingen spådommer</span>`
     return
   }
   
@@ -2868,7 +2870,7 @@ async function calculateAllOrakelPoints() {
     if (!error) updatedCount++
   }
   
-  alert(`Poeng beregnet for ${updatedCount} spådommer!`)
+  status.innerHTML = `<span style="color: var(--success);">✓ ${updatedCount} poeng beregnet</span>`
   await loadPredictions()
   await loadScores()
 }
