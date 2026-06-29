@@ -338,16 +338,28 @@ let currentIndex = 0
 let scores = {}
 
 async function init() {
-  // Load only active teams (group teams)
-  const { data: teamsData } = await sb.from('teams').select('*').eq('is_active', true).order('id')
-  teams = teamsData || []
-  
-  // Load questions
-  const { data: questionsData } = await sb.from('activity_quiz').select('*').order('id')
-  questions = questionsData || []
-  
-  // Init scores
-  teams.forEach(t => scores[t.id] = 0)
+  try {
+    // Load only active teams (group teams)
+    const { data: teamsData, error: teamsError } = await sb.from('teams').select('*').eq('is_active', true).order('id')
+    if (teamsError) throw teamsError
+    teams = teamsData || []
+    
+    // Load questions
+    const { data: questionsData, error: questionsError } = await sb.from('activity_quiz').select('*').order('id')
+    if (questionsError) throw questionsError
+    questions = questionsData || []
+    
+    console.log('Quiz init:', { teams: teams.length, questions: questions.length })
+    
+    if (questions.length === 0) {
+      document.getElementById('q-text').textContent = 'Ingen spørsmål funnet i databasen'
+      document.getElementById('start-btn').textContent = 'Ingen spørsmål'
+      document.getElementById('start-btn').disabled = true
+      return
+    }
+    
+    // Init scores
+    teams.forEach(t => scores[t.id] = 0)
   
   // Count existing wins - support both old winner_team_id and new winner_team_ids array
   questions.forEach(q => {
@@ -369,6 +381,10 @@ async function init() {
   
   // Setup start button
   document.getElementById('start-btn').onclick = startQuiz
+  } catch (err) {
+    console.error('Quiz init error:', err)
+    document.getElementById('q-text').textContent = 'Feil ved lasting: ' + err.message
+  }
 }
 
 function startQuiz() {
