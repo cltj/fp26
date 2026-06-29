@@ -190,6 +190,31 @@
   .btn-danger:hover { background: rgba(255,107,107,0.2); }
   .btn-sm { padding: 6px 12px; font-size: 12px; }
   
+  /* Toggle buttons */
+  .toggle-group {
+    display: flex;
+    gap: 4px;
+  }
+  .toggle-btn {
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .toggle-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: var(--text);
+  }
+  .toggle-btn.active {
+    background: rgba(200,244,90,0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  
   /* Table */
   .data-table {
     width: 100%;
@@ -921,65 +946,87 @@
   <!-- Orakel Panel -->
   <div id="panel-orakel" class="panel">
     <div class="section-card">
-      <h3>🔮 Fasit</h3>
+      <h3>🔮 Live Fasit</h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
-        Oppdater fasit underveis i kampen eller etter kampslutt.
+        Oppdater underveis i kampen. Lagres automatisk.
       </p>
-      <div class="form-row">
-        <label>Sluttresultat</label>
-        <input type="number" id="fasit-home-goals" min="0" placeholder="0" style="width: 60px;">
-        <span style="padding: 0 8px;">–</span>
-        <input type="number" id="fasit-away-goals" min="0" placeholder="0" style="width: 60px;">
-        <span id="fasit-match-label" style="margin-left: 8px; color: var(--muted); font-size: 12px;"></span>
+      
+      <!-- Live Score -->
+      <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+        <div style="text-align: center; margin-bottom: 0.5rem; color: var(--muted); font-size: 12px;">STILLINGEN</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+          <div style="text-align: center;">
+            <div id="live-home-icon" style="font-size: 24px;">🏠</div>
+            <div id="live-home-name" style="font-size: 11px; color: var(--muted);">Hjemme</div>
+          </div>
+          <button class="btn btn-sm" onclick="adjustGoals('home', -1)" style="padding: 8px 12px;">−</button>
+          <span id="live-home-goals" style="font-size: 48px; font-weight: 700; min-width: 50px; text-align: center;">0</span>
+          <button class="btn btn-sm" onclick="adjustGoals('home', 1)" style="padding: 8px 12px;">+</button>
+          <span style="font-size: 32px; color: var(--muted);">–</span>
+          <button class="btn btn-sm" onclick="adjustGoals('away', -1)" style="padding: 8px 12px;">−</button>
+          <span id="live-away-goals" style="font-size: 48px; font-weight: 700; min-width: 50px; text-align: center;">0</span>
+          <button class="btn btn-sm" onclick="adjustGoals('away', 1)" style="padding: 8px 12px;">+</button>
+          <div style="text-align: center;">
+            <div id="live-away-icon" style="font-size: 24px;">✈️</div>
+            <div id="live-away-name" style="font-size: 11px; color: var(--muted);">Borte</div>
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Scorer først</label>
-        <select id="fasit-first-goal">
-          <option value="">Ikke satt</option>
-          <option value="home">Hjemmelag</option>
-          <option value="away">Bortelag</option>
-          <option value="ingen">Ingen mål</option>
-        </select>
+      
+      <!-- Toggle Questions -->
+      <div style="display: grid; gap: 12px;">
+        <!-- Scorer først -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="min-width: 120px; font-size: 13px;">⚽ Scorer først</span>
+          <div class="toggle-group" id="toggle-first-goal">
+            <button onclick="setFasitValue('first_goal', 'home')" data-value="home" class="toggle-btn">🏠 Hjemme</button>
+            <button onclick="setFasitValue('first_goal', 'away')" data-value="away" class="toggle-btn">✈️ Borte</button>
+            <button onclick="setFasitValue('first_goal', 'ingen')" data-value="ingen" class="toggle-btn">Ingen</button>
+          </div>
+        </div>
+        
+        <!-- Flest gule -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="min-width: 120px; font-size: 13px;">🟨 Flest gule</span>
+          <div class="toggle-group" id="toggle-yellow-cards">
+            <button onclick="setFasitValue('yellow_cards', 'home')" data-value="home" class="toggle-btn">🏠 Hjemme</button>
+            <button onclick="setFasitValue('yellow_cards', 'away')" data-value="away" class="toggle-btn">✈️ Borte</button>
+            <button onclick="setFasitValue('yellow_cards', 'likt')" data-value="likt" class="toggle-btn">Likt</button>
+          </div>
+        </div>
+        
+        <!-- Norge nullen -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="min-width: 120px; font-size: 13px;">🧤 Norge nullen</span>
+          <div class="toggle-group" id="toggle-clean-sheet">
+            <button onclick="setFasitValue('clean_sheet', 'ja')" data-value="ja" class="toggle-btn">✓ Ja</button>
+            <button onclick="setFasitValue('clean_sheet', 'nei')" data-value="nei" class="toggle-btn">✗ Nei</button>
+          </div>
+        </div>
+        
+        <!-- Haaland -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="min-width: 120px; font-size: 13px;">⚡ Haaland scorer</span>
+          <div class="toggle-group" id="toggle-haaland-scores">
+            <button onclick="setFasitValue('haaland_scores', 'ja')" data-value="ja" class="toggle-btn">✓ Ja</button>
+            <button onclick="setFasitValue('haaland_scores', 'nei')" data-value="nei" class="toggle-btn">✗ Nei</button>
+          </div>
+        </div>
+        
+        <!-- Straffe -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="min-width: 120px; font-size: 13px;">🎯 Straffescoring</span>
+          <div class="toggle-group" id="toggle-penalty">
+            <button onclick="setFasitValue('penalty', 'ja')" data-value="ja" class="toggle-btn">✓ Ja</button>
+            <button onclick="setFasitValue('penalty', 'nei')" data-value="nei" class="toggle-btn">✗ Nei</button>
+          </div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Flest gule</label>
-        <select id="fasit-yellow-cards">
-          <option value="">Ikke satt</option>
-          <option value="home">Hjemmelag</option>
-          <option value="away">Bortelag</option>
-          <option value="likt">Likt</option>
-        </select>
+      
+      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+        <button class="btn btn-primary" onclick="calculateOrakelPoints()">🧮 Beregn poeng</button>
+        <span id="fasit-status" style="margin-left: 12px; font-size: 12px;"></span>
       </div>
-      <div class="form-row">
-        <label>🧤 Norge nullen</label>
-        <select id="fasit-clean-sheet">
-          <option value="">Ikke satt</option>
-          <option value="ja">Ja</option>
-          <option value="nei">Nei</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>⚡ Haaland</label>
-        <select id="fasit-haaland-scores">
-          <option value="">Ikke satt</option>
-          <option value="ja">Ja</option>
-          <option value="nei">Nei</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>🎯 Straffe</label>
-        <select id="fasit-penalty">
-          <option value="">Ikke satt</option>
-          <option value="ja">Ja</option>
-          <option value="nei">Nei</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label></label>
-        <button class="btn btn-primary" onclick="saveFasit()">💾 Lagre fasit</button>
-        <button class="btn" onclick="calculateOrakelPoints()">🧮 Beregn poeng</button>
-      </div>
-      <div id="fasit-status" class="status-msg"></div>
     </div>
     
     <div class="section-card">
@@ -2503,7 +2550,7 @@ async function resetAllFC26() {
 
 // ===== ORAKEL =====
 let orakelMatchup = { home: null, away: null }
-let orakelFasit = { home_goals: null, away_goals: null, first_goal: null, yellow_cards: null }
+let orakelFasit = { id: 1, home_goals: 0, away_goals: 0, first_goal: null, yellow_cards: null, clean_sheet: null, haaland_scores: null, penalty: null }
 
 async function loadOrakel() {
   // Load matchup for labels
@@ -2513,8 +2560,10 @@ async function loadOrakel() {
     orakelMatchup.away = matchupData.find(m => m.position === 'away')
     
     if (orakelMatchup.home && orakelMatchup.away) {
-      document.getElementById('fasit-match-label').textContent = 
-        `(${orakelMatchup.home.team_icon} ${orakelMatchup.home.team_name} – ${orakelMatchup.away.team_icon} ${orakelMatchup.away.team_name})`
+      document.getElementById('live-home-icon').textContent = orakelMatchup.home.team_icon
+      document.getElementById('live-home-name').textContent = orakelMatchup.home.team_name
+      document.getElementById('live-away-icon').textContent = orakelMatchup.away.team_icon
+      document.getElementById('live-away-name').textContent = orakelMatchup.away.team_name
     }
   }
   
@@ -2522,17 +2571,69 @@ async function loadOrakel() {
   const { data: fasitData } = await sb.from('orakel_fasit').select('*').eq('id', 1).single()
   if (fasitData) {
     orakelFasit = fasitData
-    document.getElementById('fasit-home-goals').value = fasitData.home_goals ?? ''
-    document.getElementById('fasit-away-goals').value = fasitData.away_goals ?? ''
-    document.getElementById('fasit-first-goal').value = fasitData.first_goal ?? ''
-    document.getElementById('fasit-yellow-cards').value = fasitData.yellow_cards ?? ''
-    document.getElementById('fasit-clean-sheet').value = fasitData.clean_sheet ?? ''
-    document.getElementById('fasit-haaland-scores').value = fasitData.haaland_scores ?? ''
-    document.getElementById('fasit-penalty').value = fasitData.penalty ?? ''
   }
+  
+  // Update UI
+  updateFasitUI()
   
   // Load predictions
   await loadPredictions()
+}
+
+function updateFasitUI() {
+  // Update score display
+  document.getElementById('live-home-goals').textContent = orakelFasit.home_goals ?? 0
+  document.getElementById('live-away-goals').textContent = orakelFasit.away_goals ?? 0
+  
+  // Update toggle buttons
+  const toggles = ['first_goal', 'yellow_cards', 'clean_sheet', 'haaland_scores', 'penalty']
+  toggles.forEach(field => {
+    const groupId = 'toggle-' + field.replace('_', '-')
+    const group = document.getElementById(groupId)
+    if (group) {
+      group.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === orakelFasit[field])
+      })
+    }
+  })
+}
+
+async function adjustGoals(team, delta) {
+  const field = team === 'home' ? 'home_goals' : 'away_goals'
+  const current = orakelFasit[field] ?? 0
+  const newValue = Math.max(0, current + delta)
+  orakelFasit[field] = newValue
+  
+  // Update display immediately
+  document.getElementById(`live-${team}-goals`).textContent = newValue
+  
+  // Auto-update clean_sheet based on away goals (if Norway is home)
+  if (field === 'away_goals') {
+    orakelFasit.clean_sheet = newValue === 0 ? 'ja' : 'nei'
+    updateFasitUI()
+  }
+  
+  // Save to DB
+  await saveFasitToDB()
+}
+
+async function setFasitValue(field, value) {
+  orakelFasit[field] = value
+  updateFasitUI()
+  await saveFasitToDB()
+}
+
+async function saveFasitToDB() {
+  const { error } = await sb.from('orakel_fasit').upsert(orakelFasit)
+  
+  const status = document.getElementById('fasit-status')
+  if (error) {
+    status.innerHTML = `<span style="color: var(--danger);">❌ Feil</span>`
+    console.error('Error saving fasit:', error)
+  } else {
+    status.innerHTML = `<span style="color: var(--success);">✓ Lagret</span>`
+    setTimeout(() => { status.innerHTML = '' }, 2000)
+  }
 }
 
 async function loadPredictions() {
@@ -2589,34 +2690,9 @@ async function loadPredictions() {
   }
 }
 
-async function saveFasit() {
-  const fasit = {
-    id: 1,
-    home_goals: document.getElementById('fasit-home-goals').value ? parseInt(document.getElementById('fasit-home-goals').value) : null,
-    away_goals: document.getElementById('fasit-away-goals').value ? parseInt(document.getElementById('fasit-away-goals').value) : null,
-    first_goal: document.getElementById('fasit-first-goal').value || null,
-    yellow_cards: document.getElementById('fasit-yellow-cards').value || null,
-    clean_sheet: document.getElementById('fasit-clean-sheet').value || null,
-    haaland_scores: document.getElementById('fasit-haaland-scores').value || null,
-    penalty: document.getElementById('fasit-penalty').value || null
-  }
-  
-  const { error } = await sb.from('orakel_fasit').upsert(fasit)
-  
-  const status = document.getElementById('fasit-status')
-  if (error) {
-    status.innerHTML = `<span style="color: var(--danger);">❌ Feil: ${error.message}</span>`
-    console.error('Error saving fasit:', error)
-  } else {
-    status.innerHTML = `<span style="color: var(--success);">✅ Fasit lagret!</span>`
-    orakelFasit = fasit
-    setTimeout(() => { status.innerHTML = '' }, 3000)
-  }
-}
-
 async function calculateOrakelPoints() {
-  // Make sure we have fasit
-  if (orakelFasit.home_goals === null || orakelFasit.away_goals === null) {
+  // Make sure we have fasit (0 is valid, so check for null/undefined)
+  if (orakelFasit.home_goals == null || orakelFasit.away_goals == null) {
     alert('Du må sette fasit (sluttresultat) først!')
     return
   }
