@@ -639,9 +639,9 @@
           <div id="group-team-dropdown" class="team-dropdown" style="display: none;"></div>
         </div>
       </div>
-      <div id="fc26-generate-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(200,244,90,0.3);">
-        <button class="btn btn-primary" style="width: 100%;" onclick="generateFC26FixturesInDB()" id="generate-fc26-btn">🎮 Generer FC26-kamper</button>
-        <p style="font-size: 11px; color: var(--muted); margin-top: 8px;">Lager 6 kamper (alle mot alle) for de 4 lagene i gruppen.</p>
+      <div id="fc26-generate-section" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(200,244,90,0.3);">
+        <button class="btn btn-primary" style="width: 100%; opacity: 0.5;" onclick="generateFC26FixturesInDB()" id="generate-fc26-btn" disabled>🎮 Generer FC26-kamper</button>
+        <p style="font-size: 11px; color: var(--muted); margin-top: 8px;">Lager kamper (alle mot alle) for lagene i gruppen.</p>
       </div>
       <div id="teams-status" class="status-msg"></div>
     </div>
@@ -1365,12 +1365,13 @@ function renderActiveTeams() {
   const activeTeams = teams.filter(t => t.is_active)
   const container = document.getElementById('active-teams-list')
   const addSection = document.getElementById('add-team-section')
-  const fc26Section = document.getElementById('fc26-generate-section')
+  const fc26Btn = document.getElementById('generate-fc26-btn')
   
   if (activeTeams.length === 0) {
     container.innerHTML = '<span style="color: var(--muted); font-size: 12px;">Ingen lag i gruppen enda</span>'
     addSection.style.display = 'block'
-    fc26Section.style.display = 'none'
+    fc26Btn.disabled = true
+    fc26Btn.style.opacity = '0.5'
     return
   }
   
@@ -1388,13 +1389,16 @@ function renderActiveTeams() {
     </span>
   `).join('')
   
-  // Show/hide add section based on team count
-  if (activeTeams.length >= 4) {
-    addSection.style.display = 'none'
-    fc26Section.style.display = 'block'
+  // Show/hide add section based on team count (max 4)
+  addSection.style.display = activeTeams.length >= 4 ? 'none' : 'block'
+  
+  // Enable/disable FC26 button (need more than 2 teams)
+  if (activeTeams.length > 2) {
+    fc26Btn.disabled = false
+    fc26Btn.style.opacity = '1'
   } else {
-    addSection.style.display = 'block'
-    fc26Section.style.display = 'none'
+    fc26Btn.disabled = true
+    fc26Btn.style.opacity = '0.5'
   }
 }
 
@@ -2182,8 +2186,8 @@ async function generateFC26FixturesInDB() {
   // Get active teams
   const { data: activeTeams } = await sb.from('teams').select('id').eq('is_active', true).order('id')
   
-  if (!activeTeams || activeTeams.length < 4) {
-    showStatus('teams', 'error', 'Trenger 4 lag for å generere FC26-kamper')
+  if (!activeTeams || activeTeams.length < 3) {
+    showStatus('teams', 'error', 'Trenger minst 3 lag for å generere FC26-kamper')
     return
   }
   
@@ -2197,8 +2201,8 @@ async function generateFC26FixturesInDB() {
   // Delete existing
   await sb.from('activity_fc26').delete().gte('id', 0)
   
-  // Generate round-robin fixtures for the 4 active teams
-  const teamIds = activeTeams.slice(0, 4).map(t => t.id)
+  // Generate round-robin fixtures for all active teams
+  const teamIds = activeTeams.map(t => t.id)
   const fixtures = []
   let matchNum = 1
   
