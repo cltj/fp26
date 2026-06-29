@@ -869,22 +869,22 @@
       <!-- Exercise 4 -->
       <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
         <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">Øvelse 4 – 3v3 (2 mot 2 lag)</h4>
-        <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Auto-fylt basert på tabellen: Lag A (1. + 4. plass) vs Lag B (2. + 3. plass)</p>
+        <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Velg lag for Lag A (spiller sammen) og Lag B (spiller sammen), deretter resultat</p>
         <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag A - #1:</label>
-          <select id="fb-e4-teamA1" style="flex: 1;" disabled><option value="">—</option></select>
+          <label style="width: 80px; font-size: 12px;">Lag A - 1:</label>
+          <select id="fb-e4-place1" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
         <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag A - #4:</label>
-          <select id="fb-e4-teamA2" style="flex: 1;" disabled><option value="">—</option></select>
+          <label style="width: 80px; font-size: 12px;">Lag A - 2:</label>
+          <select id="fb-e4-place2" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
         <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag B - #2:</label>
-          <select id="fb-e4-teamB1" style="flex: 1;" disabled><option value="">—</option></select>
+          <label style="width: 80px; font-size: 12px;">Lag B - 1:</label>
+          <select id="fb-e4-place3" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
         <div class="form-row" style="margin-bottom: 8px;">
-          <label style="width: 80px; font-size: 12px;">Lag B - #3:</label>
-          <select id="fb-e4-teamB2" style="flex: 1;" disabled><option value="">—</option></select>
+          <label style="width: 80px; font-size: 12px;">Lag B - 2:</label>
+          <select id="fb-e4-place4" style="flex: 1;"><option value="">Velg lag</option></select>
         </div>
         <div class="form-row" style="margin-bottom: 8px;">
           <label style="width: 80px; font-size: 12px;">Resultat:</label>
@@ -1942,7 +1942,7 @@ async function loadFotballData() {
   const selects = document.querySelectorAll('select[id^="fb-"]')
   
   selects.forEach(select => {
-    if (select.id.includes('result') || select.disabled) return
+    if (select.id.includes('result')) return
     
     const currentVal = select.value
     select.innerHTML = '<option value="">Velg lag</option>'
@@ -1978,52 +1978,19 @@ async function loadFotballData() {
     })
   }
   
-  // Load e4 saved data or auto-fill
+  // Load e4 saved data
   const { data: e4data } = await sb.from('activity_fotball').select('*').eq('exercise', 'e4').not('placement', 'is', null)
   if (e4data && e4data.length > 0) {
+    e4data.forEach(d => {
+      const select = document.getElementById(`fb-e4-place${d.placement}`)
+      if (select) select.value = d.team_id
+    })
+    
     const teamA1 = e4data.find(d => d.placement === 1)
-    const teamA2 = e4data.find(d => d.placement === 2)
     const teamB1 = e4data.find(d => d.placement === 3)
-    const teamB2 = e4data.find(d => d.placement === 4)
-    
-    if (teamA1) updateE4Select('fb-e4-teamA1', teamA1.team_id)
-    if (teamA2) updateE4Select('fb-e4-teamA2', teamA2.team_id)
-    if (teamB1) updateE4Select('fb-e4-teamB1', teamB1.team_id)
-    if (teamB2) updateE4Select('fb-e4-teamB2', teamB2.team_id)
-    
     if (teamA1 && teamA1.points === 6) document.getElementById('fb-e4-result').value = 'teamA'
     else if (teamB1 && teamB1.points === 6) document.getElementById('fb-e4-result').value = 'teamB'
     else if (teamA1 && teamA1.points === 3) document.getElementById('fb-e4-result').value = 'draw'
-  } else {
-    autoFillE4()
-  }
-}
-
-function updateE4Select(selectId, teamId) {
-  const select = document.getElementById(selectId)
-  const team = teams.find(t => t.id === teamId)
-  if (team) {
-    select.innerHTML = `<option value="${team.id}">${team.flag || ''} ${team.team_name}</option>`
-    select.value = team.id
-  }
-}
-
-function autoFillE4() {
-  const activeTeams = teams.filter(t => t.is_active)
-  const standings = activeTeams.map(team => {
-    const s = fotballScores[team.id] || { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
-    const e2Total = (s.e2a || 0) + (s.e2b || 0)
-    const total = (s.e1 || 0) + e2Total + (s.e3 || 0)
-    return { team, total }
-  })
-  
-  standings.sort((a, b) => b.total - a.total)
-  
-  if (standings.length >= 4) {
-    updateE4Select('fb-e4-teamA1', standings[0].team.id)
-    updateE4Select('fb-e4-teamA2', standings[3].team.id)
-    updateE4Select('fb-e4-teamB1', standings[1].team.id)
-    updateE4Select('fb-e4-teamB2', standings[2].team.id)
   }
 }
 
@@ -2031,14 +1998,20 @@ async function saveFotballExercise(exerciseNum) {
   const exerciseId = exerciseNum.toString()
   
   if (exerciseNum === 4) {
-    const teamA1Id = document.getElementById('fb-e4-teamA1').value
-    const teamA2Id = document.getElementById('fb-e4-teamA2').value
-    const teamB1Id = document.getElementById('fb-e4-teamB1').value
-    const teamB2Id = document.getElementById('fb-e4-teamB2').value
+    const teamA1Id = document.getElementById('fb-e4-place1').value
+    const teamA2Id = document.getElementById('fb-e4-place2').value
+    const teamB1Id = document.getElementById('fb-e4-place3').value
+    const teamB2Id = document.getElementById('fb-e4-place4').value
     const result = document.getElementById('fb-e4-result').value
     
     if (!teamA1Id || !teamA2Id || !teamB1Id || !teamB2Id || !result) {
       alert('Velg alle 4 lag og resultat')
+      return
+    }
+    
+    const teamIds = [teamA1Id, teamA2Id, teamB1Id, teamB2Id]
+    if (new Set(teamIds).size !== 4) {
+      alert('Hvert lag kan bare velges én gang')
       return
     }
     
@@ -2047,13 +2020,14 @@ async function saveFotballExercise(exerciseNum) {
     else if (result === 'teamB') { teamAPoints = 0; teamBPoints = 6 }
     else { teamAPoints = 3; teamBPoints = 3 }
     
-    // Save to activity_fotball with placement
-    await sb.from('activity_fotball').upsert([
+    // Delete old e4 data first, then insert new
+    await sb.from('activity_fotball').delete().eq('exercise', 'e4')
+    await sb.from('activity_fotball').insert([
       { team_id: parseInt(teamA1Id), exercise: 'e4', placement: 1, points: teamAPoints },
       { team_id: parseInt(teamA2Id), exercise: 'e4', placement: 2, points: teamAPoints },
       { team_id: parseInt(teamB1Id), exercise: 'e4', placement: 3, points: teamBPoints },
       { team_id: parseInt(teamB2Id), exercise: 'e4', placement: 4, points: teamBPoints }
-    ], { onConflict: 'team_id,exercise' })
+    ])
     
   } else {
     const placements = []
@@ -2093,17 +2067,23 @@ async function resetFotballExercise(exerciseNum) {
   if (!confirm(`Er du sikker på at du vil nullstille Øvelse ${exerciseId}?`)) return
   
   // Delete from activity_fotball
-  const exerciseKey = exerciseNum === 4 ? 'e4' : `e${exerciseId}`
-  await sb.from('activity_fotball').delete().eq('exercise', exerciseKey)
+  const exerciseKey = `e${exerciseId}`
+  const { error } = await sb.from('activity_fotball').delete().eq('exercise', exerciseKey)
+  
+  if (error) {
+    alert('Kunne ikke nullstille: ' + error.message)
+    return
+  }
   
   // Clear the selects
+  for (let i = 1; i <= 4; i++) {
+    const select = document.getElementById(`fb-e${exerciseId}-place${i}`)
+    if (select) select.value = ''
+  }
+  
+  // Clear e4 result dropdown
   if (exerciseNum === 4) {
     document.getElementById('fb-e4-result').value = ''
-  } else {
-    for (let i = 1; i <= 4; i++) {
-      const select = document.getElementById(`fb-e${exerciseId}-place${i}`)
-      if (select) select.value = ''
-    }
   }
   
   alert(`Øvelse ${exerciseId} nullstilt!`)
