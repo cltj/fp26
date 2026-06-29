@@ -384,6 +384,9 @@ function calculateStandings() {
     }
   })
   
+  // Check if any games have been played
+  const gamesPlayed = Object.values(standings).some(s => s.played > 0)
+  
   // Sort standings
   const sorted = Object.values(standings).sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points
@@ -396,6 +399,12 @@ function calculateStandings() {
   // Render standings
   const tbody = document.getElementById('standings-body')
   tbody.innerHTML = ''
+  
+  // Only show standings if games have been played
+  if (!gamesPlayed) {
+    tbody.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--muted);">Ingen kamper spilt ennå</div>'
+    return
+  }
   
   sorted.forEach((s, idx) => {
     const gd = s.goalsFor - s.goalsAgainst

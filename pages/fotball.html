@@ -531,7 +531,15 @@ function renderStandings() {
   const tbody = document.getElementById('standings-body')
   tbody.innerHTML = ''
   
-  const standings = Object.values(teams).map(team => {
+  const teamsList = Object.values(teams)
+  
+  // Show message if no active teams
+  if (teamsList.length === 0) {
+    tbody.innerHTML = '<div style="text-align: center; padding: 1rem; color: var(--muted);">Ingen aktive lag funnet</div>'
+    return
+  }
+  
+  const standings = teamsList.map(team => {
     const total = scores[team.id] || 0
     return { team, total }
   })
