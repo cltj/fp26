@@ -1057,7 +1057,7 @@ if (session.isAdmin || session.name === 'Tj') {
 async function loadActivityStates() {
   const { data: activities, error } = await sb
     .from('activities')
-    .select('id, is_active')
+    .select('activity_name, is_active')
   
   if (error) {
     console.log('Could not load activities:', error)
@@ -1065,7 +1065,7 @@ async function loadActivityStates() {
   }
   
   activities?.forEach(activity => {
-    const btn = document.getElementById(`toggle-${activity.id}`)
+    const btn = document.getElementById(`toggle-${activity.activity_name}`)
     if (btn) {
       updateToggleButton(btn, activity.is_active)
     }
@@ -1094,7 +1094,8 @@ async function toggleActivity(activityId) {
   
   const { error } = await sb
     .from('activities')
-    .upsert({ id: activityId, is_active: newState, updated_at: new Date().toISOString() })
+    .update({ is_active: newState, updated_at: new Date().toISOString() })
+    .eq('activity_name', activityId)
   
   if (error) {
     console.error('Could not toggle activity:', error)
@@ -1147,7 +1148,7 @@ async function loadMiniScoreboard() {
   if (!teamsData) return
   
   // Load scores
-  const { data: scoresData } = await sb.from('scores').select('team_id, scores')
+  const { data: scoresData } = await sb.from('activity_scores').select('team_id, total_points')
   
   // Load participants with team assignments
   const { data: participantsData } = await sb.from('participants').select('id, participant, photo_url, team_id')
@@ -1167,9 +1168,7 @@ async function loadMiniScoreboard() {
   const scoreMap = {}
   if (scoresData) {
     scoresData.forEach(row => {
-      if (row.scores) {
-        scoreMap[row.team_id] = row.scores.reduce((a, b) => a + (b ?? 0), 0)
-      }
+      scoreMap[row.team_id] = row.total_points || 0
     })
   }
   
@@ -1301,7 +1300,7 @@ loadPitchFormation()
 async function checkActiveActivities() {
   const { data: activities, error } = await sb
     .from('activities')
-    .select('id, is_active')
+    .select('activity_name, is_active')
     .eq('is_active', true)
   
   if (error) {
@@ -1311,27 +1310,27 @@ async function checkActiveActivities() {
   
   let anyActive = false
   activities?.forEach(activity => {
-    if (activity.id === 'analyse') {
+    if (activity.activity_name === 'analyse') {
       document.getElementById('analyse-card').style.display = 'block'
       anyActive = true
     }
-    if (activity.id === 'ballbinge') {
+    if (activity.activity_name === 'ballbinge') {
       document.getElementById('ballbinge-card').style.display = 'block'
       anyActive = true
     }
-    if (activity.id === 'fc26') {
+    if (activity.activity_name === 'fc26') {
       document.getElementById('fc26-card').style.display = 'block'
       anyActive = true
     }
-    if (activity.id === 'orakel') {
+    if (activity.activity_name === 'orakel') {
       document.getElementById('orakel-card').style.display = 'block'
       anyActive = true
     }
-    if (activity.id === 'quiz') {
+    if (activity.activity_name === 'quiz') {
       document.getElementById('quiz-card').style.display = 'block'
       anyActive = true
     }
-    if (activity.id === 'ressurser') {
+    if (activity.activity_name === 'ressurser') {
       document.getElementById('ressurser-card').style.display = 'block'
     }
   })

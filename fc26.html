@@ -357,7 +357,7 @@ async function init() {
     const { data: activity, error } = await sb
       .from('activities')
       .select('is_active')
-      .eq('id', 'fc26')
+      .eq('activity_name', 'fc26')
       .single()
     
     if (!error && activity && activity.is_active === false) {
@@ -383,7 +383,7 @@ async function init() {
 
 async function loadMatches() {
   const { data: matchData, error } = await sb
-    .from('fc26_matches')
+    .from('activity_fc26')
     .select('*')
   
   if (error) {
@@ -573,7 +573,7 @@ async function saveMatch(matchNum, homeTeamName, awayTeamName) {
   const awayTeam = teams[awayTeamName]
   
   const { error } = await sb
-    .from('fc26_matches')
+    .from('activity_fc26')
     .upsert({
       match_num: matchNum,
       home_team_id: homeTeam?.id || null,
@@ -596,7 +596,7 @@ async function resetMatch(matchNum) {
   if (!isAdmin) return
   
   const { error } = await sb
-    .from('fc26_matches')
+    .from('activity_fc26')
     .delete()
     .eq('match_num', matchNum)
   

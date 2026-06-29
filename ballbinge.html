@@ -541,7 +541,7 @@ async function init() {
     const { data: activity, error } = await sb
       .from('activities')
       .select('is_active')
-      .eq('id', 'ballbinge')
+      .eq('activity_name', 'ballbinge')
       .single()
     
     if (!error && activity && activity.is_active === false) {
@@ -585,7 +585,7 @@ function populateTeamSelects() {
 
 async function loadScores() {
   const { data: scoresData, error } = await sb
-    .from('ballbinge_scores')
+    .from('activity_fotball')
     .select('*')
   
   if (error) {
@@ -765,7 +765,7 @@ async function saveExercise(exerciseNum) {
     ], { onConflict: 'exercise,placement' })
     
     // Save scores for all 4 teams
-    await sb.from('ballbinge_scores').upsert([
+    await sb.from('activity_fotball').upsert([
       { team_id: parseInt(teamA1Id), exercise: 'e4', points: teamAPoints },
       { team_id: parseInt(teamA2Id), exercise: 'e4', points: teamAPoints },
       { team_id: parseInt(teamB1Id), exercise: 'e4', points: teamBPoints },
@@ -810,7 +810,7 @@ async function saveExercise(exerciseNum) {
     await sb.from('ballbinge_placements').upsert(placements, { onConflict: 'exercise,placement' })
     
     // Save scores
-    await sb.from('ballbinge_scores').upsert(scoreUpdates, { onConflict: 'team_id,exercise' })
+    await sb.from('activity_fotball').upsert(scoreUpdates, { onConflict: 'team_id,exercise' })
   }
   
   alert(`Øvelse ${exerciseNum} lagret!`)

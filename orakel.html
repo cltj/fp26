@@ -352,7 +352,7 @@ async function init() {
   const { data: activity, error } = await sb
     .from('activities')
     .select('is_active')
-    .eq('id', 'orakel')
+    .eq('activity_name', 'orakel')
     .single()
   
   console.log('Activity check:', { activity, error })
@@ -391,7 +391,7 @@ async function init() {
   
   // Check if already submitted
   const { data: existing } = await sb
-    .from('predictions')
+    .from('activity_predictions')
     .select('*')
     .eq('participant_id', session.id)
     .single()
@@ -436,18 +436,16 @@ async function submitPrediction() {
   const prediction = {
     participant_id: session.id,
     team_id: participant?.team_id || null,
-    score_norge: parseInt(scoreNorge),
-    score_frankrike: parseInt(scoreFrankrike),
-    first_goal: answers['first-goal'] || null,
-    yellow_cards: answers['yellow-cards'] || null,
-    clean_sheet: answers['clean-sheet'] || null,
-    haaland_scores: answers['haaland-scores'] || null,
-    mbappe_scores: answers['mbappe-scores'] || null,
-    penalty: answers['penalty'] || null
+    activity_id: 3, // orakel activity
+    matchup_id: 1, // Norge vs Frankrike
+    home_goals: parseInt(scoreNorge),
+    away_goals: parseInt(scoreFrankrike),
+    first_goal: answers['first-goal'] === 'norge' ? 'home' : answers['first-goal'] === 'frankrike' ? 'away' : answers['first-goal'],
+    yellow_cards: answers['yellow-cards'] === 'norge' ? 'home' : answers['yellow-cards'] === 'frankrike' ? 'away' : answers['yellow-cards']
   }
   
   const { data, error } = await sb
-    .from('predictions')
+    .from('activity_predictions')
     .insert(prediction)
     .select()
     .single()
@@ -469,6 +467,8 @@ function showSubmittedState(prediction) {
   const formatAnswer = (val) => {
     if (!val) return '—'
     const map = {
+      'home': '🇳🇴 Norge',
+      'away': '🇫🇷 Frankrike',
       'norge': '🇳🇴 Norge',
       'frankrike': '🇫🇷 Frankrike',
       'ingen': 'Ingen mål',
@@ -482,13 +482,9 @@ function showSubmittedState(prediction) {
   document.getElementById('submitted-team').innerHTML = `
     <strong>${session.name}</strong>
     <table style="width:100%; margin-top: 1rem; text-align: left; font-size: 14px;">
-      <tr><td>🏆 Sluttresultat</td><td style="text-align:right"><strong>Norge ${prediction.score_norge} – ${prediction.score_frankrike} Frankrike</strong></td></tr>
+      <tr><td>🏆 Sluttresultat</td><td style="text-align:right"><strong>Norge ${prediction.home_goals} – ${prediction.away_goals} Frankrike</strong></td></tr>
       <tr><td>⚽ Scorer først</td><td style="text-align:right">${formatAnswer(prediction.first_goal)}</td></tr>
       <tr><td>🟨 Flest gule kort</td><td style="text-align:right">${formatAnswer(prediction.yellow_cards)}</td></tr>
-      <tr><td>🧤 Norge holder nullen</td><td style="text-align:right">${formatAnswer(prediction.clean_sheet)}</td></tr>
-      <tr><td>⚡ Haaland scorer</td><td style="text-align:right">${formatAnswer(prediction.haaland_scores)}</td></tr>
-      <tr><td>💨 Mbappé scorer</td><td style="text-align:right">${formatAnswer(prediction.mbappe_scores)}</td></tr>
-      <tr><td>🎯 Straffescoring</td><td style="text-align:right">${formatAnswer(prediction.penalty)}</td></tr>
     </table>
   `
 }

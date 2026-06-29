@@ -115,7 +115,7 @@ async function checkOrakelStatus() {
   const { data, error } = await sb
     .from('activities')
     .select('is_active')
-    .eq('id', 'orakel')
+    .eq('activity_name', 'orakel')
     .single()
   
   if (data?.is_active) {

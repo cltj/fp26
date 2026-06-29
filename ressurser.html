@@ -180,7 +180,7 @@ async function checkAccess() {
   const { data: activity, error } = await sb
     .from('activities')
     .select('is_active')
-    .eq('id', 'ressurser')
+    .eq('activity_name', 'ressurser')
     .single()
   
   if (!error && activity && activity.is_active) {
@@ -203,9 +203,9 @@ async function init() {
   }
   
   // Load activity states
-  const { data: activitiesData } = await sb.from('activities').select('id, is_active')
+  const { data: activitiesData } = await sb.from('activities').select('activity_name, is_active')
   if (activitiesData) {
-    activitiesData.forEach(a => activities[a.id] = a.is_active)
+    activitiesData.forEach(a => activities[a.activity_name] = a.is_active)
   }
   
   // Load and render resources

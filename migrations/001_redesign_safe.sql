@@ -90,8 +90,8 @@ ON CONFLICT DO NOTHING;
 INSERT INTO activity_scores (team_id, fotball_points, fc26_points)
 SELECT 
   team_id,
-  COALESCE(scores[2], 0),
-  COALESCE(scores[4], 0)
+  COALESCE((scores->>1)::INTEGER, 0),
+  COALESCE((scores->>3)::INTEGER, 0)
 FROM scores
 ON CONFLICT (team_id) DO UPDATE SET
   fotball_points = EXCLUDED.fotball_points,

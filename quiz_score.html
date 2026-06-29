@@ -201,7 +201,7 @@ async function init() {
     const { data: activity, error } = await sb
       .from('activities')
       .select('is_active')
-      .eq('id', 'quiz')
+      .eq('activity_name', 'quiz')
       .single()
     
     if (!error && activity && activity.is_active === false) {
@@ -227,7 +227,7 @@ async function init() {
 
 async function loadQuestions() {
   const { data: questionsData, error } = await sb
-    .from('quiz_answers')
+    .from('activity_quiz')
     .select('id, question, answer, winner_team_id')
     .order('id')
   

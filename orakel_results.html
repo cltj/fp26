@@ -108,16 +108,12 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // FASIT - de faktiske resultatene
+    // FASIT - de faktiske resultatene (using home/away format)
     const FASIT = {
-      score_frankrike: 4,
-      score_norge: 1,
-      first_goal: 'frankrike',
-      yellow_cards: 'likt',
-      clean_sheet: 'nei',
-      haaland_scores: 'nei',
-      mbappe_scores: 'nei',
-      penalty: 'nei'
+      away_goals: 4,  // Frankrike
+      home_goals: 1,  // Norge
+      first_goal: 'away',  // Frankrike scored first
+      yellow_cards: 'likt'
     }
 
     // Poengberegning
@@ -126,15 +122,15 @@
       let details = []
 
       // Eksakt resultat: 5 poeng
-      if (prediction.score_frankrike === FASIT.score_frankrike && 
-          prediction.score_norge === FASIT.score_norge) {
+      if (prediction.away_goals === FASIT.away_goals && 
+          prediction.home_goals === FASIT.home_goals) {
         points += 5
         details.push({ q: 'Eksakt resultat', correct: true, pts: 5 })
       } else {
         // Riktig vinner: 2 poeng
-        const predWinner = prediction.score_frankrike > prediction.score_norge ? 'frankrike' : 
-                          prediction.score_frankrike < prediction.score_norge ? 'norge' : 'uavgjort'
-        const actualWinner = 'frankrike' // 4-1
+        const predWinner = prediction.away_goals > prediction.home_goals ? 'away' : 
+                          prediction.away_goals < prediction.home_goals ? 'home' : 'draw'
+        const actualWinner = 'away' // 4-1
         if (predWinner === actualWinner) {
           points += 2
           details.push({ q: 'Riktig vinner', correct: true, pts: 2 })
@@ -159,45 +155,13 @@
         details.push({ q: 'Gule kort', correct: false, pts: 0 })
       }
 
-      // Clean sheet: 1 poeng
-      if (prediction.clean_sheet === FASIT.clean_sheet) {
-        points += 1
-        details.push({ q: 'Norge holder nullen', correct: true, pts: 1 })
-      } else {
-        details.push({ q: 'Norge holder nullen', correct: false, pts: 0 })
-      }
-
-      // Haaland scorer: 1 poeng
-      if (prediction.haaland_scores === FASIT.haaland_scores) {
-        points += 1
-        details.push({ q: 'Haaland scorer', correct: true, pts: 1 })
-      } else {
-        details.push({ q: 'Haaland scorer', correct: false, pts: 0 })
-      }
-
-      // Mbappe scorer: 1 poeng
-      if (prediction.mbappe_scores === FASIT.mbappe_scores) {
-        points += 1
-        details.push({ q: 'Mbappé scorer', correct: true, pts: 1 })
-      } else {
-        details.push({ q: 'Mbappé scorer', correct: false, pts: 0 })
-      }
-
-      // Straffe: 1 poeng
-      if (prediction.penalty === FASIT.penalty) {
-        points += 1
-        details.push({ q: 'Straffescoring', correct: true, pts: 1 })
-      } else {
-        details.push({ q: 'Straffescoring', correct: false, pts: 0 })
-      }
-
       return { points, details }
     }
 
     async function loadResults() {
       // Hent predictions med participant og team info
       const { data: predictions, error } = await sb
-        .from('predictions')
+        .from('activity_predictions')
         .select(`
           *,
           participants(participant, team_id),
@@ -222,7 +186,7 @@
           team: p.teams?.team_name || 'Ukjent lag',
           team_id: p.team_id,
           flag: p.teams?.flag || '🏳️',
-          prediction: `${p.score_norge}-${p.score_frankrike}`,
+          prediction: `${p.home_goals}-${p.away_goals}`,
           points,
           details
         }

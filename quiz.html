@@ -343,7 +343,7 @@ async function init() {
   teams = teamsData || []
   
   // Load questions
-  const { data: questionsData } = await sb.from('quiz_answers').select('*').order('id')
+  const { data: questionsData } = await sb.from('activity_quiz').select('*').order('id')
   questions = questionsData || []
   
   // Init scores
@@ -466,7 +466,7 @@ async function selectWinner(teamId) {
   renderScoreboard()
   
   // Save to DB
-  await sb.from('quiz_answers').update({ winner_team_id: teamId }).eq('id', q.id)
+  await sb.from('activity_quiz').update({ winner_team_id: teamId }).eq('id', q.id)
 }
 
 async function clearWinner() {
@@ -485,7 +485,7 @@ async function clearWinner() {
   renderScoreboard()
   
   // Save to DB - use null properly
-  await sb.from('quiz_answers').update({ winner_team_id: null }).eq('id', q.id)
+  await sb.from('activity_quiz').update({ winner_team_id: null }).eq('id', q.id)
 }
 
 function nextQuestion() {
