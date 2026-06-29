@@ -871,8 +871,11 @@ function calculateFC26Standings(matches) {
 
 async function loadMiniScoreboard() {
   // Load only active teams (group teams)
-  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag').eq('is_active', true).order('id')
+  const { data: teamsData, error: teamsError } = await sb.from('teams').select('id, team_name, flag').eq('is_active', true).order('id')
+  console.log('Mini scoreboard - teams:', teamsData?.length || 0, teamsError || 'no error')
+  
   if (!teamsData || teamsData.length === 0) {
+    console.log('Mini scoreboard - no active teams, hiding')
     return
   }
   
@@ -881,7 +884,8 @@ async function loadMiniScoreboard() {
   teamsData.forEach(t => scoreMap[t.id] = { fotball: 0, orakel: 0, fc26: 0 })
   
   // 1. Fotball points from activity_fotball
-  const { data: fotballData } = await sb.from('activity_fotball').select('team_id, points')
+  const { data: fotballData, error: fotballError } = await sb.from('activity_fotball').select('team_id, points')
+  console.log('Mini scoreboard - fotball data:', fotballData?.length || 0, fotballError || 'no error')
   if (fotballData) {
     fotballData.forEach(row => {
       if (scoreMap[row.team_id]) {
@@ -920,8 +924,11 @@ async function loadMiniScoreboard() {
     if (s.total > 0) hasAnyPoints = true
   })
   
+  console.log('Mini scoreboard - hasAnyPoints:', hasAnyPoints, 'scoreMap:', scoreMap)
+  
   // Only show standings if at least one team has points
   if (!hasAnyPoints) {
+    console.log('Mini scoreboard - no points yet, hiding')
     return
   }
   
@@ -1019,10 +1026,12 @@ document.addEventListener('keydown', (e) => {
 
 // Load pitch formation
 async function loadPitchFormation() {
-  const { data: participants } = await sb
+  const { data: participants, error } = await sb
     .from('participants')
     .select('id, participant, photo_url')
     .order('id')
+  
+  console.log('Pitch formation - participants loaded:', participants?.length || 0, error || 'no error')
   
   // 4-3-3 formation: 4 DEF, 3 MID, 3 FWD = 10 players
   const formation = [
@@ -1036,12 +1045,13 @@ async function loadPitchFormation() {
   
   const renderPlayer = (p) => {
     if (p) {
+      const photoUrl = p.photo_url && !p.photo_url.includes('placeholder') ? p.photo_url : 'images/participants/placeholder.png'
       return `
         <div class="pitch-player">
-          <img src="${p.photo_url || 'placeholder.png'}" 
+          <img src="${photoUrl}" 
                class="pitch-player-photo" 
                onclick="showPhotoOverlay('${p.photo_url || ''}', '${p.participant}')"
-               onerror="this.src='placeholder.png'">
+               onerror="this.src='images/participants/placeholder.png'">
           <span class="pitch-player-name">${p.participant.split(' ')[0]}</span>
         </div>
       `
