@@ -493,9 +493,9 @@ async function loadScores() {
   if (scoresData) {
     scoresData.forEach(s => {
       if (!scores[s.team_id]) {
-        scores[s.team_id] = { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
+        scores[s.team_id] = { '1': 0, '2a': 0, '2b': 0, '3': 0, '4': 0 }
       }
-      scores[s.team_id][s.exercise] = s.points
+      scores[s.team_id][s.exercise_id] = s.points
     })
   }
   
@@ -508,10 +508,10 @@ function renderStandings() {
   tbody.innerHTML = ''
   
   const standings = Object.values(teams).map(team => {
-    const s = scores[team.id] || { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
-    const e2Total = (s.e2a || 0) + (s.e2b || 0)
-    const total = (s.e1 || 0) + e2Total + (s.e3 || 0) + (s.e4 || 0)
-    return { team, e1: s.e1 || 0, e2: e2Total, e3: s.e3 || 0, e4: s.e4 || 0, total }
+    const s = scores[team.id] || { '1': 0, '2a': 0, '2b': 0, '3': 0, '4': 0 }
+    const e2Total = (s['2a'] || 0) + (s['2b'] || 0)
+    const total = (s['1'] || 0) + e2Total + (s['3'] || 0) + (s['4'] || 0)
+    return { team, e1: s['1'] || 0, e2: e2Total, e3: s['3'] || 0, e4: s['4'] || 0, total }
   })
   
   standings.sort((a, b) => b.total - a.total)
@@ -587,10 +587,10 @@ function renderExercise2Order() {
 function renderExercise4Teams() {
   // Get standings without e4 scores
   const standings = Object.values(teams).map(team => {
-    const s = scores[team.id] || { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
-    const e2Total = (s.e2a || 0) + (s.e2b || 0)
-    const total = (s.e1 || 0) + e2Total + (s.e3 || 0) // Exclude e4
-    return { team, total, hasScores: (s.e1 || 0) + e2Total + (s.e3 || 0) > 0 }
+    const s = scores[team.id] || { '1': 0, '2a': 0, '2b': 0, '3': 0, '4': 0 }
+    const e2Total = (s['2a'] || 0) + (s['2b'] || 0)
+    const total = (s['1'] || 0) + e2Total + (s['3'] || 0) // Exclude e4
+    return { team, total, hasScores: (s['1'] || 0) + e2Total + (s['3'] || 0) > 0 }
   })
   
   // Check if we have any scores from exercises 1-3

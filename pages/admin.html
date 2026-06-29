@@ -1804,7 +1804,7 @@ async function resetGame() {
   try {
     // Delete all activity data
     await sb.from('activity_quiz').delete().neq('id', 0)
-    await sb.from('activity_fotball').delete().neq('exercise', '')
+    await sb.from('activity_fotball').delete().neq('exercise_id', '')
     await sb.from('activity_predictions').delete().neq('id', 0)
     await sb.from('activity_fc26').delete().neq('id', 0)
     
@@ -1860,9 +1860,21 @@ function logout() {
 // ============ FOTBALL ADMIN FUNCTIONS ============
 
 const FB_PLACEMENT_POINTS = { 1: 4, 2: 3, 3: 2, 4: 1 }
+const FB_EXERCISES = {
+  '1': 'Tverrlegger',
+  '2a': 'Presisjon Runde 1',
+  '2b': 'Presisjon Runde 2',
+  '3': 'Straffespark',
+  '4': '3v3'
+}
 let fotballScores = {}
+let fotballActivityId = null
 
 async function loadFotballData() {
+  // Get fotball activity ID
+  const fotballActivity = activities.find(a => a.name && a.name.toLowerCase().includes('fotball'))
+  fotballActivityId = fotballActivity ? fotballActivity.id : null
+  
   // Load active teams into fotball selects
   const activeTeams = teams.filter(t => t.is_active)
   const selects = document.querySelectorAll('select[id^="fb-"]')
@@ -1887,9 +1899,9 @@ async function loadFotballData() {
   if (scoresData) {
     scoresData.forEach(s => {
       if (!fotballScores[s.team_id]) {
-        fotballScores[s.team_id] = { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
+        fotballScores[s.team_id] = { '1': 0, '2a': 0, '2b': 0, '3': 0, '4': 0 }
       }
-      fotballScores[s.team_id][s.exercise] = s.points
+      fotballScores[s.team_id][s.exercise_id] = s.points
     })
   }
   
@@ -1897,18 +1909,17 @@ async function loadFotballData() {
   const pointsToPlacement = { 4: 1, 3: 2, 2: 3, 1: 4 }
   if (scoresData) {
     scoresData.forEach(p => {
-      if (p.exercise === 'e4') return // Handle e4 separately
-      const exerciseId = p.exercise.replace('e', '')
+      if (p.exercise_id === '4') return // Handle e4 separately
       const placement = pointsToPlacement[p.points]
       if (placement) {
-        const select = document.getElementById(`fb-e${exerciseId}-place${placement}`)
+        const select = document.getElementById(`fb-e${p.exercise_id}-place${placement}`)
         if (select) select.value = p.team_id
       }
     })
   }
   
   // Load e4 saved data
-  const e4data = scoresData ? scoresData.filter(s => s.exercise === 'e4') : []
+  const e4data = scoresData ? scoresData.filter(s => s.exercise_id === '4') : []
   if (e4data.length > 0) {
     // Sort by points descending (winners first)
     const teamA = e4data.filter(d => d.points >= 3).sort((a, b) => b.points - a.points)
@@ -1960,12 +1971,12 @@ async function saveFotballExercise(exerciseNum) {
     else { teamAPoints = 3; teamBPoints = 3 }
     
     // Delete old e4 data first, then insert new
-    await sb.from('activity_fotball').delete().eq('exercise', 'e4')
+    await sb.from('activity_fotball').delete().eq('exercise_id', '4')
     const { error } = await sb.from('activity_fotball').insert([
-      { team_id: parseInt(teamA1Id), exercise: 'e4', points: teamAPoints },
-      { team_id: parseInt(teamA2Id), exercise: 'e4', points: teamAPoints },
-      { team_id: parseInt(teamB1Id), exercise: 'e4', points: teamBPoints },
-      { team_id: parseInt(teamB2Id), exercise: 'e4', points: teamBPoints }
+      { team_id: parseInt(teamA1Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamAPoints },
+      { team_id: parseInt(teamA2Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamAPoints },
+      { team_id: parseInt(teamB1Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamBPoints },
+      { team_id: parseInt(teamB2Id), activity_id: fotballActivityId, exercise_id: '4', exercise_name: FB_EXERCISES['4'], points: teamBPoints }
     ])
     
     if (error) {
@@ -1984,7 +1995,13 @@ async function saveFotballExercise(exerciseNum) {
       }
       
       const points = FB_PLACEMENT_POINTS[place]
-      scoreUpdates.push({ team_id: parseInt(teamId), exercise: `e${exerciseId}`, points })
+      scoreUpdates.push({ 
+        team_id: parseInt(teamId), 
+        activity_id: fotballActivityId,
+        exercise_id: exerciseId, 
+        exercise_name: FB_EXERCISES[exerciseId],
+        points 
+      })
     }
     
     const teamIds = scoreUpdates.map(p => p.team_id)
@@ -1994,7 +2011,7 @@ async function saveFotballExercise(exerciseNum) {
     }
     
     // Delete old exercise data first, then insert new
-    await sb.from('activity_fotball').delete().eq('exercise', `e${exerciseId}`)
+    await sb.from('activity_fotball').delete().eq('exercise_id', exerciseId)
     const { error } = await sb.from('activity_fotball').insert(scoreUpdates)
     
     if (error) {
@@ -2014,8 +2031,7 @@ async function resetFotballExercise(exerciseNum) {
   if (!confirm(`Er du sikker på at du vil nullstille Øvelse ${exerciseId}?`)) return
   
   // Delete from activity_fotball
-  const exerciseKey = `e${exerciseId}`
-  const { error } = await sb.from('activity_fotball').delete().eq('exercise', exerciseKey)
+  const { error } = await sb.from('activity_fotball').delete().eq('exercise_id', exerciseId)
   
   if (error) {
     alert('Kunne ikke nullstille: ' + error.message)
@@ -2043,7 +2059,7 @@ async function resetAllFotball() {
   if (!confirm('Dette kan ikke angres. Fortsette?')) return
   
   // Delete all fotball results
-  const { error } = await sb.from('activity_fotball').delete().neq('exercise', '')
+  const { error } = await sb.from('activity_fotball').delete().neq('exercise_id', '')
   
   if (error) {
     alert('Kunne ikke nullstille: ' + error.message)
