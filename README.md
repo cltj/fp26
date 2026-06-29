@@ -10,7 +10,7 @@ fp26/
 ├── pages/                  # All app pages
 │   ├── home.html           # Dashboard after login
 │   ├── quiz.html           # Quiz activity
-│   ├── ballbinge.html      # Football exercises
+│   ├── fotball.html        # Football exercises
 │   ├── orakel.html         # Match predictions
 │   ├── fc26.html           # FC26 tournament
 │   ├── ressurser.html      # Team resources/cards
@@ -35,7 +35,7 @@ fp26/
 | `index.html` | **Character Select** - Participants tap their photo and enter their PIN. QR codes point here. |
 | `pages/home.html` | **Dashboard** - After login, shows activities and timeline |
 | `pages/quiz.html` | **Quiz** - Team quiz competition |
-| `pages/ballbinge.html` | **Ballbinge** - Football exercise scoring |
+| `pages/fotball.html` | **Fotball** - Football exercise scoring |
 | `pages/orakel.html` | **Orakel** - Match prediction game |
 | `pages/fc26.html` | **FC26** - FIFA tournament bracket |
 | `pages/admin.html` | **Admin** - Manage activities, teams, scores |

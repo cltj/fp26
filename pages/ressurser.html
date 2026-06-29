@@ -162,6 +162,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 const stored = localStorage.getItem('fp26_session')
 let isAdmin = false
+const urlParams = new URLSearchParams(window.location.search)
+const viewAll = urlParams.get('view') === 'all'
 
 if (stored) {
   const session = JSON.parse(stored)
@@ -170,6 +172,13 @@ if (stored) {
 
 // Check if activity is active for non-admin users
 async function checkAccess() {
+  // If view=all, always show the page (public view without team info)
+  if (viewAll) {
+    document.getElementById('main-content').style.display = 'block'
+    init()
+    return
+  }
+  
   if (isAdmin) {
     document.getElementById('main-content').style.display = 'block'
     init()
@@ -240,15 +249,16 @@ async function loadResources() {
 
 function renderCard(card) {
   const owner = card.team_id ? teams[card.team_id] : null
-  const ownerHtml = owner ? `<span class="resource-owner">${owner.flag} ${owner.team_name}</span>` : ''
+  // Hide ownership in view=all mode
+  const ownerHtml = (owner && !viewAll) ? `<span class="resource-owner">${owner.flag} ${owner.team_name}</span>` : ''
   
   let effectsHtml = ''
   
-  // Show Ballbinge (ex1) only if ballbinge activity is active
-  if (card.ex1 && activities['ballbinge']) {
+  // Show Fotball (ex1) only if fotball activity is active
+  if (card.ex1 && activities['fotball']) {
     effectsHtml += `
       <div class="effect-row">
-        <span class="effect-label ballbinge">Ballbinge:</span>
+        <span class="effect-label ballbinge">Fotball:</span>
         <span class="effect-text">${card.ex1}</span>
       </div>
     `
@@ -293,8 +303,11 @@ function renderCard(card) {
     `
   }
   
+  // In view=all mode, don't highlight assigned cards
+  const cardClass = (owner && !viewAll) ? 'assigned' : ''
+  
   return `
-    <div class="resource-card ${owner ? 'assigned' : ''}">
+    <div class="resource-card ${cardClass}">
       <div class="resource-header">
         <span class="resource-icon">${card.icon || '🎴'}</span>
         <span class="resource-name">${card.title}</span>

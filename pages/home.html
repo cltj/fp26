@@ -524,6 +524,109 @@
   .action-card.orakel .action-btn:hover {
     background: rgba(168,85,247,0.3);
   }
+
+  main { padding: 1rem 1.5rem; }
+  .section-title { 
+    font-size: 15px; 
+    font-weight: 600; 
+    margin-bottom: 0.75rem; 
+    color: var(--text);
+  }
+
+  /* Welcome Section */
+  .welcome-section {
+    text-align: center;
+    padding: 1rem 0 1.5rem;
+  }
+  .welcome-photo {
+    width: 100px;
+    height: 130px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  .welcome-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .welcome-greeting {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .team-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(200,244,90,0.12);
+    border: 0.5px solid rgba(200,244,90,0.3);
+    border-radius: 99px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .team-flag { font-size: 16px; }
+
+  /* Quick Links Row */
+  .quick-links {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .quick-link {
+    flex: 1;
+    min-width: 80px;
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .quick-link:hover {
+    background: var(--surface2);
+    border-color: rgba(255,255,255,0.2);
+  }
+  .quick-link.music { border-color: rgba(250,87,193,0.3); color: var(--accent-music); }
+  .quick-link.submit { border-color: rgba(96,200,255,0.3); color: var(--accent-submit); }
+  .quick-link.wall { border-color: rgba(251,191,36,0.3); color: #fbbf24; }
+  .quick-link.ressurser { border-color: rgba(200,150,100,0.3); color: #daa520; }
+
+  /* Activity Buttons */
+  .activity-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+  .activity-btn {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .activity-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.2);
+  }
+  .activity-icon { font-size: 24px; margin-bottom: 4px; }
+  .activity-name { font-size: 13px; font-weight: 600; }
+  .activity-btn.analyse { border-color: rgba(255,200,100,0.3); background: linear-gradient(135deg, rgba(255,200,100,0.1), rgba(200,244,90,0.05)); }
+  .activity-btn.fotball { border-color: rgba(100,255,150,0.3); background: linear-gradient(135deg, rgba(100,255,150,0.1), rgba(200,244,90,0.05)); }
+  .activity-btn.fc26 { border-color: rgba(100,200,255,0.3); background: linear-gradient(135deg, rgba(100,200,255,0.1), rgba(200,244,90,0.05)); }
+  .activity-btn.orakel { border-color: rgba(168,85,247,0.3); background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(200,244,90,0.05)); }
 </style>
 </head>
 <body>
@@ -542,118 +645,62 @@
 </header>
 
 <main>
+  <!-- 1. Welcome Section: Photo + Name + Greeting -->
   <section class="welcome-section">
-    <div class="welcome-photo-row">
-      <img src="" alt="" class="welcome-photo" id="welcome-photo" style="display:none;">
-      <div class="team-badge" id="team-badge">
-        <span class="team-flag" id="team-flag"></span>
-        <span class="team-name" id="team-name-display"></span>
-      </div>
+    <img src="" alt="" class="welcome-photo" id="welcome-photo" style="display:none;">
+    <div class="welcome-name" id="welcome-name"></div>
+    <div class="welcome-greeting">Velkommen til Foppalfæst!!</div>
+    <div class="team-badge" id="team-badge" style="display: none;">
+      <span class="team-flag" id="team-flag"></span>
+      <span id="team-name-display"></span>
     </div>
-    <div class="welcome-row" id="placeholder-row" style="display:none;">
-      <img src="" alt="" class="welcome-photo" id="placeholder-photo">
-      <div class="tv2-promo">
-        <img src="../images/misc/tv2.png" alt="TV2 Fotballkort" class="tv2-qr">
-        <a href="https://www.tv2.no/fotballkort" target="_blank" class="tv2-link">Lag ditt bilde her →</a>
-      </div>
+  </section>
+
+  <!-- 2. Quick Links: Resources + Music + Submit + Wall -->
+  <section>
+    <div class="quick-links">
+      <a href="ressurser.html?view=all" class="quick-link ressurser">🎴 Ressurser</a>
+      <a href="https://music.apple.com/no/playlist/pl.u-AkAm8ENsx3y8dzL?a=join&it=Y2Be7k4fWZPv7JBhqp8GG&l=nb" target="_blank" class="quick-link music">🎵 Musikk</a>
+      <a href="submit.html" class="quick-link submit">📝 Meld</a>
+      <a href="wall.html" class="quick-link wall">📣 Wall</a>
     </div>
-    <div class="welcome-text">Velkommen, <span id="welcome-name"></span>!</div>
-    
+  </section>
+
+  <!-- 3. Standings Table (hidden until points exist) -->
+  <section id="standings-section" style="display: none;">
+    <div class="section-title">🏆 Totale poeng</div>
     <div class="mini-scoreboard" id="mini-scoreboard">
       <!-- Loaded by JS -->
     </div>
   </section>
 
-  <section>
-    <div class="section-title">🎊 Bidra med feststemning</div>
-    
-    <div class="action-grid">
-      <div class="action-card music">
-        <img src="../images/qr-codes/fp26music.png" alt="Musikk QR" class="action-qr">
-        <div class="action-content">
-          <div class="action-title">🎵 Legg til musikk i spillelista</div>
-          <div class="action-desc">Scan QR eller trykk for å legge til sanger</div>
-          <a href="https://music.apple.com/no/playlist/pl.u-AkAm8ENsx3y8dzL?a=join&it=Y2Be7k4fWZPv7JBhqp8GG&l=nb" target="_blank" class="action-btn">Åpne spilleliste →</a>
-        </div>
-      </div>
-
-      <div class="action-card submit">
-        <img src="../images/qr-codes/fp26submit.png" alt="Submit QR" class="action-qr">
-        <div class="action-content">
-          <div class="action-title">📝 Haru no å melle!!</div>
-          <div class="action-desc">- Så meld i vei da vel</div>
-          <a href="submit.html" class="action-btn">Skriv innlegg →</a>
-        </div>
-      </div>
-
-      <div class="action-card wall">
-        <img src="../images/qr-codes/fp26wall.png" alt="The Wall QR" class="action-qr">
-        <div class="action-content">
-          <div class="action-title">📣 The Wall</div>
-          <div class="action-desc">Se alle innlegg på storskjerm</div>
-          <a href="wall.html" class="action-btn">Åpne The Wall →</a>
-        </div>
-      </div>
-
-      <div class="action-card" id="ressurser-card" style="display: none; border-color: rgba(200,150,100,0.4);">
-        <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title" style="color: #daa520;">🎴 Ressurser</div>
-          <div class="action-desc">Se dine tildelte kort</div>
-          <a href="ressurser.html" class="action-btn" style="background: rgba(200,150,100,0.15); border-color: rgba(200,150,100,0.3);">Se kort →</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
+  <!-- 4. Activities (show only activated ones, in order) -->
   <section id="activities-section" style="display: none;">
-    <div class="section-title">🏆 Aktiviteter</div>
-    <div class="action-grid">
-      <div class="action-card" id="analyse-card" style="display: none; background: linear-gradient(135deg, rgba(255,200,100,0.15), rgba(200,244,90,0.15));">
-        <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title">📊 Analyse</div>
-          <div class="action-desc">Gjett de riktige svarene</div>
-          <a href="analyse.html" class="action-btn">Start analyse →</a>
-        </div>
-      </div>
-
-      <div class="action-card" id="ballbinge-card" style="display: none; background: linear-gradient(135deg, rgba(100,255,150,0.15), rgba(200,244,90,0.15));">
-        <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title">⚽ Ballbinge Live!</div>
-          <div class="action-desc">Følg poengene live</div>
-          <a href="ballbinge.html" class="action-btn">Se tabell →</a>
-        </div>
-      </div>
-
-      <div class="action-card" id="fc26-card" style="display: none; background: linear-gradient(135deg, rgba(100,200,255,0.15), rgba(200,244,90,0.15));">
-        <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title">🎮 FC26 Live!</div>
-          <div class="action-desc">Følg turneringen live</div>
-          <a href="fc26.html" class="action-btn">Se tabell →</a>
-        </div>
-      </div>
-
-      <div class="action-card orakel" id="orakel-card" style="display: none;">
-        <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title">🔮 Orakelet er åpent!</div>
-          <div class="action-desc">Tipp resultatet på Norge – Frankrike</div>
-          <a href="orakel.html" class="action-btn">Gå til tipping →</a>
-        </div>
-      </div>
-
-      <div class="action-card" id="quiz-card" style="display: none; background: linear-gradient(135deg, rgba(150,100,200,0.15), rgba(200,244,90,0.15));">
-        <div class="action-content" style="text-align: center; padding: 1.5rem;">
-          <div class="action-title">🧠 Quiz Resultater</div>
-          <div class="action-desc">Se hvem som svarte riktig</div>
-          <a href="quiz_score.html" class="action-btn">Se resultater →</a>
-        </div>
-      </div>
+    <div class="section-title">🎯 Aktiviteter</div>
+    <div class="activity-grid">
+      <a href="quiz_score.html" class="activity-btn analyse" id="activity-analyse" style="display: none;">
+        <div class="activity-icon">📊</div>
+        <div class="activity-name">Analyse</div>
+      </a>
+      <a href="fotball.html" class="activity-btn fotball" id="activity-fotball" style="display: none;">
+        <div class="activity-icon">⚽</div>
+        <div class="activity-name">Fotball</div>
+      </a>
+      <a href="fc26.html" class="activity-btn fc26" id="activity-fc26" style="display: none;">
+        <div class="activity-icon">🎮</div>
+        <div class="activity-name">FC26</div>
+      </a>
+      <a href="orakel.html" class="activity-btn orakel" id="activity-orakel" style="display: none;">
+        <div class="activity-icon">🔮</div>
+        <div class="activity-name">Orakelet</div>
+      </a>
     </div>
   </section>
 
+  <!-- 5. Troppen (as is) -->
   <section class="pitch-section">
     <div class="section-title">⚽ Troppen</div>
     <div class="pitch-container">
-      <!-- Pitch markings -->
       <div class="pitch-markings"></div>
       <div class="pitch-center-line"></div>
       <div class="pitch-center-circle"></div>
@@ -662,7 +709,6 @@
       <div class="pitch-box bottom"></div>
       <div class="pitch-goal-box top"></div>
       <div class="pitch-goal-box bottom"></div>
-      <!-- Players -->
       <div class="pitch-formation" id="pitch-formation">
         <!-- Loaded by JS -->
       </div>
@@ -686,23 +732,12 @@ if (!session || !session.name) {
 document.getElementById('user-name').textContent = session.name
 document.getElementById('welcome-name').textContent = session.name
 
-// Show user photo if available and not a placeholder
+// Show user photo
 const photoEl = document.getElementById('welcome-photo')
-const placeholderRow = document.getElementById('placeholder-row')
-const placeholderPhoto = document.getElementById('placeholder-photo')
-
 if (session.photo && !session.photo.toLowerCase().includes('placeholder')) {
   photoEl.src = session.photo
   photoEl.alt = session.name
   photoEl.style.display = 'block'
-  placeholderRow.style.display = 'none'
-} else {
-  photoEl.style.display = 'none'
-  placeholderRow.style.display = 'flex'
-  if (session.photo) {
-    placeholderPhoto.src = session.photo
-    placeholderPhoto.alt = session.name
-  }
 }
 
 // Show admin badge and link if admin (user "Tj")
@@ -742,7 +777,7 @@ async function loadUserTeam() {
   
   document.getElementById('team-flag').textContent = team.flag || '🏳️'
   document.getElementById('team-name-display').textContent = 'Team ' + team.team_name
-  document.getElementById('team-badge').classList.add('visible')
+  document.getElementById('team-badge').style.display = 'inline-flex'
 }
 loadUserTeam()
 
@@ -751,14 +786,26 @@ async function loadMiniScoreboard() {
   // Load only active teams (group teams)
   const { data: teamsData } = await sb.from('teams').select('id, team_name, flag').eq('is_active', true).order('id')
   if (!teamsData || teamsData.length === 0) {
-    // Hide scoreboard if no active teams
-    document.getElementById('mini-scoreboard').style.display = 'none'
     return
   }
-  document.getElementById('mini-scoreboard').style.display = 'block'
   
   // Load scores
   const { data: scoresData } = await sb.from('activity_scores').select('team_id, total_points')
+  
+  // Calculate totals
+  const scoreMap = {}
+  let hasAnyPoints = false
+  if (scoresData) {
+    scoresData.forEach(row => {
+      scoreMap[row.team_id] = row.total_points || 0
+      if (row.total_points > 0) hasAnyPoints = true
+    })
+  }
+  
+  // Only show standings if at least one team has points
+  if (!hasAnyPoints) {
+    return
+  }
   
   // Load participants with team assignments
   const { data: participantsData } = await sb.from('participants').select('id, participant, photo_url, team_id')
@@ -771,14 +818,6 @@ async function loadMiniScoreboard() {
         if (!teamMembers[p.team_id]) teamMembers[p.team_id] = []
         teamMembers[p.team_id].push(p)
       }
-    })
-  }
-  
-  // Calculate totals
-  const scoreMap = {}
-  if (scoresData) {
-    scoresData.forEach(row => {
-      scoreMap[row.team_id] = row.total_points || 0
     })
   }
   
@@ -810,6 +849,9 @@ async function loadMiniScoreboard() {
       </span>
     `).join('')
   }
+  
+  // Show standings section
+  document.getElementById('standings-section').style.display = 'block'
   
   // Render
   document.getElementById('mini-scoreboard').innerHTML = `
@@ -914,6 +956,7 @@ async function checkActiveActivities() {
     .from('activities')
     .select('activity_name, is_active')
     .eq('is_active', true)
+    .order('display_order')
   
   if (error) {
     console.log('Could not check activities:', error)
@@ -922,28 +965,10 @@ async function checkActiveActivities() {
   
   let anyActive = false
   activities?.forEach(activity => {
-    if (activity.activity_name === 'analyse') {
-      document.getElementById('analyse-card').style.display = 'block'
+    const activityEl = document.getElementById(`activity-${activity.activity_name}`)
+    if (activityEl) {
+      activityEl.style.display = 'block'
       anyActive = true
-    }
-    if (activity.activity_name === 'ballbinge') {
-      document.getElementById('ballbinge-card').style.display = 'block'
-      anyActive = true
-    }
-    if (activity.activity_name === 'fc26') {
-      document.getElementById('fc26-card').style.display = 'block'
-      anyActive = true
-    }
-    if (activity.activity_name === 'orakel') {
-      document.getElementById('orakel-card').style.display = 'block'
-      anyActive = true
-    }
-    if (activity.activity_name === 'quiz') {
-      document.getElementById('quiz-card').style.display = 'block'
-      anyActive = true
-    }
-    if (activity.activity_name === 'ressurser') {
-      document.getElementById('ressurser-card').style.display = 'block'
     }
   })
   

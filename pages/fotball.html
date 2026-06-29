@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚽ Ballbinge</title>
+<title>⚽ Fotball</title>
 <link rel="stylesheet" href="../story/story.css">
 <style>
   /* Same style as fc26.html */
@@ -210,7 +210,7 @@
 <header>
   <div class="header-left">
     <a href="home.html" class="back-btn">← Hjem</a>
-    <span class="chapter-title">⚽ Ballbinge</span>
+    <span class="chapter-title">⚽ Fotball</span>
   </div>
 </header>
 
@@ -218,7 +218,7 @@
   <div class="story-content">
     
     <div id="activity-closed" class="activity-closed" style="display: none;">
-      <p>⏳ <strong>Ballbingen er ikke startet ennå.</strong><br>
+      <p>⏳ <strong>Fotball-øvelsene er ikke startet ennå.</strong><br>
       Vent til ledelsen aktiverer øvelsen.</p>
     </div>
 
@@ -229,7 +229,7 @@
         <div class="bb-header">
           <span style="width: 20px;"></span>
           <span style="width: 18px;"></span>
-          <span class="title">Ballbinge</span>
+          <span class="title">Fotball</span>
           <span class="col">Ø1</span>
           <span class="col">Ø2</span>
           <span class="col">Ø3</span>
@@ -541,7 +541,7 @@ async function init() {
     const { data: activity, error } = await sb
       .from('activities')
       .select('is_active')
-      .eq('activity_name', 'ballbinge')
+      .eq('activity_name', 'fotball')
       .single()
     
     if (!error && activity && activity.is_active === false) {
