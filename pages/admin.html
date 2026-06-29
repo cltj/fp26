@@ -1297,10 +1297,16 @@ function renderQuizResults() {
 
 function renderQuizChart() {
   const ctx = document.getElementById('quiz-chart').getContext('2d')
+  const activeTeams = teams.filter(t => t.is_active)
+  
+  if (activeTeams.length === 0) {
+    ctx.canvas.parentElement.innerHTML = '<p style="color: var(--muted); font-size: 12px; text-align: center; padding: 2rem;">Legg til lag i gruppen først (under Kampoppsett)</p>'
+    return
+  }
   
   // Calculate points per team
   const teamPoints = {}
-  teams.forEach(t => { teamPoints[t.id] = 0 })
+  activeTeams.forEach(t => { teamPoints[t.id] = 0 })
   
   quizResults.forEach(q => {
     const participant = participants.find(p => p.id === q.participant_id)
@@ -1312,10 +1318,10 @@ function renderQuizChart() {
   quizChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: teams.map(t => `${t.flag} ${t.team_name}`),
+      labels: activeTeams.map(t => `${t.flag} ${t.team_name}`),
       datasets: [{
         label: 'Quiz-poeng',
-        data: teams.map(t => teamPoints[t.id] || 0),
+        data: activeTeams.map(t => teamPoints[t.id] || 0),
         backgroundColor: [
           'rgba(200, 244, 90, 0.6)',
           'rgba(96, 200, 255, 0.6)',
