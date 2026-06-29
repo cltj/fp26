@@ -1035,7 +1035,7 @@
       </div>
       
       <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
-        <button class="btn btn-primary" onclick="calculateOrakelPoints()">🧮 Beregn poeng</button>
+        <button class="btn btn-primary" onclick="calculateAllOrakelPoints()">🧮 Beregn poeng</button>
         <span id="fasit-status" style="margin-left: 12px; font-size: 12px;"></span>
       </div>
     </div>
@@ -2751,7 +2751,7 @@ async function loadPredictions() {
   }
 }
 
-async function calculateOrakelPoints() {
+async function calculateAllOrakelPoints() {
   // Make sure we have fasit (0 is valid, so check for null/undefined)
   if (orakelFasit.home_goals == null || orakelFasit.away_goals == null) {
     alert('Du må sette fasit (sluttresultat) først!')
