@@ -770,12 +770,12 @@
       
       <div class="form-row" style="margin-bottom: 12px;">
         <label style="width: 80px; font-size: 12px;">Øvelse:</label>
-        <select id="fb-exercise-type" style="flex: 1;">
+        <select id="fb-exercise-type" style="flex: 1;" onchange="onExerciseTypeChange()">
           <option value="">Velg øvelse</option>
           <option value="Tverrlegger">Tverrlegger</option>
           <option value="Presisjon">Presisjon</option>
           <option value="Straffespark">Straffespark</option>
-          <option value="3v3">3v3</option>
+          <option value="3v3">3v3 (lag mot lag)</option>
           <option value="Annet">Annet (egendefinert)</option>
         </select>
       </div>
@@ -784,7 +784,8 @@
         <input type="text" id="fb-custom-name" placeholder="Navn på øvelse" style="flex: 1;">
       </div>
       
-      <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+      <!-- Regular placement form (4/3/2/1 points) -->
+      <div id="fb-regular-form" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
         <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Plasseringer (4/3/2/1 poeng)</p>
         <div class="form-row" style="margin-bottom: 8px;">
           <label style="width: 80px; font-size: 12px;">1. plass:</label>
@@ -801,6 +802,42 @@
         <div class="form-row" style="margin-bottom: 8px;">
           <label style="width: 80px; font-size: 12px;">4. plass:</label>
           <select id="fb-add-place4" style="flex: 1;"><option value="">Velg lag</option></select>
+        </div>
+      </div>
+      
+      <!-- 3v3 form (team vs team) -->
+      <div id="fb-3v3-form" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px; display: none;">
+        <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">2 lag mot 2 lag (seier: 6p, uavgjort: 3p, tap: 0p)</p>
+        <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <p style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #c8f45a;">Lag A (spiller sammen)</p>
+          <div class="form-row" style="margin-bottom: 8px;">
+            <label style="width: 80px; font-size: 12px;">Lag 1:</label>
+            <select id="fb-3v3-a1" style="flex: 1;"><option value="">Velg lag</option></select>
+          </div>
+          <div class="form-row" style="margin-bottom: 0;">
+            <label style="width: 80px; font-size: 12px;">Lag 2:</label>
+            <select id="fb-3v3-a2" style="flex: 1;"><option value="">Velg lag</option></select>
+          </div>
+        </div>
+        <div style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+          <p style="font-size: 12px; font-weight: 600; margin-bottom: 8px; color: #ff9f9f;">Lag B (spiller sammen)</p>
+          <div class="form-row" style="margin-bottom: 8px;">
+            <label style="width: 80px; font-size: 12px;">Lag 1:</label>
+            <select id="fb-3v3-b1" style="flex: 1;"><option value="">Velg lag</option></select>
+          </div>
+          <div class="form-row" style="margin-bottom: 0;">
+            <label style="width: 80px; font-size: 12px;">Lag 2:</label>
+            <select id="fb-3v3-b2" style="flex: 1;"><option value="">Velg lag</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <label style="width: 80px; font-size: 12px;">Resultat:</label>
+          <select id="fb-3v3-result" style="flex: 1;">
+            <option value="">Velg resultat</option>
+            <option value="teamA">Lag A vinner (6p hver)</option>
+            <option value="draw">Uavgjort (3p alle)</option>
+            <option value="teamB">Lag B vinner (6p hver)</option>
+          </select>
         </div>
       </div>
       
@@ -1794,12 +1831,25 @@ const FB_PLACEMENT_POINTS = { 1: 4, 2: 3, 3: 2, 4: 1 }
 const FOTBALL_ACTIVITY_ID = 2  // Hardcoded fotball activity ID
 let fotballEntries = []
 
-async function loadFotballData() {
-  // Load active teams into fotball selects
-  const activeTeams = teams.filter(t => t.is_active)
-  const selects = document.querySelectorAll('select[id^="fb-add-"]')
+function onExerciseTypeChange() {
+  const exerciseType = document.getElementById('fb-exercise-type').value
+  const customRow = document.getElementById('fb-custom-name-row')
+  const regularForm = document.getElementById('fb-regular-form')
+  const form3v3 = document.getElementById('fb-3v3-form')
   
-  selects.forEach(select => {
+  customRow.style.display = exerciseType === 'Annet' ? 'flex' : 'none'
+  regularForm.style.display = exerciseType === '3v3' ? 'none' : 'block'
+  form3v3.style.display = exerciseType === '3v3' ? 'block' : 'none'
+}
+
+async function loadFotballData() {
+  // Load active teams into all fotball selects
+  const activeTeams = teams.filter(t => t.is_active)
+  const allSelects = document.querySelectorAll('select[id^="fb-add-"], select[id^="fb-3v3-"]')
+  
+  allSelects.forEach(select => {
+    if (select.id === 'fb-3v3-result') return // Skip result dropdown
+    
     const currentVal = select.value
     select.innerHTML = '<option value="">Velg lag</option>'
     activeTeams.forEach(t => {
@@ -1810,15 +1860,6 @@ async function loadFotballData() {
     })
     select.value = currentVal
   })
-  
-  // Setup exercise type dropdown handler
-  const exerciseSelect = document.getElementById('fb-exercise-type')
-  if (exerciseSelect) {
-    exerciseSelect.onchange = function() {
-      const customRow = document.getElementById('fb-custom-name-row')
-      customRow.style.display = this.value === 'Annet' ? 'flex' : 'none'
-    }
-  }
   
   // Load all entries from database
   const { data: scoresData } = await sb.from('activity_fotball').select('*').order('created_at', { ascending: false })
@@ -1946,30 +1987,69 @@ async function addFotballExercise() {
     return
   }
   
-  // Get placements
   const entries = []
-  const teamIds = []
+  const batchId = Date.now()
   
-  for (let place = 1; place <= 4; place++) {
-    const teamId = document.getElementById(`fb-add-place${place}`).value
-    if (!teamId) {
-      alert(`Velg lag for ${place}. plass`)
+  if (exerciseType === '3v3') {
+    // Special handling for 3v3
+    const teamA1 = document.getElementById('fb-3v3-a1').value
+    const teamA2 = document.getElementById('fb-3v3-a2').value
+    const teamB1 = document.getElementById('fb-3v3-b1').value
+    const teamB2 = document.getElementById('fb-3v3-b2').value
+    const result = document.getElementById('fb-3v3-result').value
+    
+    if (!teamA1 || !teamA2 || !teamB1 || !teamB2) {
+      alert('Velg alle 4 lag')
       return
     }
     
-    if (teamIds.includes(teamId)) {
-      alert('Hvert lag kan bare ha én plassering')
+    if (!result) {
+      alert('Velg resultat')
       return
     }
-    teamIds.push(teamId)
     
-    entries.push({
-      team_id: parseInt(teamId),
-      activity_id: FOTBALL_ACTIVITY_ID,
-      exercise_id: Date.now(), // Use timestamp as unique exercise_id for each batch
-      exercise_name: exerciseName,
-      points: FB_PLACEMENT_POINTS[place]
-    })
+    const allTeams = [teamA1, teamA2, teamB1, teamB2]
+    if (new Set(allTeams).size !== 4) {
+      alert('Hvert lag kan bare velges én gang')
+      return
+    }
+    
+    let teamAPoints = 0, teamBPoints = 0
+    if (result === 'teamA') { teamAPoints = 6; teamBPoints = 0 }
+    else if (result === 'teamB') { teamAPoints = 0; teamBPoints = 6 }
+    else { teamAPoints = 3; teamBPoints = 3 }
+    
+    entries.push(
+      { team_id: parseInt(teamA1), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: batchId, exercise_name: '3v3', points: teamAPoints },
+      { team_id: parseInt(teamA2), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: batchId, exercise_name: '3v3', points: teamAPoints },
+      { team_id: parseInt(teamB1), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: batchId, exercise_name: '3v3', points: teamBPoints },
+      { team_id: parseInt(teamB2), activity_id: FOTBALL_ACTIVITY_ID, exercise_id: batchId, exercise_name: '3v3', points: teamBPoints }
+    )
+  } else {
+    // Regular placement exercise
+    const teamIds = []
+    
+    for (let place = 1; place <= 4; place++) {
+      const teamId = document.getElementById(`fb-add-place${place}`).value
+      if (!teamId) {
+        alert(`Velg lag for ${place}. plass`)
+        return
+      }
+      
+      if (teamIds.includes(teamId)) {
+        alert('Hvert lag kan bare ha én plassering')
+        return
+      }
+      teamIds.push(teamId)
+      
+      entries.push({
+        team_id: parseInt(teamId),
+        activity_id: FOTBALL_ACTIVITY_ID,
+        exercise_id: batchId,
+        exercise_name: exerciseName,
+        points: FB_PLACEMENT_POINTS[place]
+      })
+    }
   }
   
   // Insert all entries
@@ -1984,9 +2064,20 @@ async function addFotballExercise() {
   document.getElementById('fb-exercise-type').value = ''
   document.getElementById('fb-custom-name').value = ''
   document.getElementById('fb-custom-name-row').style.display = 'none'
+  document.getElementById('fb-regular-form').style.display = 'block'
+  document.getElementById('fb-3v3-form').style.display = 'none'
+  
+  // Clear regular form
   for (let i = 1; i <= 4; i++) {
     document.getElementById(`fb-add-place${i}`).value = ''
   }
+  
+  // Clear 3v3 form
+  document.getElementById('fb-3v3-a1').value = ''
+  document.getElementById('fb-3v3-a2').value = ''
+  document.getElementById('fb-3v3-b1').value = ''
+  document.getElementById('fb-3v3-b2').value = ''
+  document.getElementById('fb-3v3-result').value = ''
   
   alert(`${exerciseName} lagt til!`)
   await loadFotballData()
