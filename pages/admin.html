@@ -347,6 +347,29 @@
     border-color: var(--border);
     color: var(--muted);
   }
+  .qty-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .qty-btn:hover {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  .team-resource-control {
+    margin-bottom: 6px;
+  }
   
   /* Chart container */
   .chart-container {
@@ -757,7 +780,8 @@ async function loadResources() {
 function renderResources() {
   const container = document.getElementById('resources-grid')
   container.innerHTML = resources.map(r => {
-    const assignedCount = (r.team_ids || []).length
+    const teamIds = r.team_ids || []
+    const assignedCount = teamIds.length
     const maxQty = r.qty || 1
     const atMax = assignedCount >= maxQty
     
@@ -770,39 +794,56 @@ function renderResources() {
       </div>
       <div class="resource-teams">
         ${teams.map(t => {
-          const assigned = (r.team_ids || []).includes(t.id)
-          const disabled = !assigned && atMax
-          return `<span class="team-chip ${assigned ? '' : 'inactive'} ${disabled ? 'disabled' : ''}" 
-            style="${disabled ? 'opacity: 0.3; cursor: not-allowed;' : ''}"
-            onclick="${disabled ? '' : `toggleResourceTeam(${r.id}, ${t.id}, ${assigned})`}">${t.flag}</span>`
+          const count = teamIds.filter(id => id === t.id).length
+          const canAdd = !atMax
+          return `
+            <div class="team-resource-control" style="display: flex; align-items: center; gap: 4px;">
+              <button class="qty-btn" onclick="removeResourceFromTeam(${r.id}, ${t.id})" 
+                style="opacity: ${count > 0 ? '1' : '0.2'}; pointer-events: ${count > 0 ? 'auto' : 'none'};">−</button>
+              <span class="team-chip ${count > 0 ? '' : 'inactive'}">${t.flag}${count > 0 ? ` ×${count}` : ''}</span>
+              <button class="qty-btn" onclick="addResourceToTeam(${r.id}, ${t.id})"
+                style="opacity: ${canAdd ? '1' : '0.2'}; pointer-events: ${canAdd ? 'auto' : 'none'};">+</button>
+            </div>`
         }).join('')}
       </div>
     </div>
   `}).join('')
 }
 
-async function toggleResourceTeam(resourceId, teamId, currentlyAssigned) {
+async function addResourceToTeam(resourceId, teamId) {
   const resource = resources.find(r => r.id === resourceId)
-  let newTeamIds = [...(resource.team_ids || [])]
+  const teamIds = [...(resource.team_ids || [])]
+  const maxQty = resource.qty || 1
   
-  if (currentlyAssigned) {
-    newTeamIds = newTeamIds.filter(id => id !== teamId)
-  } else {
-    // Check qty limit before adding
-    const maxQty = resource.qty || 1
-    if (newTeamIds.length >= maxQty) {
-      showStatus('resources', 'error', `Maks ${maxQty} lag kan ha denne ressursen!`)
-      return
-    }
-    newTeamIds.push(teamId)
+  if (teamIds.length >= maxQty) {
+    showStatus('resources', 'error', `Alle ${maxQty} kort er utdelt!`)
+    return
   }
   
+  teamIds.push(teamId)
+  await updateResourceTeams(resourceId, teamIds)
+}
+
+async function removeResourceFromTeam(resourceId, teamId) {
+  const resource = resources.find(r => r.id === resourceId)
+  const teamIds = [...(resource.team_ids || [])]
+  
+  // Remove only ONE instance of this team
+  const idx = teamIds.indexOf(teamId)
+  if (idx === -1) return
+  
+  teamIds.splice(idx, 1)
+  await updateResourceTeams(resourceId, teamIds)
+}
+
+async function updateResourceTeams(resourceId, newTeamIds) {
   const { error } = await sb
     .from('resources')
     .update({ team_ids: newTeamIds })
     .eq('id', resourceId)
   
   if (!error) {
+    const resource = resources.find(r => r.id === resourceId)
     resource.team_ids = newTeamIds
     renderResources()
   }
