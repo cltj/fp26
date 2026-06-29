@@ -2,16 +2,44 @@
 
 A complete party experience with login, QR-based interactions, live wall, music queue, and team scoreboard.
 
+## Project Structure
+
+```
+fp26/
+├── index.html              # Login/character select (entry point)
+├── pages/                  # All app pages
+│   ├── home.html           # Dashboard after login
+│   ├── quiz.html           # Quiz activity
+│   ├── ballbinge.html      # Football exercises
+│   ├── orakel.html         # Match predictions
+│   ├── fc26.html           # FC26 tournament
+│   ├── ressurser.html      # Team resources/cards
+│   ├── scores.html         # Scoreboard
+│   ├── admin.html          # Admin panel
+│   ├── music.html          # Music requests
+│   ├── submit.html         # Post to wall
+│   └── wall.html           # Live wall feed
+├── story/                  # Story chapters (narrative flow)
+├── images/
+│   ├── participants/       # Participant photos
+│   ├── qr-codes/           # QR codes for activities
+│   └── misc/               # Trophy, logos, etc.
+├── migrations/             # Database migrations
+└── README.md
+```
+
 ## Pages Overview
 
 | Page | Purpose |
 |------|---------|
 | `index.html` | **Character Select** - Participants tap their photo and enter their PIN. QR codes point here. |
-| `home.html` | **Dashboard** - After login, shows QR codes for music/submit, plus links to Wall & Scoreboard |
-| `submit.html` | **Post to Wall** - Submit messages, photos, or videos |
-| `music.html` | **Add Music** - Request songs for the playlist |
-| `wall.html` | **The Wall** - Live feed of posts (project on big screen) |
-| `scores.html` | **Scoreboard** - Team scores. Admin-only editing. |
+| `pages/home.html` | **Dashboard** - After login, shows activities and timeline |
+| `pages/quiz.html` | **Quiz** - Team quiz competition |
+| `pages/ballbinge.html` | **Ballbinge** - Football exercise scoring |
+| `pages/orakel.html` | **Orakel** - Match prediction game |
+| `pages/fc26.html` | **FC26** - FIFA tournament bracket |
+| `pages/admin.html` | **Admin** - Manage activities, teams, scores |
+| `pages/scores.html` | **Scoreboard** - Team scores display |
 
 ---
 

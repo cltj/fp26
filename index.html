@@ -169,7 +169,7 @@ let participants = []
 // Check if already logged in
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
 if (session && session.name) {
-  window.location.href = 'home.html'
+  window.location.href = 'pages/home.html'
 }
 
 async function loadParticipants() {
@@ -213,7 +213,7 @@ async function selectCharacter(participantId) {
   localStorage.setItem('fp26_session', JSON.stringify(sessionData))
   
   // Redirect to home
-  window.location.href = 'home.html'
+  window.location.href = 'pages/home.html'
 }
 
 // Render character grid
@@ -227,7 +227,7 @@ function renderCharacters() {
   
   grid.innerHTML = participants.map(p => `
     <div class="character-card ${p.isAdmin ? 'admin' : ''}" onclick="selectCharacter(${p.id})">
-      <img src="${p.photo_url || 'placeholder.png'}" alt="${p.participant}" class="character-photo" onerror="this.src='placeholder.png'">
+      <img src="${p.photo_url || 'placeholder.png'}" alt="${p.participant}" class="character-photo" onerror="this.src='images/participants/placeholder.png'">
       <div class="character-info">
         <div class="character-name">${p.participant}</div>
         ${p.isAdmin ? '<div class="admin-badge">👑 Admin</div>' : ''}

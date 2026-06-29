@@ -776,14 +776,14 @@
     <div class="admin-card">
       <div class="admin-card-title">📋 Rekkefølge</div>
       <div class="event-timeline">
-        <a href="story/1.html" class="event-item event-link" data-time="16:50">
+        <a href="../story/1.html" class="event-item event-link" data-time="16:50">
           <span class="event-num">1</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 1 – Intro</div>
             <div class="event-desc">Sette scenen, kontekst, lagutdeling</div>
           </div>
         </a>
-        <a href="story/2.html" class="event-item event-link" data-time="16:55">
+        <a href="../story/2.html" class="event-item event-link" data-time="16:55">
           <span class="event-num">2</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 2 – Analyse</div>
@@ -797,7 +797,7 @@
             <div class="event-desc">30 min, ressurser utdeles</div>
           </div>
         </a>
-        <a href="story/3.html" class="event-item event-link" data-time="17:30">
+        <a href="../story/3.html" class="event-item event-link" data-time="17:30">
           <span class="event-num">4</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 3 – Avreise</div>
@@ -811,7 +811,7 @@
             <div class="event-desc">Transport/gange</div>
           </div>
         </div>
-        <a href="story/4.html" class="event-item event-link" data-time="18:00">
+        <a href="../story/4.html" class="event-item event-link" data-time="18:00">
           <span class="event-num">6</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 4 – Landslagssamling</div>
@@ -825,14 +825,14 @@
             <div class="event-desc">Tverrlegger, presisjon, straffe, 3v3</div>
           </div>
         </a>
-        <a href="story/5.html" class="event-item event-link" data-time="19:15">
+        <a href="../story/5.html" class="event-item event-link" data-time="19:15">
           <span class="event-num">8</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 5 – Uttak + Lagbilde</div>
             <div class="event-desc">Avreise til "USA" (hjem)</div>
           </div>
         </a>
-        <a href="story/6.html" class="event-item event-link" data-time="19:30">
+        <a href="../story/6.html" class="event-item event-link" data-time="19:30">
           <span class="event-num">9</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 6 – Gruppespill</div>
@@ -846,7 +846,7 @@
             <div class="event-desc">6 kamper, 2×4 min</div>
           </div>
         </a>
-        <a href="story/7.html" class="event-item event-link" data-time="20:30">
+        <a href="../story/7.html" class="event-item event-link" data-time="20:30">
           <span class="event-num">11</span>
           <div class="event-details">
             <div class="event-name">📖 Kapittel 7 – Forberedelser</div>
@@ -867,7 +867,7 @@
             <div class="event-desc">Frankrike vs Norge, 120 min</div>
           </div>
         </div>
-        <a href="story/8.html" class="event-item event-link" data-time="23:00">
+        <a href="../story/8.html" class="event-item event-link" data-time="23:00">
           <span class="event-num">14</span>
           <div class="event-details">
             <div class="event-name">🏆 Premieutdeling</div>
@@ -1022,7 +1022,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // Check session
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
 if (!session || !session.name) {
-  window.location.href = 'index.html'
+  window.location.href = '../index.html'
 }
 
 // Populate user info
@@ -1229,7 +1229,7 @@ loadMiniScoreboard()
 
 function logout() {
   localStorage.removeItem('fp26_session')
-  window.location.href = 'index.html'
+  window.location.href = '../index.html'
 }
 
 // Photo overlay
