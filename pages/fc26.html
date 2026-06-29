@@ -69,8 +69,8 @@
   }
   .fc26-pts {
     font-size: 14px;
-    font-weight: 700;
-    color: #c8f45a;
+    font-weight: 600;
+    color: var(--text);
     min-width: 35px;
     text-align: right;
   }
@@ -414,7 +414,7 @@ function calculateStandings() {
       <span class="fc26-stat">${s.goalsFor}</span>
       <span class="fc26-stat">${s.goalsAgainst}</span>
       <span class="fc26-stat gd">${gdDisplay}</span>
-      <span class="fc26-pts">${s.points}p</span>
+      <span class="fc26-pts">${s.points}</span>
     `
     tbody.appendChild(row)
   })
