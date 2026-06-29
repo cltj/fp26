@@ -872,6 +872,33 @@
   
   <!-- FC26 Panel -->
   <div id="panel-fc26" class="panel">
+    <!-- FC26 Standings -->
+    <div class="section-card">
+      <h3>🏆 Tabell</h3>
+      <div style="overflow-x: auto;">
+        <table class="data-table" style="min-width: 100%;">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Lag</th>
+              <th>K</th>
+              <th>S</th>
+              <th>U</th>
+              <th>T</th>
+              <th>+/-</th>
+              <th>P</th>
+              <th style="color: var(--accent);">Poeng</th>
+            </tr>
+          </thead>
+          <tbody id="fc26-standings-body">
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div id="fc26-sync-status" style="margin-top: 1rem;"></div>
+    </div>
+    
+    <!-- FC26 Matches -->
     <div class="section-card">
       <h3>🎮 Registrer FC26-resultater</h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
@@ -2140,7 +2167,110 @@ async function loadFC26Data() {
   const { data: matchData } = await sb.from('activity_fc26').select('*').order('match_num')
   fc26Matches = matchData || []
   
+  renderFC26Standings()
   renderFC26Matches()
+  await checkAndSyncFC26Points()
+}
+
+function renderFC26Standings() {
+  const tbody = document.getElementById('fc26-standings-body')
+  if (!tbody) return
+  
+  if (fc26Matches.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="color: var(--muted); text-align: center;">Ingen kamper</td></tr>'
+    return
+  }
+  
+  // Build standings
+  const standings = {}
+  
+  fc26Matches.forEach(match => {
+    if (!match.home_team_id || !match.away_team_id) return
+    
+    if (!standings[match.home_team_id]) {
+      const team = fc26TeamsById[match.home_team_id] || { team_name: 'Ukjent', flag: '🏳️' }
+      standings[match.home_team_id] = { team, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0 }
+    }
+    if (!standings[match.away_team_id]) {
+      const team = fc26TeamsById[match.away_team_id] || { team_name: 'Ukjent', flag: '🏳️' }
+      standings[match.away_team_id] = { team, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, points: 0 }
+    }
+    
+    if (match.home_score === null || match.away_score === null) return
+    
+    const home = standings[match.home_team_id]
+    const away = standings[match.away_team_id]
+    
+    home.played++
+    away.played++
+    home.gf += match.home_score
+    home.ga += match.away_score
+    away.gf += match.away_score
+    away.ga += match.home_score
+    
+    if (match.home_score > match.away_score) {
+      home.won++; home.points += 3; away.lost++
+    } else if (match.home_score < match.away_score) {
+      away.won++; away.points += 3; home.lost++
+    } else {
+      home.drawn++; away.drawn++; home.points += 1; away.points += 1
+    }
+  })
+  
+  const sorted = Object.entries(standings)
+    .map(([id, s]) => ({ id: parseInt(id), ...s }))
+    .sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points
+      return (b.gf - b.ga) - (a.gf - a.ga)
+    })
+  
+  tbody.innerHTML = sorted.map((s, idx) => {
+    const gd = s.gf - s.ga
+    const gdStr = gd > 0 ? `+${gd}` : gd.toString()
+    const placementPts = FC26_PLACEMENT_POINTS[idx + 1] || 0
+    const rowClass = idx === 0 ? 'style="background: rgba(34,197,94,0.15);"' : ''
+    
+    return `
+      <tr ${rowClass}>
+        <td>${idx + 1}</td>
+        <td>${s.team.flag} ${s.team.team_name}</td>
+        <td>${s.played}</td>
+        <td>${s.won}</td>
+        <td>${s.drawn}</td>
+        <td>${s.lost}</td>
+        <td>${gdStr}</td>
+        <td>${s.points}</td>
+        <td style="font-weight: 700; color: var(--accent);">${placementPts}p</td>
+      </tr>
+    `
+  }).join('')
+}
+
+async function checkAndSyncFC26Points() {
+  const statusDiv = document.getElementById('fc26-sync-status')
+  if (!statusDiv) return
+  
+  // Check if all matches have scores
+  const playedMatches = fc26Matches.filter(m => m.home_score !== null && m.away_score !== null)
+  const totalMatches = fc26Matches.length
+  
+  if (totalMatches === 0) {
+    statusDiv.innerHTML = ''
+    return
+  }
+  
+  if (playedMatches.length < totalMatches) {
+    statusDiv.innerHTML = `<p style="font-size: 12px; color: var(--muted);">📊 ${playedMatches.length}/${totalMatches} kamper spilt</p>`
+    return
+  }
+  
+  // All matches played - show sync button or auto-sync
+  statusDiv.innerHTML = `
+    <div style="background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.3); border-radius: 8px; padding: 12px;">
+      <p style="margin: 0 0 8px 0; font-size: 13px; color: var(--success);">✅ Alle ${totalMatches} kamper er spilt!</p>
+      <p style="margin: 0; font-size: 12px; color: var(--muted);">Poeng synkroniseres automatisk til hovedtabellen.</p>
+    </div>
+  `
 }
 
 function renderFC26Matches() {
