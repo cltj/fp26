@@ -228,7 +228,7 @@ async function init() {
 async function loadQuestions() {
   const { data: questionsData, error } = await sb
     .from('activity_quiz')
-    .select('id, question, answer, winner_team_id')
+    .select('id, question, answer, winner_team_ids')
     .order('id')
   
   if (error) {
@@ -251,15 +251,20 @@ function render() {
   const container = document.getElementById('quiz-body')
   
   container.innerHTML = questions.map((q, i) => {
-    const winner = q.winner_team_id ? teams[q.winner_team_id] : null
+    const winnerIds = q.winner_team_ids || []
+    const winners = winnerIds.map(id => teams[id]).filter(Boolean)
     
     let winnerHtml = '<span class="quiz-winner pending">—</span>'
-    if (winner) {
+    if (winners.length === 1) {
+      const winner = winners[0]
       winnerHtml = `<span class="quiz-winner"><span class="flag">${winner.flag}</span>${winner.team_name}</span>`
+    } else if (winners.length > 1) {
+      // Multiple winners - show flags and names
+      winnerHtml = `<span class="quiz-winner">${winners.map(w => `<span class="flag">${w.flag}</span>`).join('')} ${winners.map(w => w.team_name).join(', ')}</span>`
     }
     
     return `
-      <div class="quiz-row ${winner ? 'has-winner' : ''}">
+      <div class="quiz-row ${winners.length > 0 ? 'has-winner' : ''}">
         <div class="quiz-num">${i + 1}</div>
         <div class="quiz-content">
           <div class="quiz-question">${q.question}</div>
@@ -272,12 +277,13 @@ function render() {
 }
 
 function renderSummary() {
-  // Count wins per team
+  // Count wins per team from winner_team_ids array
   const winCounts = {}
   questions.forEach(q => {
-    if (q.winner_team_id) {
-      winCounts[q.winner_team_id] = (winCounts[q.winner_team_id] || 0) + 1
-    }
+    const winnerIds = q.winner_team_ids || []
+    winnerIds.forEach(teamId => {
+      winCounts[teamId] = (winCounts[teamId] || 0) + 1
+    })
   })
   
   // Sort by count
