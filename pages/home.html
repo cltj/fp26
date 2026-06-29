@@ -751,32 +751,17 @@ if (session.isAdmin || session.name === 'Tj') {
 async function loadUserTeam() {
   if (!session.id) return
   
-  // First get participant's team_id
-  const { data: participant, error: pErr } = await sb
+  // Single call with join
+  const { data: participant, error } = await sb
     .from('participants')
-    .select('team_id')
+    .select('team_id, teams(flag, team_name)')
     .eq('id', session.id)
     .single()
   
-  if (pErr || !participant?.team_id) {
-    console.log('No team assigned:', pErr || 'team_id is null')
-    return
-  }
+  if (error || !participant?.team_id || !participant.teams) return
   
-  // Then get team info
-  const { data: team, error: tErr } = await sb
-    .from('teams')
-    .select('flag, team_name')
-    .eq('id', participant.team_id)
-    .single()
-  
-  if (tErr || !team) {
-    console.log('Could not load team:', tErr)
-    return
-  }
-  
-  document.getElementById('team-flag').textContent = team.flag || '🏳️'
-  document.getElementById('team-name-display').textContent = 'Team ' + team.team_name
+  document.getElementById('team-flag').textContent = participant.teams.flag || '🏳️'
+  document.getElementById('team-name-display').textContent = 'Team ' + participant.teams.team_name
   document.getElementById('team-badge').style.display = 'inline-flex'
 }
 loadUserTeam()
@@ -870,49 +855,41 @@ function calculateFC26Standings(matches) {
 }
 
 async function loadMiniScoreboard() {
-  // Load only active teams (group teams)
-  const { data: teamsData, error: teamsError } = await sb.from('teams').select('id, team_name, flag').eq('is_active', true).order('id')
-  console.log('Mini scoreboard - teams:', teamsData?.length || 0, teamsError || 'no error')
+  // Parallel load: teams + all score data + participants
+  const [teamsResult, fotballResult, predictionsResult, fc26Result, participantsResult] = await Promise.all([
+    sb.from('teams').select('id, team_name, flag').eq('is_active', true).order('id'),
+    sb.from('activity_fotball').select('team_id, points'),
+    sb.from('activity_predictions').select('team_id, home_goals, away_goals, first_goal, yellow_cards'),
+    sb.from('activity_fc26').select('match_num, home_team_id, away_team_id, home_score, away_score'),
+    sb.from('participants').select('id, participant, photo_url, team_id')
+  ])
   
-  if (!teamsData || teamsData.length === 0) {
-    console.log('Mini scoreboard - no active teams, hiding')
-    return
-  }
+  // Also render the pitch formation with the same participants data
+  loadPitchFormation(participantsResult.data)
   
-  // Calculate scores from source tables
+  const teamsData = teamsResult.data
+  if (!teamsData || teamsData.length === 0) return
+  
+  // Calculate scores
   const scoreMap = {}
   teamsData.forEach(t => scoreMap[t.id] = { fotball: 0, orakel: 0, fc26: 0 })
   
-  // 1. Fotball points from activity_fotball
-  const { data: fotballData, error: fotballError } = await sb.from('activity_fotball').select('team_id, points')
-  console.log('Mini scoreboard - fotball data:', fotballData?.length || 0, fotballError || 'no error')
-  if (fotballData) {
-    fotballData.forEach(row => {
-      if (scoreMap[row.team_id]) {
-        scoreMap[row.team_id].fotball += row.points || 0
-      }
-    })
-  }
+  // Fotball points
+  fotballResult.data?.forEach(row => {
+    if (scoreMap[row.team_id]) scoreMap[row.team_id].fotball += row.points || 0
+  })
   
-  // 2. Orakel points from activity_predictions
-  const { data: predictionsData } = await sb.from('activity_predictions').select('team_id, home_goals, away_goals, first_goal, yellow_cards')
-  if (predictionsData) {
-    predictionsData.forEach(p => {
-      if (scoreMap[p.team_id]) {
-        scoreMap[p.team_id].orakel += calculateOrakelPoints(p)
-      }
-    })
-  }
+  // Orakel points
+  predictionsResult.data?.forEach(p => {
+    if (scoreMap[p.team_id]) scoreMap[p.team_id].orakel += calculateOrakelPoints(p)
+  })
   
-  // 3. FC26 points from activity_fc26 standings
-  const { data: fc26Data } = await sb.from('activity_fc26').select('match_num, home_team_id, away_team_id, home_score, away_score')
-  if (fc26Data && fc26Data.length > 0) {
-    const fc26Points = calculateFC26Standings(fc26Data)
+  // FC26 points
+  if (fc26Result.data?.length > 0) {
+    const fc26Points = calculateFC26Standings(fc26Result.data)
     Object.keys(fc26Points).forEach(teamId => {
       const id = parseInt(teamId)
-      if (scoreMap[id]) {
-        scoreMap[id].fc26 = fc26Points[id]
-      }
+      if (scoreMap[id]) scoreMap[id].fc26 = fc26Points[id]
     })
   }
   
@@ -924,27 +901,16 @@ async function loadMiniScoreboard() {
     if (s.total > 0) hasAnyPoints = true
   })
   
-  console.log('Mini scoreboard - hasAnyPoints:', hasAnyPoints, 'scoreMap:', scoreMap)
-  
-  // Only show standings if at least one team has points
-  if (!hasAnyPoints) {
-    console.log('Mini scoreboard - no points yet, hiding')
-    return
-  }
-  
-  // Load participants with team assignments
-  const { data: participantsData } = await sb.from('participants').select('id, participant, photo_url, team_id')
+  if (!hasAnyPoints) return
   
   // Group participants by team
   const teamMembers = {}
-  if (participantsData) {
-    participantsData.forEach(p => {
-      if (p.team_id) {
-        if (!teamMembers[p.team_id]) teamMembers[p.team_id] = []
-        teamMembers[p.team_id].push(p)
-      }
-    })
-  }
+  participantsResult.data?.forEach(p => {
+    if (p.team_id) {
+      if (!teamMembers[p.team_id]) teamMembers[p.team_id] = []
+      teamMembers[p.team_id].push(p)
+    }
+  })
   
   // Merge and sort
   const ranked = teamsData.map(t => ({
@@ -955,14 +921,8 @@ async function loadMiniScoreboard() {
     members: teamMembers[t.id] || []
   })).sort((a, b) => b.pts - a.pts)
   
-  // Determine position classes
-  const getRowClass = (i) => {
-    if (i < 2) return 'qualified'
-    if (i === 2) return 'playoff'
-    return 'eliminated'
-  }
+  const getRowClass = (i) => i < 2 ? 'qualified' : i === 2 ? 'playoff' : 'eliminated'
   
-  // Render members with names
   const renderMembers = (members) => {
     if (members.length === 0) {
       return '<span class="mini-sb-participant"><span class="mini-sb-placeholder"></span></span>'
@@ -975,10 +935,7 @@ async function loadMiniScoreboard() {
     `).join('')
   }
   
-  // Show standings section
   document.getElementById('standings-section').style.display = 'block'
-  
-  // Render
   document.getElementById('mini-scoreboard').innerHTML = `
     <div class="mini-sb-table">
       <div class="mini-sb-header">
@@ -1025,13 +982,9 @@ document.addEventListener('keydown', (e) => {
 })
 
 // Load pitch formation
-async function loadPitchFormation() {
-  const { data: participants, error } = await sb
-    .from('participants')
-    .select('id, participant, photo_url')
-    .order('id')
-  
-  console.log('Pitch formation - participants loaded:', participants?.length || 0, error || 'no error')
+async function loadPitchFormation(participantsData = null) {
+  // Use cached data or fetch
+  const participants = participantsData || (await sb.from('participants').select('id, participant, photo_url').order('id')).data
   
   // 4-3-3 formation: 4 DEF, 3 MID, 3 FWD = 10 players
   const formation = [
@@ -1096,7 +1049,7 @@ async function loadPitchFormation() {
   
   document.getElementById('pitch-formation').innerHTML = html
 }
-loadPitchFormation()
+// Note: loadPitchFormation is called from loadMiniScoreboard with shared data
 
 // Check active activities for participants
 async function checkActiveActivities() {
