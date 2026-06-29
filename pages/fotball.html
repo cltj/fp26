@@ -6,7 +6,7 @@
 <title>⚽ Fotball</title>
 <link rel="stylesheet" href="../story/story.css">
 <style>
-  /* Same style as fc26.html */
+  /* Standings table */
   .bb-table {
     background: rgba(30,30,30,0.8);
     border: 0.5px solid rgba(255,255,255,0.1);
@@ -68,102 +68,6 @@
     text-align: right;
   }
   
-  /* Admin controls */
-  .admin-section {
-    background: rgba(180,40,40,0.85);
-    border: 1px solid rgba(255,100,100,0.3);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 1rem 0;
-    display: none;
-  }
-  .is-admin .admin-section {
-    display: block;
-  }
-  .admin-section h3 {
-    margin: 0 0 12px 0;
-    font-size: 14px;
-    color: #fff;
-  }
-  .exercise-admin {
-    background: rgba(0,0,0,0.2);
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-  .exercise-admin:last-child { margin-bottom: 0; }
-  .exercise-admin h4 {
-    margin: 0 0 10px 0;
-    font-size: 13px;
-    color: rgba(255,255,255,0.8);
-  }
-  .placement-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-  .placement-row:last-child { margin-bottom: 0; }
-  .placement-row label {
-    font-size: 12px;
-    width: 80px;
-  }
-  .placement-row select:disabled {
-    opacity: 0.8;
-    background: rgba(200,244,90,0.1);
-    border-color: rgba(200,244,90,0.3);
-    cursor: not-allowed;
-  }
-  .placement-row select {
-    flex: 1;
-    padding: 6px 8px;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 6px;
-    color: #fff;
-    font-size: 12px;
-  }
-  .save-exercise-btn {
-    width: 100%;
-    padding: 10px;
-    background: rgba(200,244,90,0.2);
-    border: 1px solid rgba(200,244,90,0.4);
-    border-radius: 8px;
-    color: #c8f45a;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-  .save-exercise-btn:hover {
-    background: rgba(200,244,90,0.3);
-  }
-  
-  .info-box {
-    background: rgba(200,244,90,0.1);
-    border: 1px solid rgba(200,244,90,0.3);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 1rem 0;
-  }
-  .info-box h3 {
-    margin: 0 0 10px 0;
-    font-size: 14px;
-    color: #c8f45a;
-  }
-  .info-box p {
-    margin: 0;
-    font-size: 13px;
-    line-height: 1.6;
-  }
-  .points-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-    font-size: 12px;
-  }
-  
   .activity-closed {
     text-align: center;
     padding: 2rem;
@@ -172,37 +76,156 @@
     border-radius: 12px;
   }
   
-  .exercise-results {
-    margin-top: 1.5rem;
+  /* Collapsible sections */
+  .exercise-section {
+    background: rgba(30,30,30,0.8);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
   }
-  .exercise-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
-  }
-  .exercise-card h4 {
-    margin: 0 0 8px 0;
-    font-size: 13px;
-    color: rgba(255,255,255,0.8);
-  }
-  .exercise-placements {
+  .exercise-header {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.03);
+    transition: background 0.15s;
   }
-  .placement-badge {
-    background: rgba(0,0,0,0.3);
-    border-radius: 6px;
-    padding: 4px 8px;
-    font-size: 11px;
+  .exercise-header:hover {
+    background: rgba(255,255,255,0.06);
+  }
+  .exercise-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
   }
-  .placement-badge .medal { font-size: 12px; }
-  .placement-badge .pts { color: #c8f45a; font-weight: 600; }
+  .exercise-toggle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    transition: transform 0.2s;
+  }
+  .exercise-section.open .exercise-toggle {
+    transform: rotate(180deg);
+  }
+  .exercise-content {
+    display: none;
+    padding: 0 16px 16px 16px;
+    border-top: 0.5px solid rgba(255,255,255,0.08);
+  }
+  .exercise-section.open .exercise-content {
+    display: block;
+  }
+  
+  .card-note {
+    background: rgba(200,244,90,0.1);
+    border: 1px solid rgba(200,244,90,0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .pool-section {
+    margin: 12px 0;
+  }
+  .pool-section h4 {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    margin: 0 0 8px 0;
+  }
+  .pool-match {
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pool-match .vs {
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+  }
+  
+  .points-box {
+    background: rgba(200,244,90,0.08);
+    border: 1px solid rgba(200,244,90,0.2);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+  }
+  .points-box h4 {
+    font-size: 12px;
+    color: #c8f45a;
+    margin: 0 0 8px 0;
+  }
+  .points-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 13px;
+  }
+  .points-list span {
+    color: rgba(255,255,255,0.7);
+  }
+  
+  .order-list {
+    margin: 12px 0;
+    padding: 0;
+    list-style: none;
+  }
+  .order-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+  .order-num {
+    width: 24px;
+    height: 24px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+  }
+  
+  .team-groups {
+    display: flex;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .team-group {
+    flex: 1;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .team-group h5 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+  }
+  .team-group .teams {
+    font-size: 14px;
+  }
 </style>
 </head>
 <body>
@@ -241,270 +264,145 @@
         </div>
       </div>
 
-      <!-- Admin section -->
-      <div class="admin-section">
-        <h3>🔧 Registrer resultater</h3>
-        
-        <div class="exercise-admin">
-          <h4>Øvelse 1 – Tverrlegger (4/3/2/1p)</h4>
-          <div class="placement-row">
-            <label>1. plass (4p):</label>
-            <select id="e1-place1">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>2. plass (3p):</label>
-            <select id="e1-place2">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>3. plass (2p):</label>
-            <select id="e1-place3">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>4. plass (1p):</label>
-            <select id="e1-place4">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <button class="save-exercise-btn" onclick="saveExercise(1)">💾 Lagre Øvelse 1</button>
-        </div>
+      <h2 style="margin-top: 2rem; margin-bottom: 1rem;">📋 Øvelser</h2>
 
-        <div class="exercise-admin">
-          <h4>Øvelse 2 – Presisjon Runde 1 (4/3/2/1p)</h4>
-          <div class="placement-row">
-            <label>1. plass (4p):</label>
-            <select id="e2a-place1">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>2. plass (3p):</label>
-            <select id="e2a-place2">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>3. plass (2p):</label>
-            <select id="e2a-place3">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>4. plass (1p):</label>
-            <select id="e2a-place4">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <button class="save-exercise-btn" onclick="saveExercise('2a')">💾 Lagre Runde 1</button>
+      <!-- Exercise 1 -->
+      <div class="exercise-section" id="ex1">
+        <div class="exercise-header" onclick="toggleSection('ex1')">
+          <h3>⚽ Øvelse 1 – Nærmest tverrlegger</h3>
+          <span class="exercise-toggle">▼</span>
         </div>
-
-        <div class="exercise-admin">
-          <h4>Øvelse 2 – Presisjon Runde 2 (4/3/2/1p)</h4>
-          <div class="placement-row">
-            <label>1. plass (4p):</label>
-            <select id="e2b-place1">
-              <option value="">Velg lag</option>
-            </select>
+        <div class="exercise-content">
+          <div class="card-note">🎴 <strong>PS! Kort må spilles før forsøket</strong></div>
+          <p><strong>2 forsøk for hver kandidat/person</strong></p>
+          
+          <div class="pool-section">
+            <h4>Puljespill</h4>
+            <div class="pool-match" id="e1-pool1"></div>
+            <div class="pool-match" id="e1-pool2"></div>
           </div>
-          <div class="placement-row">
-            <label>2. plass (3p):</label>
-            <select id="e2b-place2">
-              <option value="">Velg lag</option>
-            </select>
+          
+          <div class="pool-section">
+            <h4>Sluttspill</h4>
+            <div class="pool-match">Vinner pulje 1 <span class="vs">vs</span> Vinner pulje 2</div>
+            <div class="pool-match">Taper pulje 1 <span class="vs">vs</span> Taper pulje 2</div>
           </div>
-          <div class="placement-row">
-            <label>3. plass (2p):</label>
-            <select id="e2b-place3">
-              <option value="">Velg lag</option>
-            </select>
+          
+          <div class="points-box">
+            <h4>🏆 Poeng</h4>
+            <div class="points-list">
+              <span>1. plass = 4p</span>
+              <span>2. plass = 3p</span>
+              <span>3. plass = 2p</span>
+              <span>4. plass = 1p</span>
+            </div>
           </div>
-          <div class="placement-row">
-            <label>4. plass (1p):</label>
-            <select id="e2b-place4">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <button class="save-exercise-btn" onclick="saveExercise('2b')">💾 Lagre Runde 2</button>
-        </div>
-
-        <div class="exercise-admin">
-          <h4>Øvelse 3 – Straffespark (4/3/2/1p)</h4>
-          <div class="placement-row">
-            <label>1. plass (4p):</label>
-            <select id="e3-place1">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>2. plass (3p):</label>
-            <select id="e3-place2">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>3. plass (2p):</label>
-            <select id="e3-place3">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>4. plass (1p):</label>
-            <select id="e3-place4">
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <button class="save-exercise-btn" onclick="saveExercise(3)">💾 Lagre Øvelse 3</button>
-        </div>
-
-        <div class="exercise-admin">
-          <h4>Øvelse 4 – 3v3 (2 mot 2 lag)</h4>
-          <p style="font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px;">Auto-fylt basert på tabellen: Lag A (plass 1+4) vs Lag B (plass 2+3)</p>
-          <div class="placement-row">
-            <label>Lag A - #1:</label>
-            <select id="e4-teamA1" disabled>
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>Lag A - #4:</label>
-            <select id="e4-teamA2" disabled>
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>Lag B - #2:</label>
-            <select id="e4-teamB1" disabled>
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>Lag B - #3:</label>
-            <select id="e4-teamB2" disabled>
-              <option value="">Velg lag</option>
-            </select>
-          </div>
-          <div class="placement-row">
-            <label>Resultat:</label>
-            <select id="e4-result">
-              <option value="">Velg resultat</option>
-              <option value="teamA">Lag A vinner (6p hver)</option>
-              <option value="draw">Uavgjort (3p alle)</option>
-              <option value="teamB">Lag B vinner (6p hver)</option>
-            </select>
-          </div>
-          <button class="save-exercise-btn" onclick="saveExercise(4)">💾 Lagre Øvelse 4</button>
         </div>
       </div>
 
-      <hr>
-
-      <h2>Øvelse 1 – Nærmest tverrlegger</h2>
-      <div class="highlight-box">
-        <p>🎴 <strong>Kort må spilles før forsøket</strong></p>
+      <!-- Exercise 2 -->
+      <div class="exercise-section" id="ex2">
+        <div class="exercise-header" onclick="toggleSection('ex2')">
+          <h3>🎯 Øvelse 2 – Presisjonsspark</h3>
+          <span class="exercise-toggle">▼</span>
+        </div>
+        <div class="exercise-content">
+          <div class="card-note">🎴 <strong>Kort må spilles før forsøket</strong></div>
+          <p><strong>1 forsøk for hver deltager – øvelsen består av to omganger</strong></p>
+          
+          <div class="pool-section">
+            <h4>Rekkefølge (minst til mest ressurser)</h4>
+            <ol class="order-list" id="e2-order">
+              <!-- Filled by JS based on quiz results -->
+            </ol>
+          </div>
+          
+          <div class="points-box">
+            <h4>🏆 Poeng Omgang 1</h4>
+            <div class="points-list">
+              <span>1. plass = 4p</span>
+              <span>2. plass = 3p</span>
+              <span>3. plass = 2p</span>
+              <span>4. plass = 1p</span>
+            </div>
+          </div>
+          <div class="points-box" style="margin-top: 8px;">
+            <h4>🏆 Poeng Omgang 2</h4>
+            <div class="points-list">
+              <span>1. plass = 4p</span>
+              <span>2. plass = 3p</span>
+              <span>3. plass = 2p</span>
+              <span>4. plass = 1p</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <p><strong>2 forsøk for hver deltager</strong></p>
-
-      <h3>Puljespill</h3>
-      <ul>
-        <li>Pulje 1: Senegal mot Frankrike</li>
-        <li>Pulje 2: Norge mot Irak</li>
-      </ul>
-
-      <h3>Sluttspill</h3>
-      <ul>
-        <li>Vinner av pulje 1 mot vinner av pulje 2</li>
-        <li>Taper av pulje 1 mot taper av pulje 2</li>
-      </ul>
-
-      <div class="action-box">
-        <p>🏆 <strong>Poeng:</strong><br>
-        1. plass = 4p<br>
-        2. plass = 3p<br>
-        3. plass = 2p<br>
-        4. plass = 1p</p>
+      <!-- Exercise 3 -->
+      <div class="exercise-section" id="ex3">
+        <div class="exercise-header" onclick="toggleSection('ex3')">
+          <h3>🥅 Øvelse 3 – Straffespark</h3>
+          <span class="exercise-toggle">▼</span>
+        </div>
+        <div class="exercise-content">
+          <div class="card-note">🎴 <strong>Kort kan spilles underveis</strong></div>
+          <p><strong>1 fra hvert lag velges: én skyter og én keeper</strong></p>
+          
+          <div class="pool-section">
+            <h4>Puljespill</h4>
+            <div class="pool-match" id="e3-pool1"></div>
+            <div class="pool-match" id="e3-pool2"></div>
+          </div>
+          
+          <div class="pool-section">
+            <h4>Sluttspill</h4>
+            <div class="pool-match">Vinner pulje 1 <span class="vs">vs</span> Vinner pulje 2</div>
+            <div class="pool-match">Taper pulje 1 <span class="vs">vs</span> Taper pulje 2</div>
+          </div>
+          
+          <div class="points-box">
+            <h4>🏆 Poeng</h4>
+            <div class="points-list">
+              <span>1. plass = 4p</span>
+              <span>2. plass = 3p</span>
+              <span>3. plass = 2p</span>
+              <span>4. plass = 1p</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <hr>
-
-      <h2>Øvelse 2 – Presisjonsspark</h2>
-      <div class="highlight-box">
-        <p>🎴 <strong>Kort må spilles før forsøket</strong></p>
-      </div>
-
-      <p><strong>1 forsøk for hver deltager (8 spark) – men med to omganger (16 totalt)</strong></p>
-
-      <div class="action-box">
-        <p>🏆 <strong>Poeng per omgang:</strong><br>
-        1. plass = 4p<br>
-        2. plass = 3p<br>
-        3. plass = 2p<br>
-        4. plass = 1p</p>
-      </div>
-
-      <hr>
-
-      <h2>Øvelse 3 – Straffespark</h2>
-      <div class="highlight-box">
-        <p>🎴 <strong>Kort kan spilles underveis</strong></p>
-      </div>
-
-      <p><strong>1 fra hvert lag velges: én skyter og én keeper</strong></p>
-
-      <h3>Puljespill</h3>
-      <ul>
-        <li>Irak mot Senegal</li>
-        <li>Norge mot Frankrike</li>
-      </ul>
-
-      <h3>Sluttspill</h3>
-      <ul>
-        <li>Vinner av pulje 1 mot vinner av pulje 2</li>
-        <li>Taper av pulje 1 mot taper av pulje 2</li>
-      </ul>
-
-      <div class="action-box">
-        <p>🏆 <strong>Poeng:</strong><br>
-        1. plass = 4p<br>
-        2. plass = 3p<br>
-        3. plass = 2p<br>
-        4. plass = 1p</p>
-      </div>
-
-      <hr>
-
-      <h2>Øvelse 4 – Samarbeid (3 mot 3)</h2>
-      <div class="highlight-box">
-        <p>🎴 <strong>Kort kan spilles før og i pause</strong><br>
-        1 innbytter per lag</p>
-      </div>
-
-      <p><strong>To omganger på 10 minutter med 3 minutters pause</strong></p>
-
-      <p><strong>plass 1 og 4 på tabellen mot plass 2 og 3</strong></p>
-
-      <div class="action-box">
-        <p>🏆 <strong>Poeng:</strong><br>
-        Vinnende lag (begge) = 6p hver<br>
-        Uavgjort = 3p alle<br>
-        Tapende lag (begge) = 0p</p>
-      </div>
-
-      <hr>
-
-      <div class="highlight-box">
-        <p>📊 <strong>Totalt poeng tilgjengelig:</strong><br><br>
-        Maks 22 poeng (4+8+4+6 ved seier i alt)<br>
-        Maks 19 poeng (4+8+4+3 ved uavgjort i 3v3)</p>
-      </div>
-
-      <div class="exercise-results" id="exercise-results">
-        <!-- Filled by JS with completed exercises -->
+      <!-- Exercise 4 -->
+      <div class="exercise-section" id="ex4">
+        <div class="exercise-header" onclick="toggleSection('ex4')">
+          <h3>⚔️ Øvelse 4 – Samarbeid (3 mot 3)</h3>
+          <span class="exercise-toggle">▼</span>
+        </div>
+        <div class="exercise-content">
+          <div class="card-note">🎴 <strong>Kort kan spilles før og i pause</strong> – 1 innbytter per lag</div>
+          <p><strong>To omganger på 10 minutter med 3 minutters pause</strong></p>
+          <p><strong>Plass 1 og 4 på tabellen mot plass 2 og 3</strong></p>
+          
+          <div class="team-groups" id="e4-teams">
+            <div class="team-group">
+              <h5>Lag A (1. + 4. plass)</h5>
+              <div class="teams" id="e4-teamA">—</div>
+            </div>
+            <div class="team-group">
+              <h5>Lag B (2. + 3. plass)</h5>
+              <div class="teams" id="e4-teamB">—</div>
+            </div>
+          </div>
+          
+          <div class="points-box">
+            <h4>🏆 Poeng</h4>
+            <div class="points-list">
+              <span>Vinnende lag = 6p hver</span>
+              <span>Uavgjort = 3p alle</span>
+              <span>Tapende lag = 0p</span>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -517,10 +415,7 @@ const SUPABASE_URL = 'https://zbjngimdvoazcshkvbgv.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-// Placement points
-const PLACEMENT_POINTS = { 1: 4, 2: 3, 3: 2, 4: 1 }
-
-// Check if admin
+// Check if admin (for activity check bypass)
 let isAdmin = false
 const stored = localStorage.getItem('fp26_session')
 if (stored) {
@@ -528,12 +423,15 @@ if (stored) {
   isAdmin = session.isAdmin === true || session.name === 'Tj'
 }
 
-if (isAdmin) {
-  document.body.classList.add('is-admin')
-}
-
 let teams = {}
+let teamsArray = []
 let scores = {}
+let quizResources = {}
+
+function toggleSection(id) {
+  const section = document.getElementById(id)
+  section.classList.toggle('open')
+}
 
 async function init() {
   // Check if activity is active (skip for admin)
@@ -551,47 +449,46 @@ async function init() {
     }
   }
 
-  // Load only active teams (group teams)
+  // Load only active teams
   const { data: teamsData } = await sb
     .from('teams')
     .select('id, team_name, flag')
     .eq('is_active', true)
   
   if (teamsData) {
+    teamsArray = teamsData
     teamsData.forEach(t => {
       teams[t.id] = t
     })
-    populateTeamSelects()
   }
 
+  await loadQuizResources()
   await loadScores()
+  renderPoolMatchups()
+  renderExercise2Order()
 }
 
-function populateTeamSelects() {
-  const selects = document.querySelectorAll('select[id^="e"]')
-  selects.forEach(select => {
-    if (select.id.includes('result')) return
-    
-    const currentVal = select.value
-    select.innerHTML = '<option value="">Velg lag</option>'
-    Object.values(teams).forEach(t => {
-      const opt = document.createElement('option')
-      opt.value = t.id
-      opt.textContent = `${t.flag} ${t.team_name}`
-      select.appendChild(opt)
+async function loadQuizResources() {
+  // Load quiz winner counts per team
+  const { data: quizData } = await sb
+    .from('activity_quiz')
+    .select('winner_team_ids')
+  
+  if (quizData) {
+    teamsArray.forEach(t => quizResources[t.id] = 0)
+    quizData.forEach(q => {
+      const winners = q.winner_team_ids || []
+      winners.forEach(id => {
+        quizResources[id] = (quizResources[id] || 0) + 1
+      })
     })
-    select.value = currentVal
-  })
+  }
 }
 
 async function loadScores() {
   const { data: scoresData, error } = await sb
     .from('activity_fotball')
     .select('*')
-  
-  if (error) {
-    console.error('Error loading scores:', error)
-  }
   
   scores = {}
   if (scoresData) {
@@ -604,35 +501,24 @@ async function loadScores() {
   }
   
   renderStandings()
-  renderExerciseResults()
-  loadAdminSelects()
+  renderExercise4Teams()
 }
 
 function renderStandings() {
   const tbody = document.getElementById('standings-body')
   tbody.innerHTML = ''
   
-  // Calculate totals
   const standings = Object.values(teams).map(team => {
     const s = scores[team.id] || { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
     const e2Total = (s.e2a || 0) + (s.e2b || 0)
     const total = (s.e1 || 0) + e2Total + (s.e3 || 0) + (s.e4 || 0)
-    return {
-      team,
-      e1: s.e1 || 0,
-      e2: e2Total,
-      e3: s.e3 || 0,
-      e4: s.e4 || 0,
-      total
-    }
+    return { team, e1: s.e1 || 0, e2: e2Total, e3: s.e3 || 0, e4: s.e4 || 0, total }
   })
   
-  // Sort by total
   standings.sort((a, b) => b.total - a.total)
   
   standings.forEach((s, idx) => {
     const posClass = idx === 0 ? 'first' : idx === 1 ? 'second' : idx === 2 ? 'third' : idx === 3 ? 'fourth' : ''
-    
     const row = document.createElement('div')
     row.className = 'bb-row ' + posClass
     row.innerHTML = `
@@ -649,176 +535,77 @@ function renderStandings() {
   })
 }
 
-function renderExerciseResults() {
-  // Show completed exercises
-  const container = document.getElementById('exercise-results')
-  container.innerHTML = ''
+function renderPoolMatchups() {
+  // Fixed pool matchups
+  // Exercise 1: Senegal vs Frankrike, Norge vs Irak
+  // Exercise 3: Irak vs Senegal, Norge vs Frankrike
   
-  // This could be expanded to show detailed results
-}
-
-async function loadAdminSelects() {
-  if (!isAdmin) return
+  const teamNames = {}
+  teamsArray.forEach(t => teamNames[t.team_name.toLowerCase()] = t)
   
-  // Load existing placements from database
-  const { data: placements } = await sb
-    .from('ballbinge_placements')
-    .select('*')
+  const senegal = teamNames['senegal']
+  const frankrike = teamNames['frankrike']
+  const norge = teamNames['norge']
+  const irak = teamNames['irak']
   
-  if (placements) {
-    placements.forEach(p => {
-      const select = document.getElementById(`e${p.exercise}-place${p.placement}`)
-      if (select) select.value = p.team_id
-    })
+  // Exercise 1 pools
+  if (senegal && frankrike) {
+    document.getElementById('e1-pool1').innerHTML = 
+      `Pulje 1: ${senegal.flag} ${senegal.team_name} <span class="vs">vs</span> ${frankrike.flag} ${frankrike.team_name}`
+  }
+  if (norge && irak) {
+    document.getElementById('e1-pool2').innerHTML = 
+      `Pulje 2: ${norge.flag} ${norge.team_name} <span class="vs">vs</span> ${irak.flag} ${irak.team_name}`
   }
   
-  // Load e4 result if already saved
-  const { data: e4data } = await sb
-    .from('ballbinge_placements')
-    .select('*')
-    .eq('exercise', '4')
-  
-  if (e4data && e4data.length > 0) {
-    // Load teams into selects from saved data
-    const teamA1 = e4data.find(d => d.placement === 1)
-    const teamA2 = e4data.find(d => d.placement === 2)
-    const teamB1 = e4data.find(d => d.placement === 3)
-    const teamB2 = e4data.find(d => d.placement === 4)
-    
-    if (teamA1) document.getElementById('e4-teamA1').value = teamA1.team_id
-    if (teamA2) document.getElementById('e4-teamA2').value = teamA2.team_id
-    if (teamB1) document.getElementById('e4-teamB1').value = teamB1.team_id
-    if (teamB2) document.getElementById('e4-teamB2').value = teamB2.team_id
-    
-    // Determine result from points
-    if (teamA1 && teamA1.points === 6) {
-      document.getElementById('e4-result').value = 'teamA'
-    } else if (teamB1 && teamB1.points === 6) {
-      document.getElementById('e4-result').value = 'teamB'
-    } else if (teamA1 && teamA1.points === 3) {
-      document.getElementById('e4-result').value = 'draw'
-    }
-  } else {
-    // Auto-fill e4 based on standings after e1-e3
-    autoFillExercise4()
+  // Exercise 3 pools (different pairing)
+  if (irak && senegal) {
+    document.getElementById('e3-pool1').innerHTML = 
+      `Pulje 1: ${irak.flag} ${irak.team_name} <span class="vs">vs</span> ${senegal.flag} ${senegal.team_name}`
+  }
+  if (norge && frankrike) {
+    document.getElementById('e3-pool2').innerHTML = 
+      `Pulje 2: ${norge.flag} ${norge.team_name} <span class="vs">vs</span> ${frankrike.flag} ${frankrike.team_name}`
   }
 }
 
-function autoFillExercise4() {
-  // Calculate standings from exercises 1-3 only (exclude e4)
+function renderExercise2Order() {
+  // Sort teams by quiz resources (ascending - least first)
+  const sorted = teamsArray
+    .map(t => ({ team: t, resources: quizResources[t.id] || 0 }))
+    .sort((a, b) => a.resources - b.resources)
+  
+  const container = document.getElementById('e2-order')
+  container.innerHTML = sorted.map((item, idx) => `
+    <li>
+      <span class="order-num">${idx + 1}</span>
+      <span>${item.team.flag} ${item.team.team_name}</span>
+      <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 12px;">${item.resources} ressurser</span>
+    </li>
+  `).join('')
+}
+
+function renderExercise4Teams() {
+  // Get standings without e4 scores
   const standings = Object.values(teams).map(team => {
     const s = scores[team.id] || { e1: 0, e2a: 0, e2b: 0, e3: 0, e4: 0 }
     const e2Total = (s.e2a || 0) + (s.e2b || 0)
-    const total = (s.e1 || 0) + e2Total + (s.e3 || 0) // Exclude e4!
+    const total = (s.e1 || 0) + e2Total + (s.e3 || 0) // Exclude e4
     return { team, total }
   })
   
-  // Sort by total (descending)
   standings.sort((a, b) => b.total - a.total)
   
-  // Only auto-fill if we have 4 teams with some points
   if (standings.length >= 4) {
-    // Lag A: 1. plass + 4. plass
-    document.getElementById('e4-teamA1').value = standings[0].team.id
-    document.getElementById('e4-teamA2').value = standings[3].team.id
-    // Lag B: 2. plass + 3. plass
-    document.getElementById('e4-teamB1').value = standings[1].team.id
-    document.getElementById('e4-teamB2').value = standings[2].team.id
+    // Lag A: 1st + 4th place
+    document.getElementById('e4-teamA').innerHTML = 
+      `${standings[0].team.flag} ${standings[0].team.team_name} + ${standings[3].team.flag} ${standings[3].team.team_name}`
+    // Lag B: 2nd + 3rd place
+    document.getElementById('e4-teamB').innerHTML = 
+      `${standings[1].team.flag} ${standings[1].team.team_name} + ${standings[2].team.flag} ${standings[2].team.team_name}`
   }
 }
 
-async function saveExercise(exerciseNum) {
-  if (!isAdmin) return
-  
-  const exerciseId = exerciseNum.toString()
-  
-  if (exerciseNum === 4) {
-    // Handle 3v3 match (2 teams vs 2 teams)
-    const teamA1Id = document.getElementById('e4-teamA1').value
-    const teamA2Id = document.getElementById('e4-teamA2').value
-    const teamB1Id = document.getElementById('e4-teamB1').value
-    const teamB2Id = document.getElementById('e4-teamB2').value
-    const result = document.getElementById('e4-result').value
-    
-    if (!teamA1Id || !teamA2Id || !teamB1Id || !teamB2Id || !result) {
-      alert('Velg alle 4 lag og resultat')
-      return
-    }
-    
-    let teamAPoints = 0, teamBPoints = 0
-    if (result === 'teamA') {
-      teamAPoints = 6
-      teamBPoints = 0
-    } else if (result === 'teamB') {
-      teamAPoints = 0
-      teamBPoints = 6
-    } else {
-      teamAPoints = 3
-      teamBPoints = 3
-    }
-    
-    // Save placements
-    await sb.from('ballbinge_placements').upsert([
-      { exercise: '4', placement: 1, team_id: parseInt(teamA1Id), points: teamAPoints },
-      { exercise: '4', placement: 2, team_id: parseInt(teamA2Id), points: teamAPoints },
-      { exercise: '4', placement: 3, team_id: parseInt(teamB1Id), points: teamBPoints },
-      { exercise: '4', placement: 4, team_id: parseInt(teamB2Id), points: teamBPoints }
-    ], { onConflict: 'exercise,placement' })
-    
-    // Save scores for all 4 teams
-    await sb.from('activity_fotball').upsert([
-      { team_id: parseInt(teamA1Id), exercise: 'e4', points: teamAPoints },
-      { team_id: parseInt(teamA2Id), exercise: 'e4', points: teamAPoints },
-      { team_id: parseInt(teamB1Id), exercise: 'e4', points: teamBPoints },
-      { team_id: parseInt(teamB2Id), exercise: 'e4', points: teamBPoints }
-    ], { onConflict: 'team_id,exercise' })
-    
-  } else {
-    // Handle placement-based exercises
-    const placements = []
-    const scoreUpdates = []
-    
-    for (let place = 1; place <= 4; place++) {
-      const teamId = document.getElementById(`e${exerciseId}-place${place}`).value
-      if (!teamId) {
-        alert(`Velg lag for ${place}. plass`)
-        return
-      }
-      
-      const points = PLACEMENT_POINTS[place]
-      placements.push({
-        exercise: exerciseId,
-        placement: place,
-        team_id: parseInt(teamId),
-        points: points
-      })
-      
-      scoreUpdates.push({
-        team_id: parseInt(teamId),
-        exercise: `e${exerciseId}`,
-        points: points
-      })
-    }
-    
-    // Check for duplicates
-    const teamIds = placements.map(p => p.team_id)
-    if (new Set(teamIds).size !== teamIds.length) {
-      alert('Hvert lag kan bare ha én plassering')
-      return
-    }
-    
-    // Save placements
-    await sb.from('ballbinge_placements').upsert(placements, { onConflict: 'exercise,placement' })
-    
-    // Save scores
-    await sb.from('activity_fotball').upsert(scoreUpdates, { onConflict: 'team_id,exercise' })
-  }
-  
-  alert(`Øvelse ${exerciseNum} lagret!`)
-  await loadScores()
-}
-
-// Initialize
 init()
 </script>
 
