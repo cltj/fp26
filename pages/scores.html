@@ -527,7 +527,8 @@ async function resetAll() {
 function setStatus(msg) { document.getElementById('status').textContent = msg }
 
 async function loadTeams() {
-  const { data, error } = await sb.from('teams').select('*').order('id')
+  // Load only active teams (group teams)
+  const { data, error } = await sb.from('teams').select('*').eq('is_active', true).order('id')
   if (error) { setStatus('⚠️ Could not load teams'); return }
   TEAMS = data.map(t => ({ id: t.id, name: t.team_name, flag: t.flag || '🏳️' }))
   TEAMS.forEach(t => { scores[t.id] = [null, null, null, null] })

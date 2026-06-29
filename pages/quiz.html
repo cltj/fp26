@@ -338,8 +338,8 @@ let currentIndex = 0
 let scores = {}
 
 async function init() {
-  // Load teams
-  const { data: teamsData } = await sb.from('teams').select('*').order('id')
+  // Load only active teams (group teams)
+  const { data: teamsData } = await sb.from('teams').select('*').eq('is_active', true).order('id')
   teams = teamsData || []
   
   // Load questions
