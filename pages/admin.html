@@ -2750,10 +2750,14 @@ async function resetFasit() {
 
 async function loadPredictions() {
   console.log('loadPredictions() called')
-  // Simple query first - no joins
+  // Join participants and teams directly (not nested)
   const { data: predictions, error } = await sb
     .from('activity_predictions')
-    .select('*')
+    .select(`
+      *,
+      participants (name),
+      teams (flag, team_name)
+    `)
     .order('created_at', { ascending: true })
   
   console.log('Loaded predictions:', predictions?.length || 0, 'error:', error)
@@ -2803,8 +2807,8 @@ async function loadPredictions() {
   if (predictions) {
     for (const p of predictions) {
       const row = document.createElement('tr')
-      const teamFlag = ''  // Will add back with proper join
-      const participantName = `#${p.participant_id}`  // Temporary - show ID
+      const teamFlag = p.teams?.flag || ''
+      const participantName = p.participants?.name || `#${p.participant_id}`
       
       row.innerHTML = `
         <td>${participantName}</td>
