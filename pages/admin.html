@@ -2751,7 +2751,7 @@ async function resetFasit() {
 async function loadPredictions() {
   const { data: predictions, error } = await sb
     .from('activity_predictions')
-    .select('*, participants(participant, team_id, teams(flag, team_name))')
+    .select('*, participants!participant_id(participant, team_id, teams(flag, team_name))')
     .order('created_at', { ascending: true })
   
   console.log('Loaded predictions:', predictions?.length || 0, error || 'no error')
