@@ -84,18 +84,17 @@
 <body>
   <div class="container">
     <h1>🔮 Orakel Resultater</h1>
-    <p class="subtitle">Frankrike vs Norge - 26. juni 2026</p>
+    <p class="subtitle" id="match-subtitle">Laster...</p>
     
     <div class="facts">
       <h3>📋 Fasit</h3>
-      <div class="facts-grid">
-        <div class="fact"><span class="label">Resultat:</span> <span class="value">🇫🇷 Frankrike 4-1 Norge 🇳🇴</span></div>
-        <div class="fact"><span class="label">Scorer først:</span> <span class="value">Frankrike</span></div>
-        <div class="fact"><span class="label">Gule kort:</span> <span class="value">Uavgjort (1-1)</span></div>
-        <div class="fact"><span class="label">Norge holder nullen:</span> <span class="value">Nei</span></div>
-        <div class="fact"><span class="label">Haaland scorer:</span> <span class="value">Nei</span></div>
-        <div class="fact"><span class="label">Mbappé scorer:</span> <span class="value">Nei</span></div>
-        <div class="fact"><span class="label">Straffescoring:</span> <span class="value">Nei</span></div>
+      <div class="facts-grid" id="facts-grid">
+        <div class="fact"><span class="label">Resultat:</span> <span class="value" id="fasit-result">—</span></div>
+        <div class="fact"><span class="label">Scorer først:</span> <span class="value" id="fasit-first">—</span></div>
+        <div class="fact"><span class="label">Gule kort:</span> <span class="value" id="fasit-yellow">—</span></div>
+        <div class="fact"><span class="label">Norge nullen:</span> <span class="value" id="fasit-clean-sheet">—</span></div>
+        <div class="fact"><span class="label">Haaland scorer:</span> <span class="value" id="fasit-haaland">—</span></div>
+        <div class="fact"><span class="label">Straffescoring:</span> <span class="value" id="fasit-penalty">—</span></div>
       </div>
     </div>
     
@@ -108,64 +107,154 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpiam5naW1kdm9hemNzaGt2Ymd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTgyOTAsImV4cCI6MjA5NzY5NDI5MH0.1M3PZYGqKqqLIsTkaPSH1gEloVhTXFGV_yYJaQdJ8YY'
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    // FASIT - de faktiske resultatene (using home/away format)
-    const FASIT = {
-      away_goals: 4,  // Frankrike
-      home_goals: 1,  // Norge
-      first_goal: 'away',  // Frankrike scored first
-      yellow_cards: 'likt'
+    let matchup = { home: null, away: null }
+    let FASIT = { home_goals: null, away_goals: null, first_goal: null, yellow_cards: null }
+
+    async function init() {
+      // Load matchup
+      const { data: matchupData } = await sb.from('matchup').select('*')
+      if (matchupData) {
+        matchup.home = matchupData.find(m => m.position === 'home')
+        matchup.away = matchupData.find(m => m.position === 'away')
+        
+        if (matchup.home && matchup.away) {
+          document.getElementById('match-subtitle').textContent = 
+            `${matchup.home.team_icon} ${matchup.home.team_name} vs ${matchup.away.team_icon} ${matchup.away.team_name}`
+        }
+      }
+      
+      // Load fasit
+      const { data: fasitData } = await sb.from('orakel_fasit').select('*').eq('id', 1).single()
+      if (fasitData) {
+        FASIT = fasitData
+        updateFasitDisplay()
+      }
+      
+      await loadResults()
+    }
+    
+    function updateFasitDisplay() {
+      const homeName = matchup.home?.team_name || 'Hjemme'
+      const awayName = matchup.away?.team_name || 'Borte'
+      const homeIcon = matchup.home?.team_icon || '🏠'
+      const awayIcon = matchup.away?.team_icon || '✈️'
+      
+      if (FASIT.home_goals !== null && FASIT.away_goals !== null) {
+        document.getElementById('fasit-result').textContent = 
+          `${homeIcon} ${homeName} ${FASIT.home_goals} – ${FASIT.away_goals} ${awayName} ${awayIcon}`
+      }
+      
+      if (FASIT.first_goal) {
+        const firstMap = { 'home': `${homeIcon} ${homeName}`, 'away': `${awayIcon} ${awayName}`, 'ingen': 'Ingen mål' }
+        document.getElementById('fasit-first').textContent = firstMap[FASIT.first_goal] || '—'
+      }
+      
+      if (FASIT.yellow_cards) {
+        const yellowMap = { 'home': `${homeIcon} ${homeName}`, 'away': `${awayIcon} ${awayName}`, 'likt': 'Likt' }
+        document.getElementById('fasit-yellow').textContent = yellowMap[FASIT.yellow_cards] || '—'
+      }
+      
+      if (FASIT.clean_sheet) {
+        document.getElementById('fasit-clean-sheet').textContent = FASIT.clean_sheet === 'ja' ? 'Ja ✓' : 'Nei ✗'
+      }
+      
+      if (FASIT.haaland_scores) {
+        document.getElementById('fasit-haaland').textContent = FASIT.haaland_scores === 'ja' ? 'Ja ✓' : 'Nei ✗'
+      }
+      
+      if (FASIT.penalty) {
+        document.getElementById('fasit-penalty').textContent = FASIT.penalty === 'ja' ? 'Ja ✓' : 'Nei ✗'
+      }
     }
 
     // Poengberegning
     function calculatePoints(prediction) {
       let points = 0
       let details = []
+      
+      // If no fasit set, no points
+      if (FASIT.home_goals === null || FASIT.away_goals === null) {
+        return { points: prediction.points || 0, details: [] }
+      }
 
       // Eksakt resultat: 5 poeng
-      if (prediction.away_goals === FASIT.away_goals && 
-          prediction.home_goals === FASIT.home_goals) {
+      if (prediction.home_goals === FASIT.home_goals && 
+          prediction.away_goals === FASIT.away_goals) {
         points += 5
         details.push({ q: 'Eksakt resultat', correct: true, pts: 5 })
       } else {
-        // Riktig vinner: 2 poeng
-        const predWinner = prediction.away_goals > prediction.home_goals ? 'away' : 
-                          prediction.away_goals < prediction.home_goals ? 'home' : 'draw'
-        const actualWinner = 'away' // 4-1
-        if (predWinner === actualWinner) {
-          points += 2
-          details.push({ q: 'Riktig vinner', correct: true, pts: 2 })
+        // Calculate differences
+        const predDiff = prediction.home_goals - prediction.away_goals
+        const fasitDiff = FASIT.home_goals - FASIT.away_goals
+        const predWinner = predDiff > 0 ? 'home' : predDiff < 0 ? 'away' : 'draw'
+        const fasitWinner = fasitDiff > 0 ? 'home' : fasitDiff < 0 ? 'away' : 'draw'
+        
+        if (predDiff === fasitDiff) {
+          points += 3
+          details.push({ q: 'Riktig målforskjell', correct: true, pts: 3 })
+        } else if (predWinner === fasitWinner) {
+          points += 1
+          details.push({ q: 'Riktig vinner', correct: true, pts: 1 })
         } else {
           details.push({ q: 'Resultat', correct: false, pts: 0 })
         }
       }
 
       // Scorer først: 1 poeng
-      if (prediction.first_goal === FASIT.first_goal) {
+      if (FASIT.first_goal && prediction.first_goal === FASIT.first_goal) {
         points += 1
         details.push({ q: 'Scorer først', correct: true, pts: 1 })
-      } else {
+      } else if (FASIT.first_goal) {
         details.push({ q: 'Scorer først', correct: false, pts: 0 })
       }
 
       // Gule kort: 1 poeng
-      if (prediction.yellow_cards === FASIT.yellow_cards) {
+      if (FASIT.yellow_cards && prediction.yellow_cards === FASIT.yellow_cards) {
         points += 1
         details.push({ q: 'Gule kort', correct: true, pts: 1 })
-      } else {
+      } else if (FASIT.yellow_cards) {
         details.push({ q: 'Gule kort', correct: false, pts: 0 })
+      }
+      
+      // Clean sheet: 1 poeng
+      if (FASIT.clean_sheet && prediction.clean_sheet === FASIT.clean_sheet) {
+        points += 1
+        details.push({ q: 'Norge nullen', correct: true, pts: 1 })
+      } else if (FASIT.clean_sheet) {
+        details.push({ q: 'Norge nullen', correct: false, pts: 0 })
+      }
+      
+      // Haaland: 1 poeng
+      if (FASIT.haaland_scores && prediction.haaland_scores === FASIT.haaland_scores) {
+        points += 1
+        details.push({ q: 'Haaland', correct: true, pts: 1 })
+      } else if (FASIT.haaland_scores) {
+        details.push({ q: 'Haaland', correct: false, pts: 0 })
+      }
+      
+      // Penalty: 1 poeng
+      if (FASIT.penalty && prediction.penalty === FASIT.penalty) {
+        points += 1
+        details.push({ q: 'Straffe', correct: true, pts: 1 })
+      } else if (FASIT.penalty) {
+        details.push({ q: 'Straffe', correct: false, pts: 0 })
       }
 
       return { points, details }
     }
 
     async function loadResults() {
+      const homeName = matchup.home?.team_name || 'Hjemme'
+      const awayName = matchup.away?.team_name || 'Borte'
+      const homeIcon = matchup.home?.team_icon || '🏠'
+      const awayIcon = matchup.away?.team_icon || '✈️'
+      
       // Hent predictions med participant og team info
       const { data: predictions, error } = await sb
         .from('activity_predictions')
         .select(`
           *,
-          participants(participant, team_id),
-          teams(team_name, flag)
+          participants(name, team_id, teams(team_name, flag))
         `)
 
       if (error) {
@@ -182,12 +271,13 @@
       const results = predictions.map(p => {
         const { points, details } = calculatePoints(p)
         return {
-          name: p.participants?.participant || 'Ukjent',
-          team: p.teams?.team_name || 'Ukjent lag',
+          name: p.participants?.name || 'Ukjent',
+          team: p.participants?.teams?.team_name || 'Ukjent lag',
           team_id: p.team_id,
-          flag: p.teams?.flag || '🏳️',
-          prediction: `${p.home_goals}-${p.away_goals}`,
-          points,
+          flag: p.participants?.teams?.flag || '🏳️',
+          home_goals: p.home_goals,
+          away_goals: p.away_goals,
+          points: p.points || points,
           details
         }
       })
@@ -233,7 +323,7 @@
             <td>${i + 1}</td>
             <td><strong>${r.name}</strong></td>
             <td>${r.flag} ${r.team}</td>
-            <td>🇳🇴 ${r.prediction.split('-')[0]} - ${r.prediction.split('-')[1]} 🇫🇷</td>
+            <td>${homeIcon} ${r.home_goals} – ${r.away_goals} ${awayIcon}</td>
             <td style="font-size: 12px;">${detailsStr}</td>
             <td class="points">${r.points}</td>
           </tr>
@@ -270,7 +360,7 @@
       document.getElementById('results').innerHTML = html
     }
 
-    loadResults()
+    init()
   </script>
 </body>
 </html>

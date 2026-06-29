@@ -199,7 +199,7 @@
 
 <main>
   <div class="story-content">
-    <h1>Kamptipping: Norge – Frankrike</h1>
+    <h1 id="match-title">Kamptipping</h1>
 
     <!-- Participant info -->
     <div class="participant-info" id="participant-info" style="display: none;">
@@ -242,14 +242,14 @@
       
       <!-- Sluttresultat -->
       <div class="question-card">
-        <div class="question-title">🏆 Sluttresultat Norge – Frankrike</div>
+        <div class="question-title">🏆 Sluttresultat <span id="match-label">Hjemme – Borte</span></div>
         <div class="question-points">Opptil 5 poeng</div>
         <div class="score-inputs">
-          <span class="team-label">🇳🇴</span>
-          <input type="number" id="score-norge" min="0" max="20" placeholder="0">
+          <span class="team-label" id="home-flag">🏠</span>
+          <input type="number" id="score-home" min="0" max="20" placeholder="0">
           <span class="score-sep">–</span>
-          <input type="number" id="score-frankrike" min="0" max="20" placeholder="0">
-          <span class="team-label">🇫🇷</span>
+          <input type="number" id="score-away" min="0" max="20" placeholder="0">
+          <span class="team-label" id="away-flag">✈️</span>
         </div>
       </div>
 
@@ -258,8 +258,8 @@
         <div class="question-title">⚽ Hvilket lag scorer først?</div>
         <div class="question-points">1 poeng</div>
         <div class="option-buttons" data-question="first-goal">
-          <button onclick="selectOption('first-goal', 'norge')">🇳🇴 Norge</button>
-          <button onclick="selectOption('first-goal', 'frankrike')">🇫🇷 Frankrike</button>
+          <button onclick="selectOption('first-goal', 'home')" id="btn-first-home">🏠 Hjemme</button>
+          <button onclick="selectOption('first-goal', 'away')" id="btn-first-away">✈️ Borte</button>
           <button onclick="selectOption('first-goal', 'ingen')">Ingen mål</button>
         </div>
       </div>
@@ -269,8 +269,8 @@
         <div class="question-title">🟨 Hvilket lag får flest gule kort?</div>
         <div class="question-points">1 poeng</div>
         <div class="option-buttons" data-question="yellow-cards">
-          <button onclick="selectOption('yellow-cards', 'norge')">🇳🇴 Norge</button>
-          <button onclick="selectOption('yellow-cards', 'frankrike')">🇫🇷 Frankrike</button>
+          <button onclick="selectOption('yellow-cards', 'home')" id="btn-yellow-home">🏠 Hjemme</button>
+          <button onclick="selectOption('yellow-cards', 'away')" id="btn-yellow-away">✈️ Borte</button>
           <button onclick="selectOption('yellow-cards', 'likt')">Likt</button>
         </div>
       </div>
@@ -292,16 +292,6 @@
         <div class="option-buttons" data-question="haaland-scores">
           <button onclick="selectOption('haaland-scores', 'ja')">Ja</button>
           <button onclick="selectOption('haaland-scores', 'nei')">Nei</button>
-        </div>
-      </div>
-
-      <!-- Scorer Mbappe -->
-      <div class="question-card">
-        <div class="question-title">💨 Scorer Mbappé?</div>
-        <div class="question-points">1 poeng</div>
-        <div class="option-buttons" data-question="mbappe-scores">
-          <button onclick="selectOption('mbappe-scores', 'ja')">Ja</button>
-          <button onclick="selectOption('mbappe-scores', 'nei')">Nei</button>
         </div>
       </div>
 
@@ -340,6 +330,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 let session = null
 let answers = {}
+let matchup = { home: null, away: null }
 
 // Load session
 const stored = localStorage.getItem('fp26_session')
@@ -347,7 +338,39 @@ if (stored) {
   session = JSON.parse(stored)
 }
 
+async function loadMatchup() {
+  const { data } = await sb.from('matchup').select('*')
+  
+  if (data && data.length > 0) {
+    matchup.home = data.find(m => m.position === 'home')
+    matchup.away = data.find(m => m.position === 'away')
+    
+    if (matchup.home && matchup.away) {
+      // Update title
+      document.getElementById('match-title').textContent = 
+        `Kamptipping: ${matchup.home.team_name} – ${matchup.away.team_name}`
+      
+      // Update match label
+      document.getElementById('match-label').textContent = 
+        `${matchup.home.team_name} – ${matchup.away.team_name}`
+      
+      // Update flags
+      document.getElementById('home-flag').textContent = matchup.home.team_icon
+      document.getElementById('away-flag').textContent = matchup.away.team_icon
+      
+      // Update buttons
+      document.getElementById('btn-first-home').innerHTML = `${matchup.home.team_icon} ${matchup.home.team_name}`
+      document.getElementById('btn-first-away').innerHTML = `${matchup.away.team_icon} ${matchup.away.team_name}`
+      document.getElementById('btn-yellow-home').innerHTML = `${matchup.home.team_icon} ${matchup.home.team_name}`
+      document.getElementById('btn-yellow-away').innerHTML = `${matchup.away.team_icon} ${matchup.away.team_name}`
+    }
+  }
+}
+
 async function init() {
+  // Load matchup first
+  await loadMatchup()
+  
   // First check if the activity is active
   const { data: activity, error } = await sb
     .from('activities')
@@ -418,10 +441,10 @@ async function submitPrediction() {
     return
   }
   
-  const scoreNorge = document.getElementById('score-norge').value
-  const scoreFrankrike = document.getElementById('score-frankrike').value
+  const scoreHome = document.getElementById('score-home').value
+  const scoreAway = document.getElementById('score-away').value
   
-  if (scoreNorge === '' || scoreFrankrike === '') {
+  if (scoreHome === '' || scoreAway === '') {
     alert('Fyll inn sluttresultatet!')
     return
   }
@@ -437,10 +460,13 @@ async function submitPrediction() {
     participant_id: session.id,
     team_id: participant?.team_id || null,
     activity_id: 3, // orakel activity
-    home_goals: parseInt(scoreNorge),
-    away_goals: parseInt(scoreFrankrike),
-    first_goal: answers['first-goal'] === 'norge' ? 'home' : answers['first-goal'] === 'frankrike' ? 'away' : answers['first-goal'],
-    yellow_cards: answers['yellow-cards'] === 'norge' ? 'home' : answers['yellow-cards'] === 'frankrike' ? 'away' : answers['yellow-cards']
+    home_goals: parseInt(scoreHome),
+    away_goals: parseInt(scoreAway),
+    first_goal: answers['first-goal'] || null,
+    yellow_cards: answers['yellow-cards'] || null,
+    clean_sheet: answers['clean-sheet'] || null,
+    haaland_scores: answers['haaland-scores'] || null,
+    penalty: answers['penalty'] || null
   }
   
   const { data, error } = await sb
@@ -463,13 +489,16 @@ function showSubmittedState(prediction) {
   document.getElementById('oracle-form').style.display = 'none'
   document.getElementById('submitted-msg').style.display = 'block'
   
+  const homeName = matchup.home?.team_name || 'Hjemme'
+  const awayName = matchup.away?.team_name || 'Borte'
+  const homeIcon = matchup.home?.team_icon || '🏠'
+  const awayIcon = matchup.away?.team_icon || '✈️'
+  
   const formatAnswer = (val) => {
     if (!val) return '—'
     const map = {
-      'home': '🇳🇴 Norge',
-      'away': '🇫🇷 Frankrike',
-      'norge': '🇳🇴 Norge',
-      'frankrike': '🇫🇷 Frankrike',
+      'home': `${homeIcon} ${homeName}`,
+      'away': `${awayIcon} ${awayName}`,
       'ingen': 'Ingen mål',
       'likt': 'Likt',
       'ja': 'Ja ✓',
@@ -481,9 +510,12 @@ function showSubmittedState(prediction) {
   document.getElementById('submitted-team').innerHTML = `
     <strong>${session.name}</strong>
     <table style="width:100%; margin-top: 1rem; text-align: left; font-size: 14px;">
-      <tr><td>🏆 Sluttresultat</td><td style="text-align:right"><strong>Norge ${prediction.home_goals} – ${prediction.away_goals} Frankrike</strong></td></tr>
+      <tr><td>🏆 Sluttresultat</td><td style="text-align:right"><strong>${homeName} ${prediction.home_goals} – ${prediction.away_goals} ${awayName}</strong></td></tr>
       <tr><td>⚽ Scorer først</td><td style="text-align:right">${formatAnswer(prediction.first_goal)}</td></tr>
       <tr><td>🟨 Flest gule kort</td><td style="text-align:right">${formatAnswer(prediction.yellow_cards)}</td></tr>
+      <tr><td>🧤 Norge holder nullen</td><td style="text-align:right">${formatAnswer(prediction.clean_sheet)}</td></tr>
+      <tr><td>⚡ Haaland scorer</td><td style="text-align:right">${formatAnswer(prediction.haaland_scores)}</td></tr>
+      <tr><td>🎯 Straffescoring</td><td style="text-align:right">${formatAnswer(prediction.penalty)}</td></tr>
     </table>
   `
 }

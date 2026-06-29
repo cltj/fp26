@@ -574,6 +574,7 @@
     <div class="tab" onclick="showPanel('quiz')">🧠 Quiz</div>
     <div class="tab" onclick="showPanel('fotball')">⚽ Fotball</div>
     <div class="tab" onclick="showPanel('fc26')">🎮 FC26</div>
+    <div class="tab" onclick="showPanel('orakel')">🔮 Orakel</div>
     <div class="tab" onclick="showPanel('timeline')">📅 Tidslinje</div>
   </div>
   
@@ -917,6 +918,93 @@
     </div>
   </div>
   
+  <!-- Orakel Panel -->
+  <div id="panel-orakel" class="panel">
+    <div class="section-card">
+      <h3>🔮 Fasit</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Oppdater fasit underveis i kampen eller etter kampslutt.
+      </p>
+      <div class="form-row">
+        <label>Sluttresultat</label>
+        <input type="number" id="fasit-home-goals" min="0" placeholder="0" style="width: 60px;">
+        <span style="padding: 0 8px;">–</span>
+        <input type="number" id="fasit-away-goals" min="0" placeholder="0" style="width: 60px;">
+        <span id="fasit-match-label" style="margin-left: 8px; color: var(--muted); font-size: 12px;"></span>
+      </div>
+      <div class="form-row">
+        <label>Scorer først</label>
+        <select id="fasit-first-goal">
+          <option value="">Ikke satt</option>
+          <option value="home">Hjemmelag</option>
+          <option value="away">Bortelag</option>
+          <option value="ingen">Ingen mål</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Flest gule</label>
+        <select id="fasit-yellow-cards">
+          <option value="">Ikke satt</option>
+          <option value="home">Hjemmelag</option>
+          <option value="away">Bortelag</option>
+          <option value="likt">Likt</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>🧤 Norge nullen</label>
+        <select id="fasit-clean-sheet">
+          <option value="">Ikke satt</option>
+          <option value="ja">Ja</option>
+          <option value="nei">Nei</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>⚡ Haaland</label>
+        <select id="fasit-haaland-scores">
+          <option value="">Ikke satt</option>
+          <option value="ja">Ja</option>
+          <option value="nei">Nei</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>🎯 Straffe</label>
+        <select id="fasit-penalty">
+          <option value="">Ikke satt</option>
+          <option value="ja">Ja</option>
+          <option value="nei">Nei</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label></label>
+        <button class="btn btn-primary" onclick="saveFasit()">💾 Lagre fasit</button>
+        <button class="btn" onclick="calculateOrakelPoints()">🧮 Beregn poeng</button>
+      </div>
+      <div id="fasit-status" class="status-msg"></div>
+    </div>
+    
+    <div class="section-card">
+      <h3>📊 Innsendte spådommer <span id="prediction-count" style="font-size: 14px; font-weight: 400; color: var(--muted);">0</span></h3>
+      <div style="margin-bottom: 1rem;">
+        <a href="orakel_results.html" class="btn btn-primary btn-sm">→ Se full resultattavle</a>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="data-table" id="predictions-table">
+          <thead>
+            <tr>
+              <th>Deltaker</th>
+              <th>Lag</th>
+              <th>Resultat</th>
+              <th>Først</th>
+              <th>Gule</th>
+              <th>P</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
   <!-- Timeline Panel -->
   <div id="panel-timeline" class="panel">
     <div class="section-card">
@@ -1088,7 +1176,8 @@ async function init() {
     loadResources(),
     loadMatchup(),
     loadScores(),
-    loadTimeline()
+    loadTimeline(),
+    loadOrakel()
   ])
 }
 
@@ -2405,6 +2494,191 @@ async function resetAllFC26() {
   
   alert('Alle FC26-resultater nullstilt!')
   await loadFC26Data()
+  await loadScores()
+}
+
+// ===== ORAKEL =====
+let orakelMatchup = { home: null, away: null }
+let orakelFasit = { home_goals: null, away_goals: null, first_goal: null, yellow_cards: null }
+
+async function loadOrakel() {
+  // Load matchup for labels
+  const { data: matchupData } = await sb.from('matchup').select('*')
+  if (matchupData) {
+    orakelMatchup.home = matchupData.find(m => m.position === 'home')
+    orakelMatchup.away = matchupData.find(m => m.position === 'away')
+    
+    if (orakelMatchup.home && orakelMatchup.away) {
+      document.getElementById('fasit-match-label').textContent = 
+        `(${orakelMatchup.home.team_icon} ${orakelMatchup.home.team_name} – ${orakelMatchup.away.team_icon} ${orakelMatchup.away.team_name})`
+    }
+  }
+  
+  // Load fasit from orakel_fasit table
+  const { data: fasitData } = await sb.from('orakel_fasit').select('*').eq('id', 1).single()
+  if (fasitData) {
+    orakelFasit = fasitData
+    document.getElementById('fasit-home-goals').value = fasitData.home_goals ?? ''
+    document.getElementById('fasit-away-goals').value = fasitData.away_goals ?? ''
+    document.getElementById('fasit-first-goal').value = fasitData.first_goal ?? ''
+    document.getElementById('fasit-yellow-cards').value = fasitData.yellow_cards ?? ''
+    document.getElementById('fasit-clean-sheet').value = fasitData.clean_sheet ?? ''
+    document.getElementById('fasit-haaland-scores').value = fasitData.haaland_scores ?? ''
+    document.getElementById('fasit-penalty').value = fasitData.penalty ?? ''
+  }
+  
+  // Load predictions
+  await loadPredictions()
+}
+
+async function loadPredictions() {
+  const { data: predictions } = await sb
+    .from('activity_predictions')
+    .select('*, participants(name, team_id, teams(flag, team_name))')
+    .order('created_at', { ascending: true })
+  
+  document.getElementById('prediction-count').textContent = predictions?.length || 0
+  
+  const tbody = document.querySelector('#predictions-table tbody')
+  tbody.innerHTML = ''
+  
+  const homeName = orakelMatchup.home?.team_name || 'Hjemme'
+  const awayName = orakelMatchup.away?.team_name || 'Borte'
+  const homeIcon = orakelMatchup.home?.team_icon || '🏠'
+  const awayIcon = orakelMatchup.away?.team_icon || '✈️'
+  
+  const formatChoice = (val) => {
+    if (!val) return '—'
+    const map = {
+      'home': `${homeIcon}`,
+      'away': `${awayIcon}`,
+      'ingen': '⌀',
+      'likt': '='
+    }
+    return map[val] || val
+  }
+  
+  if (predictions) {
+    for (const p of predictions) {
+      const row = document.createElement('tr')
+      const teamFlag = p.participants?.teams?.flag || ''
+      const teamName = p.participants?.teams?.team_name || ''
+      
+      row.innerHTML = `
+        <td>${p.participants?.name || '?'}</td>
+        <td>${teamFlag}</td>
+        <td style="text-align: center; font-weight: 600;">${p.home_goals} – ${p.away_goals}</td>
+        <td style="text-align: center;">${formatChoice(p.first_goal)}</td>
+        <td style="text-align: center;">${formatChoice(p.yellow_cards)}</td>
+        <td style="text-align: center; color: var(--accent);">${p.points ?? '—'}</td>
+      `
+      tbody.appendChild(row)
+    }
+  }
+}
+
+async function saveFasit() {
+  const fasit = {
+    id: 1,
+    home_goals: document.getElementById('fasit-home-goals').value ? parseInt(document.getElementById('fasit-home-goals').value) : null,
+    away_goals: document.getElementById('fasit-away-goals').value ? parseInt(document.getElementById('fasit-away-goals').value) : null,
+    first_goal: document.getElementById('fasit-first-goal').value || null,
+    yellow_cards: document.getElementById('fasit-yellow-cards').value || null,
+    clean_sheet: document.getElementById('fasit-clean-sheet').value || null,
+    haaland_scores: document.getElementById('fasit-haaland-scores').value || null,
+    penalty: document.getElementById('fasit-penalty').value || null
+  }
+  
+  const { error } = await sb.from('orakel_fasit').upsert(fasit)
+  
+  const status = document.getElementById('fasit-status')
+  if (error) {
+    status.innerHTML = `<span style="color: var(--danger);">❌ Feil: ${error.message}</span>`
+    console.error('Error saving fasit:', error)
+  } else {
+    status.innerHTML = `<span style="color: var(--success);">✅ Fasit lagret!</span>`
+    orakelFasit = fasit
+    setTimeout(() => { status.innerHTML = '' }, 3000)
+  }
+}
+
+async function calculateOrakelPoints() {
+  // Make sure we have fasit
+  if (orakelFasit.home_goals === null || orakelFasit.away_goals === null) {
+    alert('Du må sette fasit (sluttresultat) først!')
+    return
+  }
+  
+  // Load all predictions
+  const { data: predictions } = await sb.from('activity_predictions').select('*')
+  
+  if (!predictions || predictions.length === 0) {
+    alert('Ingen spådommer funnet!')
+    return
+  }
+  
+  let updatedCount = 0
+  
+  for (const pred of predictions) {
+    let points = 0
+    
+    // Score points (0-5)
+    const correctHome = pred.home_goals === orakelFasit.home_goals
+    const correctAway = pred.away_goals === orakelFasit.away_goals
+    const predDiff = pred.home_goals - pred.away_goals
+    const fasitDiff = orakelFasit.home_goals - orakelFasit.away_goals
+    
+    // Winner/draw
+    const predWinner = predDiff > 0 ? 'home' : predDiff < 0 ? 'away' : 'draw'
+    const fasitWinner = fasitDiff > 0 ? 'home' : fasitDiff < 0 ? 'away' : 'draw'
+    
+    if (correctHome && correctAway) {
+      // Exact result
+      points += 5
+    } else if (predDiff === fasitDiff) {
+      // Correct goal difference
+      points += 3
+    } else if (predWinner === fasitWinner) {
+      // Correct winner/draw
+      points += 1
+    }
+    
+    // First goal (1p)
+    if (orakelFasit.first_goal && pred.first_goal === orakelFasit.first_goal) {
+      points += 1
+    }
+    
+    // Yellow cards (1p)
+    if (orakelFasit.yellow_cards && pred.yellow_cards === orakelFasit.yellow_cards) {
+      points += 1
+    }
+    
+    // Clean sheet (1p)
+    if (orakelFasit.clean_sheet && pred.clean_sheet === orakelFasit.clean_sheet) {
+      points += 1
+    }
+    
+    // Haaland scores (1p)
+    if (orakelFasit.haaland_scores && pred.haaland_scores === orakelFasit.haaland_scores) {
+      points += 1
+    }
+    
+    // Penalty (1p)
+    if (orakelFasit.penalty && pred.penalty === orakelFasit.penalty) {
+      points += 1
+    }
+    
+    // Update in DB
+    const { error } = await sb
+      .from('activity_predictions')
+      .update({ points })
+      .eq('id', pred.id)
+    
+    if (!error) updatedCount++
+  }
+  
+  alert(`Poeng beregnet for ${updatedCount} spådommer!`)
+  await loadPredictions()
   await loadScores()
 }
 </script>
