@@ -753,7 +753,7 @@
   <!-- Quiz Panel -->
   <div id="panel-quiz" class="panel">
     <div class="section-card">
-      <h3>🧠 Quiz-resultater per lag</h3>
+      <h3>🎴 Ressurser per lag</h3>
       <div class="chart-container">
         <canvas id="quiz-chart"></canvas>
       </div>
@@ -1122,8 +1122,12 @@ function showPanel(panel) {
   document.querySelector(`[onclick="showPanel('${panel}')"]`).classList.add('active')
   document.getElementById(`panel-${panel}`).classList.add('active')
   
-  // Render chart when quiz panel is shown
-  if (panel === 'quiz' && quizChart === null) {
+  // Render chart when quiz panel is shown (always re-render to reflect resource changes)
+  if (panel === 'quiz') {
+    if (quizChart) {
+      quizChart.destroy()
+      quizChart = null
+    }
     renderQuizChart()
   }
   
@@ -1809,15 +1813,17 @@ function renderQuizChart() {
     return
   }
   
-  // Calculate points per team
-  const teamPoints = {}
-  activeTeams.forEach(t => { teamPoints[t.id] = 0 })
+  // Count resources per team
+  const teamResources = {}
+  activeTeams.forEach(t => { teamResources[t.id] = 0 })
   
-  quizResults.forEach(q => {
-    const participant = participants.find(p => p.id === q.participant_id)
-    if (participant && participant.team_id && q.is_correct) {
-      teamPoints[participant.team_id] = (teamPoints[participant.team_id] || 0) + (q.points || 0)
-    }
+  resources.forEach(r => {
+    const teamIds = r.team_ids || []
+    teamIds.forEach(teamId => {
+      if (teamResources[teamId] !== undefined) {
+        teamResources[teamId]++
+      }
+    })
   })
   
   quizChart = new Chart(ctx, {
@@ -1825,8 +1831,8 @@ function renderQuizChart() {
     data: {
       labels: activeTeams.map(t => `${t.flag} ${t.team_name}`),
       datasets: [{
-        label: 'Quiz-poeng',
-        data: activeTeams.map(t => teamPoints[t.id] || 0),
+        label: 'Ressurser',
+        data: activeTeams.map(t => teamResources[t.id] || 0),
         backgroundColor: [
           'rgba(200, 244, 90, 0.6)',
           'rgba(96, 200, 255, 0.6)',
@@ -1849,7 +1855,7 @@ function renderQuizChart() {
         y: {
           beginAtZero: true,
           grid: { color: 'rgba(255,255,255,0.1)' },
-          ticks: { color: 'rgba(255,255,255,0.6)' }
+          ticks: { color: 'rgba(255,255,255,0.6)', stepSize: 1 }
         },
         x: {
           grid: { display: false },
