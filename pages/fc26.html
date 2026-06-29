@@ -247,17 +247,26 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 const PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
 
 let teams = {}
+let teamsList = []
 let matches = []
+let fixtures = []
 
-// Match fixtures
-const FIXTURES = [
-  { match_num: 1, home: 'Irak', away: 'Senegal' },
-  { match_num: 2, home: 'Frankrike', away: 'Norge' },
-  { match_num: 3, home: 'Irak', away: 'Frankrike' },
-  { match_num: 4, home: 'Senegal', away: 'Norge' },
-  { match_num: 5, home: 'Irak', away: 'Norge' },
-  { match_num: 6, home: 'Senegal', away: 'Frankrike' }
-]
+// Generate round-robin fixtures from active teams
+function generateFixtures() {
+  fixtures = []
+  if (teamsList.length < 2) return
+  
+  let matchNum = 1
+  for (let i = 0; i < teamsList.length; i++) {
+    for (let j = i + 1; j < teamsList.length; j++) {
+      fixtures.push({
+        match_num: matchNum++,
+        home: teamsList[i].team_name,
+        away: teamsList[j].team_name
+      })
+    }
+  }
+}
 
 async function init() {
   // Check if activity is active
@@ -278,11 +287,14 @@ async function init() {
     .from('teams')
     .select('id, team_name, flag')
     .eq('is_active', true)
+    .order('id')
   
   if (teamsData) {
+    teamsList = teamsData
     teamsData.forEach(t => {
       teams[t.team_name] = t
     })
+    generateFixtures()
   }
 
   await loadMatches()
@@ -307,7 +319,7 @@ function renderMatches() {
   const container = document.getElementById('match-schedule')
   container.innerHTML = ''
   
-  FIXTURES.forEach(fixture => {
+  fixtures.forEach(fixture => {
     const homeTeam = teams[fixture.home] || { flag: '🏳️', team_name: fixture.home }
     const awayTeam = teams[fixture.away] || { flag: '🏳️', team_name: fixture.away }
     
@@ -353,7 +365,7 @@ function calculateStandings() {
   matches.forEach(match => {
     if (match.home_score === null || match.away_score === null) return
     
-    const fixture = FIXTURES.find(f => f.match_num === match.match_num)
+    const fixture = fixtures.find(f => f.match_num === match.match_num)
     if (!fixture) return
     
     const home = standings[fixture.home]

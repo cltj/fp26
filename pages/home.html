@@ -793,15 +793,23 @@ const ORAKEL_FASIT = {
 // FC26 placement points
 const FC26_PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
 
-// FC26 fixtures for standings calculation
-const FC26_FIXTURES = [
-  { match_num: 1, home: 'Irak', away: 'Senegal' },
-  { match_num: 2, home: 'Frankrike', away: 'Norge' },
-  { match_num: 3, home: 'Irak', away: 'Frankrike' },
-  { match_num: 4, home: 'Senegal', away: 'Norge' },
-  { match_num: 5, home: 'Irak', away: 'Norge' },
-  { match_num: 6, home: 'Senegal', away: 'Frankrike' }
-]
+// Generate round-robin fixtures from teams
+function generateFC26Fixtures(teamsList) {
+  const fixtures = []
+  if (teamsList.length < 2) return fixtures
+  
+  let matchNum = 1
+  for (let i = 0; i < teamsList.length; i++) {
+    for (let j = i + 1; j < teamsList.length; j++) {
+      fixtures.push({
+        match_num: matchNum++,
+        home: teamsList[i].team_name,
+        away: teamsList[j].team_name
+      })
+    }
+  }
+  return fixtures
+}
 
 function calculateOrakelPoints(prediction) {
   let points = 0
@@ -824,13 +832,16 @@ function calculateOrakelPoints(prediction) {
 
 function calculateFC26Standings(matches, teamsMap) {
   const standings = {}
-  Object.values(teamsMap).forEach(t => {
+  const teamsList = Object.values(teamsMap)
+  const fc26Fixtures = generateFC26Fixtures(teamsList)
+  
+  teamsList.forEach(t => {
     standings[t.team_name] = { team_id: t.id, points: 0, gf: 0, ga: 0 }
   })
   
   matches.forEach(match => {
     if (match.home_score === null || match.away_score === null) return
-    const fixture = FC26_FIXTURES.find(f => f.match_num === match.match_num)
+    const fixture = fc26Fixtures.find(f => f.match_num === match.match_num)
     if (!fixture || !standings[fixture.home] || !standings[fixture.away]) return
     
     const home = standings[fixture.home]
