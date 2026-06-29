@@ -123,7 +123,13 @@
     <h1>🎴 Ressurser</h1>
     <p style="color: rgba(255,255,255,0.6); margin-bottom: 1.5rem;">Kort som deles ut under quiz-delen av programmet.</p>
     
-    <div class="section-title">🎒 Gjenstander</div>
+    <div class="section-title">�️ Base</div>
+    <div class="resource-list" id="base-cards">
+      <div class="loading">Laster kort...</div>
+    </div>
+    
+    <hr class="section-divider">
+    <div class="section-title">�🎒 Gjenstander</div>
     <div class="resource-list" id="item-cards">
       <div class="loading">Laster kort...</div>
     </div>
@@ -220,18 +226,21 @@ async function loadResources() {
   
   if (error) {
     console.error('Error loading resources:', error)
-    document.getElementById('item-cards').innerHTML = '<p>Kunne ikke laste kort</p>'
+    document.getElementById('base-cards').innerHTML = '<p>Kunne ikke laste kort</p>'
+    document.getElementById('item-cards').innerHTML = ''
     document.getElementById('modifier-cards').innerHTML = ''
     document.getElementById('rule-cards').innerHTML = ''
     document.getElementById('special-cards').innerHTML = ''
     return
   }
   
+  const baseCards = resources.filter(r => r.category === 'base')
   const itemCards = resources.filter(r => r.category === 'item')
   const modifierCards = resources.filter(r => r.category === 'modifier')
   const ruleCards = resources.filter(r => r.category === 'rule')
   const specialCards = resources.filter(r => r.category === 'special')
   
+  document.getElementById('base-cards').innerHTML = baseCards.map(renderCard).join('') || '<p style="color: rgba(255,255,255,0.4);">Ingen kort</p>'
   document.getElementById('item-cards').innerHTML = itemCards.map(renderCard).join('') || '<p style="color: rgba(255,255,255,0.4);">Ingen kort</p>'
   document.getElementById('modifier-cards').innerHTML = modifierCards.map(renderCard).join('') || '<p style="color: rgba(255,255,255,0.4);">Ingen kort</p>'
   document.getElementById('rule-cards').innerHTML = ruleCards.map(renderCard).join('') || '<p style="color: rgba(255,255,255,0.4);">Ingen kort</p>'
