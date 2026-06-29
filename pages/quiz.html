@@ -349,11 +349,16 @@ async function init() {
   // Init scores
   teams.forEach(t => scores[t.id] = 0)
   
-  // Count existing wins
+  // Count existing wins - support both old winner_team_id and new winner_team_ids array
   questions.forEach(q => {
-    if (q.winner_team_id) {
-      scores[q.winner_team_id] = (scores[q.winner_team_id] || 0) + 1
+    // Ensure winner_team_ids is always an array
+    if (!q.winner_team_ids) {
+      q.winner_team_ids = q.winner_team_id ? [q.winner_team_id] : []
     }
+    // Count each winner
+    q.winner_team_ids.forEach(teamId => {
+      scores[teamId] = (scores[teamId] || 0) + 1
+    })
   })
   
   renderTeamButtons()
@@ -424,16 +429,17 @@ function showQuestion(index) {
     document.getElementById('reveal-btn').disabled = false
     document.getElementById('reveal-btn').textContent = 'Vis fasit'
     
-    // Update team buttons
+    // Update team buttons - support multiple winners
+    const winners = q.winner_team_ids || []
     document.querySelectorAll('.team-btn:not(.clear-btn)').forEach(btn => {
       btn.classList.remove('winner')
-      if (q.winner_team_id && btn.dataset.teamId == q.winner_team_id) {
+      if (winners.includes(parseInt(btn.dataset.teamId))) {
         btn.classList.add('winner')
       }
     })
     
     // Show/hide clear button
-    document.getElementById('clear-winner-btn').style.display = q.winner_team_id ? 'block' : 'none'
+    document.getElementById('clear-winner-btn').style.display = winners.length > 0 ? 'block' : 'none'
     
     // Nav buttons
     document.getElementById('prev-btn').disabled = index === 0
@@ -454,41 +460,51 @@ function revealAnswer() {
 
 async function selectWinner(teamId) {
   const q = questions[currentIndex]
-  const oldWinner = q.winner_team_id
   
-  // Update locally
-  if (oldWinner) scores[oldWinner]--
-  scores[teamId]++
-  q.winner_team_id = teamId
+  // Ensure winner_team_ids is an array
+  if (!q.winner_team_ids) q.winner_team_ids = []
+  
+  const idx = q.winner_team_ids.indexOf(teamId)
+  
+  if (idx > -1) {
+    // Already selected - remove (toggle off)
+    q.winner_team_ids.splice(idx, 1)
+    scores[teamId]--
+  } else {
+    // Not selected - add (toggle on)
+    q.winner_team_ids.push(teamId)
+    scores[teamId]++
+  }
   
   // Update UI
   document.querySelectorAll('.team-btn:not(.clear-btn)').forEach(btn => {
-    btn.classList.toggle('winner', btn.dataset.teamId == teamId)
+    btn.classList.toggle('winner', q.winner_team_ids.includes(parseInt(btn.dataset.teamId)))
   })
-  document.getElementById('clear-winner-btn').style.display = 'block'
+  document.getElementById('clear-winner-btn').style.display = q.winner_team_ids.length > 0 ? 'block' : 'none'
   renderScoreboard()
   
-  // Save to DB
-  await sb.from('activity_quiz').update({ winner_team_id: teamId }).eq('id', q.id)
+  // Save to DB - store as array
+  await sb.from('activity_quiz').update({ winner_team_ids: q.winner_team_ids }).eq('id', q.id)
 }
 
 async function clearWinner() {
   const q = questions[currentIndex]
-  const oldWinner = q.winner_team_id
   
-  if (!oldWinner) return
+  if (!q.winner_team_ids || q.winner_team_ids.length === 0) return
   
-  // Update locally
-  scores[oldWinner]--
-  q.winner_team_id = null
+  // Update scores - decrease for all previous winners
+  q.winner_team_ids.forEach(teamId => {
+    scores[teamId]--
+  })
+  q.winner_team_ids = []
   
   // Update UI
   document.querySelectorAll('.team-btn').forEach(btn => btn.classList.remove('winner'))
   document.getElementById('clear-winner-btn').style.display = 'none'
   renderScoreboard()
   
-  // Save to DB - use null properly
-  await sb.from('activity_quiz').update({ winner_team_id: null }).eq('id', q.id)
+  // Save to DB - empty array
+  await sb.from('activity_quiz').update({ winner_team_ids: [] }).eq('id', q.id)
 }
 
 function nextQuestion() {
