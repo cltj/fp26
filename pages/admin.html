@@ -627,15 +627,21 @@
     <div class="section-card">
       <h3>🏆 Gruppe</h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
-        Velg hvilke lag som deltar i turneringen.
+        Velg 4 lag som deltar i turneringen. Norge er alltid med.
       </p>
       <div id="active-teams-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
         <!-- Populated by JS -->
       </div>
-      <div class="form-row">
-        <label>Legg til</label>
-        <input type="text" id="add-group-team-search" placeholder="Søk land..." oninput="searchGroupTeam()" onfocus="showGroupTeamDropdown()" autocomplete="off" style="flex: 1;">
-        <div id="group-team-dropdown" class="team-dropdown" style="display: none;"></div>
+      <div id="add-team-section" style="margin-bottom: 1rem;">
+        <div class="form-row">
+          <label>Legg til</label>
+          <input type="text" id="add-group-team-search" placeholder="Søk land..." oninput="searchGroupTeam()" onfocus="showGroupTeamDropdown()" autocomplete="off" style="flex: 1;">
+          <div id="group-team-dropdown" class="team-dropdown" style="display: none;"></div>
+        </div>
+      </div>
+      <div id="fc26-generate-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(200,244,90,0.3);">
+        <button class="btn btn-primary" style="width: 100%;" onclick="generateFC26FixturesInDB()" id="generate-fc26-btn">🎮 Generer FC26-kamper</button>
+        <p style="font-size: 11px; color: var(--muted); margin-top: 8px;">Lager 6 kamper (alle mot alle) for de 4 lagene i gruppen.</p>
       </div>
       <div id="teams-status" class="status-msg"></div>
     </div>
@@ -920,12 +926,6 @@
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
         Registrer kampresultater. Poeng beregnes automatisk fra tabellplassering.
       </p>
-      
-      <!-- Generate fixtures button -->
-      <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
-        <button class="btn btn-primary" style="width: 100%;" onclick="generateFC26FixturesInDB()">🔄 Generer FC26-kamper fra aktive lag</button>
-        <p style="font-size: 11px; color: var(--muted); margin-top: 8px;">Lager 6 kamper (alle mot alle) basert på de 4 aktive lagene.</p>
-      </div>
       
       <div id="fc26-matches">
         <!-- Filled by JS -->
@@ -1364,9 +1364,13 @@ document.addEventListener('click', (e) => {
 function renderActiveTeams() {
   const activeTeams = teams.filter(t => t.is_active)
   const container = document.getElementById('active-teams-list')
+  const addSection = document.getElementById('add-team-section')
+  const fc26Section = document.getElementById('fc26-generate-section')
   
   if (activeTeams.length === 0) {
     container.innerHTML = '<span style="color: var(--muted); font-size: 12px;">Ingen lag i gruppen enda</span>'
+    addSection.style.display = 'block'
+    fc26Section.style.display = 'none'
     return
   }
   
@@ -1383,9 +1387,26 @@ function renderActiveTeams() {
       ${t.team_name !== 'Norge' ? `<span onclick="removeGroupTeam(${t.id})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>` : ''}
     </span>
   `).join('')
+  
+  // Show/hide add section based on team count
+  if (activeTeams.length >= 4) {
+    addSection.style.display = 'none'
+    fc26Section.style.display = 'block'
+  } else {
+    addSection.style.display = 'block'
+    fc26Section.style.display = 'none'
+  }
 }
 
 async function addGroupTeamFromSearch(teamId, teamName) {
+  const activeTeams = teams.filter(t => t.is_active)
+  
+  // Limit to 4 teams
+  if (activeTeams.length >= 4) {
+    showStatus('teams', 'error', 'Maks 4 lag i gruppen')
+    return
+  }
+  
   const team = teams.find(t => t.id === teamId)
   const { error } = await sb.from('teams').update({ is_active: true }).eq('id', teamId)
   
@@ -2127,7 +2148,7 @@ function renderFC26Matches() {
   if (!container) return
   
   if (fc26Matches.length === 0) {
-    container.innerHTML = '<p style="color: var(--muted);">Ingen FC26-kamper satt opp ennå. Klikk "Generer FC26-kamper" for å lage kampene.</p>'
+    container.innerHTML = '<p style="color: var(--muted);">Ingen FC26-kamper satt opp ennå. Gå til <strong>Kampoppsett → Gruppe</strong> og legg til 4 lag for å generere kamper.</p>'
     return
   }
   
@@ -2162,16 +2183,21 @@ async function generateFC26FixturesInDB() {
   const { data: activeTeams } = await sb.from('teams').select('id').eq('is_active', true).order('id')
   
   if (!activeTeams || activeTeams.length < 4) {
-    alert('Trenger minst 4 aktive lag for å generere FC26-kamper')
+    showStatus('teams', 'error', 'Trenger 4 lag for å generere FC26-kamper')
     return
   }
   
-  if (!confirm('Dette vil slette eksisterende FC26-kamper og lage nye. Fortsette?')) return
+  // Check if there are existing matches with scores
+  const { data: existingMatches } = await sb.from('activity_fc26').select('home_score').not('home_score', 'is', null)
+  
+  if (existingMatches && existingMatches.length > 0) {
+    if (!confirm('Det finnes allerede FC26-kamper med resultater. Slette og lage nye?')) return
+  }
   
   // Delete existing
   await sb.from('activity_fc26').delete().gte('id', 0)
   
-  // Generate round-robin fixtures for first 4 active teams
+  // Generate round-robin fixtures for the 4 active teams
   const teamIds = activeTeams.slice(0, 4).map(t => t.id)
   const fixtures = []
   let matchNum = 1
@@ -2191,11 +2217,11 @@ async function generateFC26FixturesInDB() {
   const { error } = await sb.from('activity_fc26').insert(fixtures)
   
   if (error) {
-    alert('Kunne ikke generere kamper: ' + error.message)
+    showStatus('teams', 'error', 'Kunne ikke generere kamper: ' + error.message)
     return
   }
   
-  alert(`${fixtures.length} FC26-kamper generert!`)
+  showStatus('teams', 'success', `${fixtures.length} FC26-kamper generert!`)
   await loadFC26Data()
 }
 
