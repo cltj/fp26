@@ -1826,6 +1826,7 @@ function calculateOrakelPoints(prediction) {
 function calculateFC26Standings(matches) {
   // Initialize standings for all teams in matches
   const standings = {}
+  let gamesPlayed = 0
   
   // Build standings from matches (using home_team_id and away_team_id)
   matches.forEach(match => {
@@ -1841,6 +1842,7 @@ function calculateFC26Standings(matches) {
     
     if (match.home_score === null || match.away_score === null) return
     
+    gamesPlayed++
     const home = standings[match.home_team_id]
     const away = standings[match.away_team_id]
     home.gf += match.home_score
@@ -1852,6 +1854,13 @@ function calculateFC26Standings(matches) {
     else if (match.home_score < match.away_score) away.points += 3
     else { home.points += 1; away.points += 1 }
   })
+  
+  // No games played yet - return 0 points for all
+  if (gamesPlayed === 0) {
+    const result = {}
+    Object.keys(standings).forEach(teamId => result[teamId] = 0)
+    return result
+  }
   
   const sorted = Object.values(standings).sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points
