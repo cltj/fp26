@@ -211,10 +211,11 @@ async function init() {
     }
   }
 
-  // Load teams
+  // Load teams (only active teams)
   const { data: teamsData } = await sb
     .from('teams')
     .select('id, team_name, flag')
+    .eq('is_active', true)
   
   if (teamsData) {
     teamsData.forEach(t => {

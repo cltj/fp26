@@ -205,8 +205,8 @@ let teams = {}
 let activities = {}
 
 async function init() {
-  // Load teams for displaying ownership
-  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag')
+  // Load teams for displaying ownership (only active teams)
+  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag').eq('is_active', true)
   if (teamsData) {
     teamsData.forEach(t => teams[t.id] = t)
   }
