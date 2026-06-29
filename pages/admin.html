@@ -717,6 +717,12 @@
   
   <!-- Resources Panel -->
   <div id="panel-resources" class="panel">
+    <div class="section-card" style="margin-bottom: 1rem;">
+      <h3>📊 Ressurser per lag</h3>
+      <div id="team-resources-summary" style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 1rem;">
+        <!-- Populated by JS -->
+      </div>
+    </div>
     <div class="section-card">
       <h3>🎴 Tildel ressurser til lag</h3>
       <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
@@ -1199,13 +1205,42 @@ async function loadResources() {
 
 function renderResources() {
   const container = document.getElementById('resources-grid')
+  const summaryContainer = document.getElementById('team-resources-summary')
   const activeTeams = teams.filter(t => t.is_active)
   
   if (activeTeams.length === 0) {
     container.innerHTML = '<p style="color: var(--muted); font-size: 12px;">Legg til lag i gruppen først (under Kampoppsett)</p>'
+    summaryContainer.innerHTML = ''
     return
   }
   
+  // Calculate resources per team
+  const teamResources = {}
+  activeTeams.forEach(t => { teamResources[t.id] = 0 })
+  
+  resources.forEach(r => {
+    const teamIds = r.team_ids || []
+    teamIds.forEach(teamId => {
+      if (teamResources[teamId] !== undefined) {
+        teamResources[teamId]++
+      }
+    })
+  })
+  
+  // Render team summary
+  summaryContainer.innerHTML = activeTeams.map(t => {
+    const count = teamResources[t.id] || 0
+    return `
+      <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 16px 20px; min-width: 120px; text-align: center;">
+        <div style="font-size: 28px; margin-bottom: 4px;">${t.flag}</div>
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 8px;">${t.team_name}</div>
+        <div style="font-size: 32px; font-weight: 700; color: var(--accent);">${count}</div>
+        <div style="font-size: 11px; color: var(--muted);">ressurser</div>
+      </div>
+    `
+  }).join('')
+  
+  // Render resource grid
   container.innerHTML = resources.map(r => {
     const teamIds = r.team_ids || []
     const assignedCount = teamIds.length
