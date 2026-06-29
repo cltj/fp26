@@ -986,6 +986,7 @@
       <h3>📊 Innsendte spådommer <span id="prediction-count" style="font-size: 14px; font-weight: 400; color: var(--muted);">0</span></h3>
       <div style="margin-bottom: 1rem;">
         <a href="orakel_results.html" class="btn btn-primary btn-sm">→ Se full resultattavle</a>
+        <button class="btn btn-sm" onclick="loadPredictions()" style="margin-left: 8px;">🔄 Oppdater</button>
       </div>
       <div style="overflow-x: auto;">
         <table class="data-table" id="predictions-table">
@@ -993,9 +994,12 @@
             <tr>
               <th>Deltaker</th>
               <th>Lag</th>
-              <th>Resultat</th>
+              <th>Res.</th>
               <th>Først</th>
               <th>Gule</th>
+              <th>Null</th>
+              <th>Haal.</th>
+              <th>Str.</th>
               <th>P</th>
             </tr>
           </thead>
@@ -2558,6 +2562,11 @@ async function loadPredictions() {
     return map[val] || val
   }
   
+  const formatYesNo = (val) => {
+    if (!val) return '—'
+    return val === 'ja' ? '✓' : '✗'
+  }
+  
   if (predictions) {
     for (const p of predictions) {
       const row = document.createElement('tr')
@@ -2570,6 +2579,9 @@ async function loadPredictions() {
         <td style="text-align: center; font-weight: 600;">${p.home_goals} – ${p.away_goals}</td>
         <td style="text-align: center;">${formatChoice(p.first_goal)}</td>
         <td style="text-align: center;">${formatChoice(p.yellow_cards)}</td>
+        <td style="text-align: center;">${formatYesNo(p.clean_sheet)}</td>
+        <td style="text-align: center;">${formatYesNo(p.haaland_scores)}</td>
+        <td style="text-align: center;">${formatYesNo(p.penalty)}</td>
         <td style="text-align: center; color: var(--accent);">${p.points ?? '—'}</td>
       `
       tbody.appendChild(row)
