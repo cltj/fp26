@@ -953,7 +953,7 @@
       
       <!-- Live Score -->
       <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
-        <div style="text-align: center; margin-bottom: 0.5rem; color: var(--muted); font-size: 12px;">STILLINGEN</div>
+        <div style="text-align: center; margin-bottom: 0.5rem; color: var(--muted); font-size: 12px;">⚽ STILLINGEN</div>
         <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
           <div style="text-align: center;">
             <div id="live-home-icon" style="font-size: 24px;">🏠</div>
@@ -973,6 +973,27 @@
         </div>
       </div>
       
+      <!-- Yellow Cards Counter -->
+      <div style="background: rgba(251,191,36,0.1); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+        <div style="text-align: center; margin-bottom: 0.5rem; color: #fbbf24; font-size: 12px;">🟨 GULE KORT</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 1rem;">
+          <div style="text-align: center;">
+            <div id="card-home-icon" style="font-size: 18px;">🏠</div>
+          </div>
+          <button class="btn btn-sm" onclick="adjustCards('home', -1)" style="padding: 8px 12px; background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.4);">−</button>
+          <span id="live-home-cards" style="font-size: 32px; font-weight: 700; min-width: 40px; text-align: center; color: #fbbf24;">0</span>
+          <button class="btn btn-sm" onclick="adjustCards('home', 1)" style="padding: 8px 12px; background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.4);">+</button>
+          <span style="font-size: 20px; color: var(--muted);">–</span>
+          <button class="btn btn-sm" onclick="adjustCards('away', -1)" style="padding: 8px 12px; background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.4);">−</button>
+          <span id="live-away-cards" style="font-size: 32px; font-weight: 700; min-width: 40px; text-align: center; color: #fbbf24;">0</span>
+          <button class="btn btn-sm" onclick="adjustCards('away', 1)" style="padding: 8px 12px; background: rgba(251,191,36,0.2); border-color: rgba(251,191,36,0.4);">+</button>
+          <div style="text-align: center;">
+            <div id="card-away-icon" style="font-size: 18px;">✈️</div>
+          </div>
+        </div>
+        <div id="yellow-cards-status" style="text-align: center; margin-top: 8px; font-size: 12px; color: var(--muted);"></div>
+      </div>
+      
       <!-- Toggle Questions -->
       <div style="display: grid; gap: 12px;">
         <!-- Scorer først -->
@@ -982,16 +1003,6 @@
             <button onclick="setFasitValue('first_goal', 'home')" data-value="home" class="toggle-btn">🏠 Hjemme</button>
             <button onclick="setFasitValue('first_goal', 'away')" data-value="away" class="toggle-btn">✈️ Borte</button>
             <button onclick="setFasitValue('first_goal', 'ingen')" data-value="ingen" class="toggle-btn">Ingen</button>
-          </div>
-        </div>
-        
-        <!-- Flest gule -->
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="min-width: 120px; font-size: 13px;">🟨 Flest gule</span>
-          <div class="toggle-group" id="toggle-yellow-cards">
-            <button onclick="setFasitValue('yellow_cards', 'home')" data-value="home" class="toggle-btn">🏠 Hjemme</button>
-            <button onclick="setFasitValue('yellow_cards', 'away')" data-value="away" class="toggle-btn">✈️ Borte</button>
-            <button onclick="setFasitValue('yellow_cards', 'likt')" data-value="likt" class="toggle-btn">Likt</button>
           </div>
         </div>
         
@@ -2550,7 +2561,7 @@ async function resetAllFC26() {
 
 // ===== ORAKEL =====
 let orakelMatchup = { home: null, away: null }
-let orakelFasit = { id: 1, home_goals: 0, away_goals: 0, first_goal: null, yellow_cards: null, clean_sheet: null, haaland_scores: null, penalty: null }
+let orakelFasit = { id: 1, home_goals: 0, away_goals: 0, home_cards: 0, away_cards: 0, first_goal: null, yellow_cards: null, clean_sheet: null, haaland_scores: null, penalty: null }
 
 async function loadOrakel() {
   // Load matchup for labels
@@ -2564,6 +2575,8 @@ async function loadOrakel() {
       document.getElementById('live-home-name').textContent = orakelMatchup.home.team_name
       document.getElementById('live-away-icon').textContent = orakelMatchup.away.team_icon
       document.getElementById('live-away-name').textContent = orakelMatchup.away.team_name
+      document.getElementById('card-home-icon').textContent = orakelMatchup.home.team_icon
+      document.getElementById('card-away-icon').textContent = orakelMatchup.away.team_icon
     }
   }
   
@@ -2585,8 +2598,24 @@ function updateFasitUI() {
   document.getElementById('live-home-goals').textContent = orakelFasit.home_goals ?? 0
   document.getElementById('live-away-goals').textContent = orakelFasit.away_goals ?? 0
   
+  // Update card display
+  document.getElementById('live-home-cards').textContent = orakelFasit.home_cards ?? 0
+  document.getElementById('live-away-cards').textContent = orakelFasit.away_cards ?? 0
+  
+  // Update yellow cards status text
+  const homeCards = orakelFasit.home_cards ?? 0
+  const awayCards = orakelFasit.away_cards ?? 0
+  const statusEl = document.getElementById('yellow-cards-status')
+  if (homeCards > awayCards) {
+    statusEl.textContent = `Flest gule: Hjemme (${homeCards} vs ${awayCards})`
+  } else if (awayCards > homeCards) {
+    statusEl.textContent = `Flest gule: Borte (${awayCards} vs ${homeCards})`
+  } else {
+    statusEl.textContent = `Likt (${homeCards} – ${awayCards})`
+  }
+  
   // Update toggle buttons
-  const toggles = ['first_goal', 'yellow_cards', 'clean_sheet', 'haaland_scores', 'penalty']
+  const toggles = ['first_goal', 'clean_sheet', 'haaland_scores', 'penalty']
   toggles.forEach(field => {
     const groupId = 'toggle-' + field.replace('_', '-')
     const group = document.getElementById(groupId)
@@ -2610,10 +2639,42 @@ async function adjustGoals(team, delta) {
   // Auto-update clean_sheet based on away goals (if Norway is home)
   if (field === 'away_goals') {
     orakelFasit.clean_sheet = newValue === 0 ? 'ja' : 'nei'
-    updateFasitUI()
   }
   
-  // Save to DB
+  // Auto-update first_goal if this is first goal
+  const homeGoals = orakelFasit.home_goals ?? 0
+  const awayGoals = orakelFasit.away_goals ?? 0
+  if (homeGoals + awayGoals === 1 && delta > 0) {
+    orakelFasit.first_goal = team
+  } else if (homeGoals === 0 && awayGoals === 0) {
+    orakelFasit.first_goal = null
+  }
+  
+  updateFasitUI()
+  await saveFasitToDB()
+}
+
+async function adjustCards(team, delta) {
+  const field = team === 'home' ? 'home_cards' : 'away_cards'
+  const current = orakelFasit[field] ?? 0
+  const newValue = Math.max(0, current + delta)
+  orakelFasit[field] = newValue
+  
+  // Update display immediately
+  document.getElementById(`live-${team}-cards`).textContent = newValue
+  
+  // Auto-update yellow_cards based on card counts
+  const homeCards = orakelFasit.home_cards ?? 0
+  const awayCards = orakelFasit.away_cards ?? 0
+  if (homeCards > awayCards) {
+    orakelFasit.yellow_cards = 'home'
+  } else if (awayCards > homeCards) {
+    orakelFasit.yellow_cards = 'away'
+  } else {
+    orakelFasit.yellow_cards = 'likt'
+  }
+  
+  updateFasitUI()
   await saveFasitToDB()
 }
 
