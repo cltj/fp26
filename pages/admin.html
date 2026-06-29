@@ -730,7 +730,6 @@
         <thead>
           <tr>
             <th>Lag</th>
-            <th>Quiz</th>
             <th>Fotball</th>
             <th>Orakel</th>
             <th>FC26</th>
@@ -1580,26 +1579,130 @@ async function saveMatchup() {
   showStatus('match', error ? 'error' : 'success', error ? error.message : 'Kampoppsett lagret!')
 }
 
+// FASIT for orakel points calculation
+const ORAKEL_FASIT = {
+  away_goals: 4,  // Frankrike
+  home_goals: 1,  // Norge
+  first_goal: 'away',
+  yellow_cards: 'likt'
+}
+
+// FC26 placement points
+const FC26_PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
+
+// FC26 fixtures
+const FC26_FIXTURES = [
+  { match_num: 1, home: 'Irak', away: 'Senegal' },
+  { match_num: 2, home: 'Frankrike', away: 'Norge' },
+  { match_num: 3, home: 'Irak', away: 'Frankrike' },
+  { match_num: 4, home: 'Senegal', away: 'Norge' },
+  { match_num: 5, home: 'Irak', away: 'Norge' },
+  { match_num: 6, home: 'Senegal', away: 'Frankrike' }
+]
+
+function calculateOrakelPoints(prediction) {
+  let points = 0
+  if (prediction.away_goals === ORAKEL_FASIT.away_goals && 
+      prediction.home_goals === ORAKEL_FASIT.home_goals) {
+    points += 5
+  } else {
+    const predWinner = prediction.away_goals > prediction.home_goals ? 'away' : 
+                      prediction.away_goals < prediction.home_goals ? 'home' : 'draw'
+    if (predWinner === 'away') points += 2
+  }
+  if (prediction.first_goal === ORAKEL_FASIT.first_goal) points += 1
+  if (prediction.yellow_cards === ORAKEL_FASIT.yellow_cards) points += 1
+  return points
+}
+
+function calculateFC26Standings(matches, teamsMap) {
+  const standings = {}
+  Object.values(teamsMap).forEach(t => {
+    standings[t.team_name] = { team_id: t.id, points: 0, gf: 0, ga: 0 }
+  })
+  
+  matches.forEach(match => {
+    if (match.home_score === null || match.away_score === null) return
+    const fixture = FC26_FIXTURES.find(f => f.match_num === match.match_num)
+    if (!fixture || !standings[fixture.home] || !standings[fixture.away]) return
+    
+    const home = standings[fixture.home]
+    const away = standings[fixture.away]
+    home.gf += match.home_score
+    home.ga += match.away_score
+    away.gf += match.away_score
+    away.ga += match.home_score
+    
+    if (match.home_score > match.away_score) home.points += 3
+    else if (match.home_score < match.away_score) away.points += 3
+    else { home.points += 1; away.points += 1 }
+  })
+  
+  const sorted = Object.values(standings).sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points
+    return (b.gf - b.ga) - (a.gf - a.ga)
+  })
+  
+  const result = {}
+  sorted.forEach((s, idx) => {
+    if (s.team_id) result[s.team_id] = FC26_PLACEMENT_POINTS[idx + 1] || 0
+  })
+  return result
+}
+
 async function loadScores() {
-  const { data } = await sb.from('activity_scores').select('*')
   const tbody = document.getElementById('scores-body')
   const activeTeams = teams.filter(t => t.is_active)
   
   if (activeTeams.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="color: var(--muted); text-align: center;">Legg til lag i gruppen først (under Kampoppsett)</td></tr>'
+    tbody.innerHTML = '<tr><td colspan="5" style="color: var(--muted); text-align: center;">Legg til lag i gruppen først (under Kampoppsett)</td></tr>'
     return
   }
   
+  // Build team map for FC26
+  const teamsMap = {}
+  teams.forEach(t => teamsMap[t.team_name] = t)
+  
+  // Initialize scores
+  const scoreMap = {}
+  activeTeams.forEach(t => scoreMap[t.id] = { fotball: 0, orakel: 0, fc26: 0 })
+  
+  // 1. Fotball points
+  const { data: fotballData } = await sb.from('activity_fotball').select('team_id, points')
+  if (fotballData) {
+    fotballData.forEach(row => {
+      if (scoreMap[row.team_id]) scoreMap[row.team_id].fotball += row.points || 0
+    })
+  }
+  
+  // 2. Orakel points
+  const { data: predictionsData } = await sb.from('activity_predictions').select('team_id, home_goals, away_goals, first_goal, yellow_cards')
+  if (predictionsData) {
+    predictionsData.forEach(p => {
+      if (scoreMap[p.team_id]) scoreMap[p.team_id].orakel += calculateOrakelPoints(p)
+    })
+  }
+  
+  // 3. FC26 points
+  const { data: fc26Data } = await sb.from('activity_fc26').select('match_num, home_score, away_score')
+  if (fc26Data && fc26Data.length > 0) {
+    const fc26Points = calculateFC26Standings(fc26Data, teamsMap)
+    Object.keys(fc26Points).forEach(teamId => {
+      const id = parseInt(teamId)
+      if (scoreMap[id]) scoreMap[id].fc26 = fc26Points[id]
+    })
+  }
+  
   tbody.innerHTML = activeTeams.map(t => {
-    const score = (data || []).find(s => s.team_id === t.id) || {}
+    const s = scoreMap[t.id] || { fotball: 0, orakel: 0, fc26: 0 }
+    const total = s.fotball + s.orakel + s.fc26
     return `
       <tr>
         <td>${t.flag} ${t.team_name}</td>
-        <td>${score.quiz_points || 0}</td>
-        <td>${score.fotball_points || 0}</td>
-        <td>${score.orakel_points || 0}</td>
-        <td>${score.fc26_points || 0}</td>
-        <td style="font-weight: 700; color: var(--accent);">${score.total_points || 0}</td>
+        <td>${s.fotball}</td>
+        <td>${s.orakel}</td>
+        <td>${s.fc26}</td>
+        <td style="font-weight: 700; color: var(--accent);">${total}</td>
       </tr>
     `
   }).join('')
@@ -1741,7 +1844,6 @@ async function resetGame() {
     await sb.from('activity_fotball').delete().neq('id', 0)
     await sb.from('activity_predictions').delete().neq('id', 0)
     await sb.from('activity_fc26').delete().neq('id', 0)
-    await sb.from('activity_scores').delete().neq('id', 0)
     
     // Reset resource assignments
     await sb.from('resources').update({ team_ids: [] }).neq('id', 0)
