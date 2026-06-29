@@ -611,6 +611,9 @@
       <details style="margin-bottom: 1rem;">
         <summary style="cursor: pointer; font-size: 12px; color: var(--muted);">Hva blir slettet?</summary>
         <ul style="font-size: 11px; color: var(--muted); margin: 0.5rem 0 0 1rem; padding: 0;">
+          <li>Alle deltakere</li>
+          <li>Alle lag i gruppen</li>
+          <li>Kampoppsett (motstander)</li>
           <li>Alle quiz-svar</li>
           <li>Alle fotball-resultater</li>
           <li>Alle orakel-tips</li>
@@ -1379,8 +1382,21 @@ async function resetGame() {
     // Reset activities to inactive
     await sb.from('activities').update({ is_active: false }).neq('id', 0)
     
+    // Delete all participants
+    await sb.from('participants').delete().neq('id', 0)
+    
+    // Deactivate all teams (set is_active to false)
+    await sb.from('teams').update({ is_active: false }).neq('id', 0)
+    
+    // Clear matchup
+    await sb.from('matchup').delete().neq('position', '')
+    
     showStatus('reset', 'success', 'Spillet er nullstilt!')
     document.getElementById('reset-confirm').value = ''
+    
+    // Clear UI state
+    participants = []
+    teams.forEach(t => t.is_active = false)
     
     // Reload all data
     await init()
