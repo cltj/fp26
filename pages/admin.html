@@ -1392,8 +1392,8 @@ function renderActiveTeams() {
   // Show/hide add section based on team count (max 4)
   addSection.style.display = activeTeams.length >= 4 ? 'none' : 'block'
   
-  // Enable/disable FC26 button (need more than 2 teams)
-  if (activeTeams.length > 2) {
+  // Enable/disable FC26 button (need at least 2 teams)
+  if (activeTeams.length >= 2) {
     fc26Btn.disabled = false
     fc26Btn.style.opacity = '1'
   } else {
@@ -2186,8 +2186,8 @@ async function generateFC26FixturesInDB() {
   // Get active teams
   const { data: activeTeams } = await sb.from('teams').select('id').eq('is_active', true).order('id')
   
-  if (!activeTeams || activeTeams.length < 3) {
-    showStatus('teams', 'error', 'Trenger minst 3 lag for å generere FC26-kamper')
+  if (!activeTeams || activeTeams.length < 2) {
+    showStatus('teams', 'error', 'Trenger minst 2 lag for å generere FC26-kamper')
     return
   }
   
