@@ -2021,8 +2021,8 @@ async function resetAllFotball() {
   if (!confirm('⚠️ Er du HELT sikker på at du vil nullstille ALLE fotball-resultater?')) return
   if (!confirm('Dette kan ikke angres. Fortsette?')) return
   
-  // Set all points to NULL
-  const { error } = await sb.from('activity_fotball').update({ points: null }).gte('id', 0)
+  // Delete all fotball results
+  const { error } = await sb.from('activity_fotball').delete().gte('id', 0)
   
   if (error) {
     alert('Kunne ikke nullstille: ' + error.message)
