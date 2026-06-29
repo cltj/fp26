@@ -225,6 +225,14 @@
       </a>
     </div>
 
+    <div id="match-started" class="highlight-box" style="display: none; background: rgba(255,107,107,0.1); border-color: rgba(255,107,107,0.3);">
+      <p>⚽ <strong>Kampen har startet!</strong><br>
+      Ingen endring tillatt etter avspark.</p>
+      <a href="orakel_results.html" class="action-box" style="display: block; text-decoration: none; color: inherit; margin-top: 1rem;">
+        <p>→ Se resultater</p>
+      </a>
+    </div>
+
     <div id="main-content">
     <div class="highlight-box">
       <p><strong>Poengskala for sluttresultat:</strong></p>
@@ -344,6 +352,7 @@ async function loadMatchup() {
   if (data && data.length > 0) {
     matchup.home = data.find(m => m.position === 'home')
     matchup.away = data.find(m => m.position === 'away')
+    matchup.kickoff = matchup.home?.match_kickoff || matchup.away?.match_kickoff
     
     if (matchup.home && matchup.away) {
       // Update title
@@ -370,6 +379,17 @@ async function loadMatchup() {
 async function init() {
   // Load matchup first
   await loadMatchup()
+  
+  // Check if match has started (kickoff time passed)
+  if (matchup.kickoff) {
+    const kickoffTime = new Date(matchup.kickoff)
+    const now = new Date()
+    if (now >= kickoffTime) {
+      document.getElementById('match-started').style.display = 'block'
+      document.getElementById('main-content').style.display = 'none'
+      return
+    }
+  }
   
   // First check if the activity is active
   const { data: activity, error } = await sb
