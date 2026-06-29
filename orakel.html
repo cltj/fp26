@@ -437,7 +437,6 @@ async function submitPrediction() {
     participant_id: session.id,
     team_id: participant?.team_id || null,
     activity_id: 3, // orakel activity
-    matchup_id: 1, // Norge vs Frankrike
     home_goals: parseInt(scoreNorge),
     away_goals: parseInt(scoreFrankrike),
     first_goal: answers['first-goal'] === 'norge' ? 'home' : answers['first-goal'] === 'frankrike' ? 'away' : answers['first-goal'],
