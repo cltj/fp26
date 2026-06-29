@@ -254,7 +254,7 @@
         .from('activity_predictions')
         .select(`
           *,
-          participants (name),
+          participants (participant),
           teams (team_name, flag)
         `)
 
@@ -272,7 +272,7 @@
       const results = predictions.map(p => {
         const { points, details } = calculatePoints(p)
         return {
-          name: p.participants?.name || 'Ukjent',
+          name: p.participants?.participant || 'Ukjent',
           team: p.teams?.team_name || 'Ukjent lag',
           team_id: p.team_id,
           flag: p.teams?.flag || '🏳️',

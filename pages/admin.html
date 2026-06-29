@@ -2755,7 +2755,7 @@ async function loadPredictions() {
     .from('activity_predictions')
     .select(`
       *,
-      participants (name),
+      participants (participant),
       teams (flag, team_name)
     `)
     .order('created_at', { ascending: true })
@@ -2808,7 +2808,7 @@ async function loadPredictions() {
     for (const p of predictions) {
       const row = document.createElement('tr')
       const teamFlag = p.teams?.flag || ''
-      const participantName = p.participants?.name || `#${p.participant_id}`
+      const participantName = p.participants?.participant || `#${p.participant_id}`
       
       row.innerHTML = `
         <td>${participantName}</td>
