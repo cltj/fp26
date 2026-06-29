@@ -921,6 +921,12 @@
         Registrer kampresultater. Poeng beregnes automatisk fra tabellplassering.
       </p>
       
+      <!-- Generate fixtures button -->
+      <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <button class="btn btn-primary" style="width: 100%;" onclick="generateFC26FixturesInDB()">🔄 Generer FC26-kamper fra aktive lag</button>
+        <p style="font-size: 11px; color: var(--muted); margin-top: 8px;">Lager 6 kamper (alle mot alle) basert på de 4 aktive lagene.</p>
+      </div>
+      
       <div id="fc26-matches">
         <!-- Filled by JS -->
       </div>
@@ -1616,24 +1622,6 @@ const ORAKEL_FASIT = {
 // FC26 placement points
 const FC26_PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
 
-// Generate round-robin fixtures from teams
-function generateFC26Fixtures(teamsList) {
-  const fixtures = []
-  if (teamsList.length < 2) return fixtures
-  
-  let matchNum = 1
-  for (let i = 0; i < teamsList.length; i++) {
-    for (let j = i + 1; j < teamsList.length; j++) {
-      fixtures.push({
-        match_num: matchNum++,
-        home: teamsList[i].team_name,
-        away: teamsList[j].team_name
-      })
-    }
-  }
-  return fixtures
-}
-
 function calculateOrakelPoints(prediction) {
   let points = 0
   if (prediction.away_goals === ORAKEL_FASIT.away_goals && 
@@ -1649,22 +1637,26 @@ function calculateOrakelPoints(prediction) {
   return points
 }
 
-function calculateFC26Standings(matches, teamsMap) {
+function calculateFC26Standings(matches) {
+  // Initialize standings for all teams in matches
   const standings = {}
-  const teamsList = Object.values(teamsMap)
-  const fc26Fixtures = generateFC26Fixtures(teamsList)
   
-  teamsList.forEach(t => {
-    standings[t.team_name] = { team_id: t.id, points: 0, gf: 0, ga: 0 }
-  })
-  
+  // Build standings from matches (using home_team_id and away_team_id)
   matches.forEach(match => {
-    if (match.home_score === null || match.away_score === null) return
-    const fixture = fc26Fixtures.find(f => f.match_num === match.match_num)
-    if (!fixture || !standings[fixture.home] || !standings[fixture.away]) return
+    if (!match.home_team_id || !match.away_team_id) return
     
-    const home = standings[fixture.home]
-    const away = standings[fixture.away]
+    // Initialize teams if not yet done
+    if (!standings[match.home_team_id]) {
+      standings[match.home_team_id] = { team_id: match.home_team_id, points: 0, gf: 0, ga: 0 }
+    }
+    if (!standings[match.away_team_id]) {
+      standings[match.away_team_id] = { team_id: match.away_team_id, points: 0, gf: 0, ga: 0 }
+    }
+    
+    if (match.home_score === null || match.away_score === null) return
+    
+    const home = standings[match.home_team_id]
+    const away = standings[match.away_team_id]
     home.gf += match.home_score
     home.ga += match.away_score
     away.gf += match.away_score
@@ -1696,10 +1688,6 @@ async function loadScores() {
     return
   }
   
-  // Build team map for FC26
-  const teamsMap = {}
-  teams.forEach(t => teamsMap[t.team_name] = t)
-  
   // Initialize scores
   const scoreMap = {}
   activeTeams.forEach(t => scoreMap[t.id] = { fotball: 0, orakel: 0, fc26: 0 })
@@ -1721,9 +1709,9 @@ async function loadScores() {
   }
   
   // 3. FC26 points
-  const { data: fc26Data } = await sb.from('activity_fc26').select('match_num, home_score, away_score')
+  const { data: fc26Data } = await sb.from('activity_fc26').select('match_num, home_team_id, away_team_id, home_score, away_score')
   if (fc26Data && fc26Data.length > 0) {
-    const fc26Points = calculateFC26Standings(fc26Data, teamsMap)
+    const fc26Points = calculateFC26Standings(fc26Data)
     Object.keys(fc26Points).forEach(teamId => {
       const id = parseInt(teamId)
       if (scoreMap[id]) scoreMap[id].fc26 = fc26Points[id]
@@ -2118,21 +2106,17 @@ async function resetAllFotball() {
 // ============================================
 
 let fc26Matches = []
-let fc26Teams = {}
-let fc26TeamsList = []
-let fc26Fixtures = []
+let fc26TeamsById = {}
 
 async function loadFC26Data() {
-  // Load active teams
-  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag').eq('is_active', true).order('id')
+  // Load all teams (for lookup)
+  const { data: teamsData } = await sb.from('teams').select('id, team_name, flag')
   if (teamsData) {
-    fc26TeamsList = teamsData
-    teamsData.forEach(t => fc26Teams[t.team_name] = t)
-    fc26Fixtures = generateFC26Fixtures(teamsData)
+    teamsData.forEach(t => fc26TeamsById[t.id] = t)
   }
   
-  // Load matches
-  const { data: matchData } = await sb.from('activity_fc26').select('*')
+  // Load matches directly from activity_fc26 (fixtures are stored there)
+  const { data: matchData } = await sb.from('activity_fc26').select('*').order('match_num')
   fc26Matches = matchData || []
   
   renderFC26Matches()
@@ -2142,39 +2126,80 @@ function renderFC26Matches() {
   const container = document.getElementById('fc26-matches')
   if (!container) return
   
-  if (fc26Fixtures.length === 0) {
-    container.innerHTML = '<p style="color: var(--muted);">Ingen lag aktivert ennå. Legg til lag i gruppen først.</p>'
+  if (fc26Matches.length === 0) {
+    container.innerHTML = '<p style="color: var(--muted);">Ingen FC26-kamper satt opp ennå. Klikk "Generer FC26-kamper" for å lage kampene.</p>'
     return
   }
   
-  container.innerHTML = fc26Fixtures.map(fixture => {
-    const homeTeam = fc26Teams[fixture.home] || { flag: '🏳️', team_name: fixture.home }
-    const awayTeam = fc26Teams[fixture.away] || { flag: '🏳️', team_name: fixture.away }
-    const match = fc26Matches.find(m => m.match_num === fixture.match_num)
-    const hasScore = match && match.home_score !== null && match.away_score !== null
+  container.innerHTML = fc26Matches.map(match => {
+    const homeTeam = fc26TeamsById[match.home_team_id] || { flag: '🏳️', team_name: `Lag ${match.match_num <= 3 ? 1 : 2}` }
+    const awayTeam = fc26TeamsById[match.away_team_id] || { flag: '🏳️', team_name: `Lag ${match.match_num}` }
+    const hasScore = match.home_score !== null && match.away_score !== null
     
     return `
       <div class="exercise-admin" style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; margin-bottom: 12px;">
         <h4 style="margin: 0 0 10px 0; font-size: 13px; color: rgba(255,255,255,0.8);">
-          Kamp ${fixture.match_num}: ${homeTeam.flag} ${homeTeam.team_name} vs ${awayTeam.flag} ${awayTeam.team_name}
+          Kamp ${match.match_num}: ${homeTeam.flag} ${homeTeam.team_name} vs ${awayTeam.flag} ${awayTeam.team_name}
         </h4>
         <div class="form-row" style="margin-bottom: 8px; gap: 8px;">
-          <input type="number" id="fc26-match${fixture.match_num}-home" min="0" max="99" 
+          <input type="number" id="fc26-match${match.match_num}-home" min="0" max="99" 
                  value="${hasScore ? match.home_score : ''}" placeholder="-"
                  style="width: 60px; text-align: center; font-size: 18px; font-weight: 700;">
           <span style="font-size: 18px; color: rgba(255,255,255,0.5);">–</span>
-          <input type="number" id="fc26-match${fixture.match_num}-away" min="0" max="99" 
+          <input type="number" id="fc26-match${match.match_num}-away" min="0" max="99" 
                  value="${hasScore ? match.away_score : ''}" placeholder="-"
                  style="width: 60px; text-align: center; font-size: 18px; font-weight: 700;">
-          <button class="btn btn-primary" onclick="saveFC26Match(${fixture.match_num}, '${fixture.home}', '${fixture.away}')">💾</button>
-          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFC26Match(${fixture.match_num})">↺</button>
+          <button class="btn btn-primary" onclick="saveFC26Match(${match.match_num})">💾</button>
+          <button class="btn" style="background: var(--danger-bg); border-color: rgba(255,100,100,0.3); color: var(--danger);" onclick="resetFC26Match(${match.match_num})">↺</button>
         </div>
       </div>
     `
   }).join('')
 }
 
-async function saveFC26Match(matchNum, homeTeamName, awayTeamName) {
+async function generateFC26FixturesInDB() {
+  // Get active teams
+  const { data: activeTeams } = await sb.from('teams').select('id').eq('is_active', true).order('id')
+  
+  if (!activeTeams || activeTeams.length < 4) {
+    alert('Trenger minst 4 aktive lag for å generere FC26-kamper')
+    return
+  }
+  
+  if (!confirm('Dette vil slette eksisterende FC26-kamper og lage nye. Fortsette?')) return
+  
+  // Delete existing
+  await sb.from('activity_fc26').delete().gte('id', 0)
+  
+  // Generate round-robin fixtures for first 4 active teams
+  const teamIds = activeTeams.slice(0, 4).map(t => t.id)
+  const fixtures = []
+  let matchNum = 1
+  
+  for (let i = 0; i < teamIds.length; i++) {
+    for (let j = i + 1; j < teamIds.length; j++) {
+      fixtures.push({
+        match_num: matchNum++,
+        home_team_id: teamIds[i],
+        away_team_id: teamIds[j],
+        home_score: null,
+        away_score: null
+      })
+    }
+  }
+  
+  const { error } = await sb.from('activity_fc26').insert(fixtures)
+  
+  if (error) {
+    alert('Kunne ikke generere kamper: ' + error.message)
+    return
+  }
+  
+  alert(`${fixtures.length} FC26-kamper generert!`)
+  await loadFC26Data()
+}
+
+async function saveFC26Match(matchNum) {
   const homeScore = document.getElementById(`fc26-match${matchNum}-home`).value
   const awayScore = document.getElementById(`fc26-match${matchNum}-away`).value
   
@@ -2183,18 +2208,13 @@ async function saveFC26Match(matchNum, homeTeamName, awayTeamName) {
     return
   }
   
-  const homeTeam = fc26Teams[homeTeamName]
-  const awayTeam = fc26Teams[awayTeamName]
-  
   const { error } = await sb
     .from('activity_fc26')
-    .upsert({
-      match_num: matchNum,
-      home_team_id: homeTeam?.id || null,
-      away_team_id: awayTeam?.id || null,
+    .update({
       home_score: parseInt(homeScore),
       away_score: parseInt(awayScore)
-    }, { onConflict: 'match_num' })
+    })
+    .eq('match_num', matchNum)
   
   if (error) {
     alert('Kunne ikke lagre: ' + error.message)
@@ -2209,7 +2229,7 @@ async function saveFC26Match(matchNum, homeTeamName, awayTeamName) {
 async function resetFC26Match(matchNum) {
   if (!confirm(`Nullstille kamp ${matchNum}?`)) return
   
-  await sb.from('activity_fc26').delete().eq('match_num', matchNum)
+  await sb.from('activity_fc26').update({ home_score: null, away_score: null }).eq('match_num', matchNum)
   
   document.getElementById(`fc26-match${matchNum}-home`).value = ''
   document.getElementById(`fc26-match${matchNum}-away`).value = ''
@@ -2223,7 +2243,8 @@ async function resetAllFC26() {
   if (!confirm('⚠️ Er du HELT sikker på at du vil nullstille ALLE FC26-resultater?')) return
   if (!confirm('Dette kan ikke angres. Fortsette?')) return
   
-  await sb.from('activity_fc26').delete().neq('id', 0)
+  // Set all scores to NULL (keep fixtures)
+  await sb.from('activity_fc26').update({ home_score: null, away_score: null }).gte('id', 0)
   
   alert('Alle FC26-resultater nullstilt!')
   await loadFC26Data()

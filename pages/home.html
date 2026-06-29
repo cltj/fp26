@@ -793,24 +793,6 @@ const ORAKEL_FASIT = {
 // FC26 placement points
 const FC26_PLACEMENT_POINTS = { 1: 9, 2: 7, 3: 4, 4: 1 }
 
-// Generate round-robin fixtures from teams
-function generateFC26Fixtures(teamsList) {
-  const fixtures = []
-  if (teamsList.length < 2) return fixtures
-  
-  let matchNum = 1
-  for (let i = 0; i < teamsList.length; i++) {
-    for (let j = i + 1; j < teamsList.length; j++) {
-      fixtures.push({
-        match_num: matchNum++,
-        home: teamsList[i].team_name,
-        away: teamsList[j].team_name
-      })
-    }
-  }
-  return fixtures
-}
-
 function calculateOrakelPoints(prediction) {
   let points = 0
   // Eksakt resultat: 5 poeng
@@ -830,22 +812,25 @@ function calculateOrakelPoints(prediction) {
   return points
 }
 
-function calculateFC26Standings(matches, teamsMap) {
+function calculateFC26Standings(matches) {
+  // Build standings directly from matches (using home_team_id, away_team_id)
   const standings = {}
-  const teamsList = Object.values(teamsMap)
-  const fc26Fixtures = generateFC26Fixtures(teamsList)
-  
-  teamsList.forEach(t => {
-    standings[t.team_name] = { team_id: t.id, points: 0, gf: 0, ga: 0 }
-  })
   
   matches.forEach(match => {
-    if (match.home_score === null || match.away_score === null) return
-    const fixture = fc26Fixtures.find(f => f.match_num === match.match_num)
-    if (!fixture || !standings[fixture.home] || !standings[fixture.away]) return
+    if (!match.home_team_id || !match.away_team_id) return
     
-    const home = standings[fixture.home]
-    const away = standings[fixture.away]
+    // Initialize teams if not yet done
+    if (!standings[match.home_team_id]) {
+      standings[match.home_team_id] = { team_id: match.home_team_id, points: 0, gf: 0, ga: 0 }
+    }
+    if (!standings[match.away_team_id]) {
+      standings[match.away_team_id] = { team_id: match.away_team_id, points: 0, gf: 0, ga: 0 }
+    }
+    
+    if (match.home_score === null || match.away_score === null) return
+    
+    const home = standings[match.home_team_id]
+    const away = standings[match.away_team_id]
     home.gf += match.home_score
     home.ga += match.away_score
     away.gf += match.away_score
@@ -882,10 +867,6 @@ async function loadMiniScoreboard() {
     return
   }
   
-  // Build team map for FC26 calculation
-  const teamsMap = {}
-  teamsData.forEach(t => teamsMap[t.team_name] = t)
-  
   // Calculate scores from source tables
   const scoreMap = {}
   teamsData.forEach(t => scoreMap[t.id] = { fotball: 0, orakel: 0, fc26: 0 })
@@ -911,9 +892,9 @@ async function loadMiniScoreboard() {
   }
   
   // 3. FC26 points from activity_fc26 standings
-  const { data: fc26Data } = await sb.from('activity_fc26').select('match_num, home_score, away_score')
+  const { data: fc26Data } = await sb.from('activity_fc26').select('match_num, home_team_id, away_team_id, home_score, away_score')
   if (fc26Data && fc26Data.length > 0) {
-    const fc26Points = calculateFC26Standings(fc26Data, teamsMap)
+    const fc26Points = calculateFC26Standings(fc26Data)
     Object.keys(fc26Points).forEach(teamId => {
       const id = parseInt(teamId)
       if (scoreMap[id]) {
