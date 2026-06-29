@@ -446,7 +446,10 @@
     <span class="event-title">👑 Admin Panel</span>
     <span class="admin-badge">Admin Only</span>
   </div>
-  <a href="home.html" class="back-btn">← Tilbake</a>
+  <div style="display: flex; gap: 8px;">
+    <a href="home.html" class="back-btn" style="background: rgba(200,244,90,0.15); border-color: rgba(200,244,90,0.4); color: #c8f45a;">👁 Se som deltaker</a>
+    <button class="back-btn" onclick="logout()">Logg ut</button>
+  </div>
 </header>
 
 <main id="main-content" style="display: none;">
@@ -1027,6 +1030,11 @@ function showStatus(panel, type, message) {
     el.textContent = message
     setTimeout(() => { el.className = 'status-msg' }, 3000)
   }
+}
+
+function logout() {
+  localStorage.removeItem('fp26_session')
+  window.location.href = '../index.html'
 }
 </script>
 

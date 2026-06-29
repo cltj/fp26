@@ -169,7 +169,12 @@ let participants = []
 // Check if already logged in
 const session = JSON.parse(localStorage.getItem('fp26_session') || 'null')
 if (session && session.name) {
-  window.location.href = 'pages/home.html'
+  // Redirect admin to admin page, others to home
+  if (session.isAdmin) {
+    window.location.href = 'pages/admin.html'
+  } else {
+    window.location.href = 'pages/home.html'
+  }
 }
 
 async function loadParticipants() {
@@ -212,8 +217,12 @@ async function selectCharacter(participantId) {
   }
   localStorage.setItem('fp26_session', JSON.stringify(sessionData))
   
-  // Redirect to home
-  window.location.href = 'pages/home.html'
+  // Redirect admin to admin page, others to home
+  if (sessionData.isAdmin) {
+    window.location.href = 'pages/admin.html'
+  } else {
+    window.location.href = 'pages/home.html'
+  }
 }
 
 // Render character grid
