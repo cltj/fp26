@@ -1804,7 +1804,7 @@ async function resetGame() {
   try {
     // Delete all activity data
     await sb.from('activity_quiz').delete().neq('id', 0)
-    await sb.from('activity_fotball').delete().neq('id', 0)
+    await sb.from('activity_fotball').delete().neq('exercise', '')
     await sb.from('activity_predictions').delete().neq('id', 0)
     await sb.from('activity_fc26').delete().neq('id', 0)
     
@@ -2022,7 +2022,7 @@ async function resetAllFotball() {
   if (!confirm('Dette kan ikke angres. Fortsette?')) return
   
   // Delete all fotball results
-  const { error } = await sb.from('activity_fotball').delete().gte('id', 0)
+  const { error } = await sb.from('activity_fotball').delete().neq('exercise', '')
   
   if (error) {
     alert('Kunne ikke nullstille: ' + error.message)
