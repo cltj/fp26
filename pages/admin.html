@@ -492,15 +492,22 @@
   <div id="panel-match" class="panel active">
     <div class="section-card">
       <h3>⚽ Kampoppsett</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Velg lagene som spiller i kampen. Norge kan være hjemme- eller bortelag.
+      </p>
       <div class="form-row">
         <label>Hjemmelag</label>
-        <input type="text" id="home-team" placeholder="Norge">
-        <input type="text" id="home-icon" placeholder="🇳🇴" style="max-width: 60px;">
+        <select id="home-team-select" onchange="onTeamSelect('home')">
+          <option value="">Velg lag...</option>
+        </select>
+        <input type="text" id="home-icon" placeholder="🇳🇴" style="max-width: 60px;" readonly>
       </div>
       <div class="form-row">
         <label>Bortelag</label>
-        <input type="text" id="away-team" placeholder="Frankrike">
-        <input type="text" id="away-icon" placeholder="🇫🇷" style="max-width: 60px;">
+        <select id="away-team-select" onchange="onTeamSelect('away')">
+          <option value="">Velg lag...</option>
+        </select>
+        <input type="text" id="away-icon" placeholder="🇫🇷" style="max-width: 60px;" readonly>
       </div>
       <div class="form-row">
         <label>Avspark</label>
@@ -511,6 +518,21 @@
         <button class="btn btn-primary" onclick="saveMatchup()">Lagre kampoppsett</button>
       </div>
       <div id="match-status" class="status-msg"></div>
+    </div>
+    
+    <div class="section-card">
+      <h3>🌍 Tilgjengelige lag</h3>
+      <p style="font-size: 12px; color: var(--muted); margin-bottom: 1rem;">
+        Legg til eller fjern nasjonale lag som kan delta i kamper.
+      </p>
+      <div id="national-teams-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem;">
+        <!-- Populated by JS -->
+      </div>
+      <div class="form-row">
+        <input type="text" id="new-team-name" placeholder="Nytt lag (f.eks. Sverige)">
+        <input type="text" id="new-team-flag" placeholder="🇸🇪" style="max-width: 60px;">
+        <button class="btn btn-primary btn-sm" onclick="addNationalTeam()">+ Legg til</button>
+      </div>
     </div>
   </div>
   
@@ -851,17 +873,128 @@ async function updateResourceTeams(resourceId, newTeamIds) {
   showStatus('resources', error ? 'error' : 'success', error ? error.message : 'Oppdatert!')
 }
 
+// Default national teams (can be extended by admin)
+const DEFAULT_NATIONAL_TEAMS = [
+  { name: 'Norge', flag: '🇳🇴' },
+  { name: 'Frankrike', flag: '🇫🇷' },
+  { name: 'Sverige', flag: '🇸🇪' },
+  { name: 'Danmark', flag: '🇩🇰' },
+  { name: 'Tyskland', flag: '🇩🇪' },
+  { name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { name: 'Spania', flag: '🇪🇸' },
+  { name: 'Italia', flag: '🇮🇹' },
+  { name: 'Nederland', flag: '🇳🇱' },
+  { name: 'Portugal', flag: '🇵🇹' },
+  { name: 'Belgia', flag: '🇧🇪' },
+  { name: 'Kroatia', flag: '🇭🇷' },
+  { name: 'Polen', flag: '🇵🇱' },
+  { name: 'Østerrike', flag: '🇦🇹' },
+  { name: 'Sveits', flag: '🇨🇭' }
+]
+
+function getNationalTeams() {
+  const stored = localStorage.getItem('fp26_national_teams')
+  if (stored) {
+    return JSON.parse(stored)
+  }
+  // Initialize with defaults
+  localStorage.setItem('fp26_national_teams', JSON.stringify(DEFAULT_NATIONAL_TEAMS))
+  return DEFAULT_NATIONAL_TEAMS
+}
+
+function saveNationalTeams(teams) {
+  localStorage.setItem('fp26_national_teams', JSON.stringify(teams))
+}
+
+function renderNationalTeams() {
+  const nationalTeams = getNationalTeams()
+  const container = document.getElementById('national-teams-list')
+  
+  container.innerHTML = nationalTeams.map((t, i) => `
+    <span class="team-chip" style="display: flex; align-items: center; gap: 4px;">
+      ${t.flag} ${t.name}
+      <span onclick="removeNationalTeam(${i})" style="cursor: pointer; opacity: 0.5; margin-left: 4px;">×</span>
+    </span>
+  `).join('')
+  
+  // Also update the dropdowns
+  populateTeamDropdowns()
+}
+
+function populateTeamDropdowns() {
+  const nationalTeams = getNationalTeams()
+  const homeSelect = document.getElementById('home-team-select')
+  const awaySelect = document.getElementById('away-team-select')
+  
+  const options = nationalTeams.map(t => `<option value="${t.name}" data-flag="${t.flag}">${t.flag} ${t.name}</option>`).join('')
+  
+  homeSelect.innerHTML = '<option value="">Velg lag...</option>' + options
+  awaySelect.innerHTML = '<option value="">Velg lag...</option>' + options
+}
+
+function onTeamSelect(position) {
+  const select = document.getElementById(`${position}-team-select`)
+  const iconInput = document.getElementById(`${position}-icon`)
+  const selectedOption = select.options[select.selectedIndex]
+  
+  if (selectedOption && selectedOption.dataset.flag) {
+    iconInput.value = selectedOption.dataset.flag
+  } else {
+    iconInput.value = ''
+  }
+}
+
+function addNationalTeam() {
+  const nameInput = document.getElementById('new-team-name')
+  const flagInput = document.getElementById('new-team-flag')
+  
+  const name = nameInput.value.trim()
+  const flag = flagInput.value.trim()
+  
+  if (!name) {
+    showStatus('match', 'error', 'Skriv inn et lagnavn')
+    return
+  }
+  
+  const nationalTeams = getNationalTeams()
+  
+  // Check if already exists
+  if (nationalTeams.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+    showStatus('match', 'error', 'Laget finnes allerede')
+    return
+  }
+  
+  nationalTeams.push({ name, flag: flag || '🏳️' })
+  saveNationalTeams(nationalTeams)
+  
+  nameInput.value = ''
+  flagInput.value = ''
+  
+  renderNationalTeams()
+  showStatus('match', 'success', `${name} lagt til!`)
+}
+
+function removeNationalTeam(index) {
+  const nationalTeams = getNationalTeams()
+  const removed = nationalTeams.splice(index, 1)[0]
+  saveNationalTeams(nationalTeams)
+  renderNationalTeams()
+  showStatus('match', 'success', `${removed.name} fjernet`)
+}
+
 async function loadMatchup() {
-  // Try new table structure first
+  // First render national teams UI
+  renderNationalTeams()
+  
+  // Then load current matchup from DB
   let { data, error } = await sb.from('matchup').select('*')
   
   if (!error && data && data.length > 0) {
-    // New structure: separate rows for home/away
     const home = data.find(m => m.position === 'home')
     const away = data.find(m => m.position === 'away')
     
     if (home) {
-      document.getElementById('home-team').value = home.team_name || ''
+      document.getElementById('home-team-select').value = home.team_name || ''
       document.getElementById('home-icon').value = home.team_icon || ''
       if (home.match_kickoff) {
         document.getElementById('match-kickoff').value = 
@@ -869,43 +1002,35 @@ async function loadMatchup() {
       }
     }
     if (away) {
-      document.getElementById('away-team').value = away.team_name || ''
+      document.getElementById('away-team-select').value = away.team_name || ''
       document.getElementById('away-icon').value = away.team_icon || ''
-    }
-  } else {
-    // Fallback to old table structure
-    const { data: oldData } = await sb.from('matchups').select('*').limit(1).single()
-    if (oldData) {
-      document.getElementById('home-team').value = oldData.home_team || ''
-      document.getElementById('away-team').value = oldData.away_team || ''
-      // Old structure doesn't have icons or kickoff time
     }
   }
 }
 
 async function saveMatchup() {
-  const homeTeam = document.getElementById('home-team').value
+  const homeSelect = document.getElementById('home-team-select')
+  const homeTeam = homeSelect.value
   const homeIcon = document.getElementById('home-icon').value
-  const awayTeam = document.getElementById('away-team').value
+  const awaySelect = document.getElementById('away-team-select')
+  const awayTeam = awaySelect.value
   const awayIcon = document.getElementById('away-icon').value
   const kickoff = document.getElementById('match-kickoff').value
   
-  // Try new table first
-  let { error } = await sb.from('matchup').upsert([
+  if (!homeTeam || !awayTeam) {
+    showStatus('match', 'error', 'Velg begge lagene')
+    return
+  }
+  
+  if (homeTeam === awayTeam) {
+    showStatus('match', 'error', 'Hjemme- og bortelag kan ikke være samme lag')
+    return
+  }
+  
+  const { error } = await sb.from('matchup').upsert([
     { position: 'home', team_name: homeTeam, team_icon: homeIcon, match_kickoff: kickoff || null },
     { position: 'away', team_name: awayTeam, team_icon: awayIcon, match_kickoff: kickoff || null }
   ], { onConflict: 'position' })
-  
-  if (error) {
-    // Fallback to old table
-    const { error: oldError } = await sb.from('matchups').upsert({
-      id: 1,
-      match_name: `${homeTeam} vs ${awayTeam}`,
-      home_team: homeTeam,
-      away_team: awayTeam
-    }, { onConflict: 'id' })
-    error = oldError
-  }
   
   showStatus('match', error ? 'error' : 'success', error ? error.message : 'Kampoppsett lagret!')
 }
